@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אפליקציית האוטובוסים - מרכז הורדות</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --hover-color: #2980b9;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --text-muted: #7f8c8d;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 2rem 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        header p {
+            margin: 10px 0 0 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .latest-release {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+            border-top: 5px solid var(--secondary-color);
+        }
+
+        .latest-release h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-size: 2rem;
+        }
+
+        .tag-badge {
+            display: inline-block;
+            background-color: #e8f4fd;
+            color: var(--secondary-color);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+            margin: 20px 0;
+        }
+
+        .download-btn:hover {
+            background-color: var(--hover-color);
+            transform: translateY(-2px);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .history-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .history-section h3 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-info strong {
+            display: block;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .history-info span {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .history-download {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .history-downloads-count {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            background-color: #f0f0f0;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+
+        .history-btn {
+            background-color: white;
+            color: var(--secondary-color);
+            border: 1px solid var(--secondary-color);
+            padding: 8px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .history-btn:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        .error {
+            text-align: center;
+            padding: 20px;
+            background-color: #fee;
+            color: #c0392b;
+            border-radius: 8px;
+            border: 1px solid #fadbd8;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>אפליקציית האוטובוסים</h1>
+        <p>הורד את הגרסה העדכנית ביותר בקלות ובמהירות</p>
+    </header>
+
+    <div class="container">
+        <div id="content-area">
+            <div class="loading">טוען נתונים משרתי גיטהאב...</div>
+        </div>
+    </div>
+
+    <script>
+        const username = 'moovitdos';
+        const repo = 'moovidos';
+        const apiUrl = `https://api.github.com/repos/${username}/${repo}/releases`;
+
+        // פונקציה שמחפשת קובץ APK בתוך הנכסים של הרליס
+        function findApkAsset(assets) {
+            return assets.find(asset => asset.name.endsWith('.apk'));
+        }
+
+        // פונקציה לעיצוב תאריך
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('he-IL', options);
+        }
+
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('שגיאה בגישה לנתונים.');
+                }
+                return response.json();
+            })
+            .then(releases => {
+                const contentArea = document.getElementById('content-area');
+                
+                if (releases.length === 0) {
+                    contentArea.innerHTML = '<div class="error">טרם פורסמו גרסאות להורדה.</div>';
+                    return;
+                }
+
+                // הגרסה האחרונה היא תמיד הראשונה במערך שחוזר מה-API
+                const latestRelease = releases[0];
+                const latestApk = findApkAsset(latestRelease.assets);
+                
+                let html = '';
+
+                // בניה של אזור הגרסה האחרונה
+                if (latestApk) {
+                    html += `
+                        <div class="latest-release">
+                            <span class="tag-badge">הגרסה המומלצת ביותר</span>
+                            <h2>${latestRelease.name || latestRelease.tag_name}</h2>
+                            <p>${latestRelease.body || 'עדכון זה כולל שיפורים ופתרון תקלות.'}</p>
+                            
+                            <a href="${latestApk.browser_download_url}" class="download-btn">
+                                הורד קובץ APK (${(latestApk.size / (1024 * 1024)).toFixed(1)} MB)
+                            </a>
+                            
+                            <div class="stats">
+                                <div class="stat-item">
+                                    <span class="stat-value">${latestApk.download_count}</span>
+                                    <span class="stat-label">הורדות לגרסה זו</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">${formatDate(latestRelease.published_at)}</span>
+                                    <span class="stat-label">תאריך שחרור</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value">${latestRelease.tag_name}</span>
+                                    <span class="stat-label">מספר גרסה</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="latest-release">
+                            <h2>${latestRelease.name || latestRelease.tag_name}</h2>
+                            <div class="error">לא נמצא קובץ APK בגרסה זו.</div>
+                        </div>
+                    `;
+                }
+
+                // בניה של אזור היסטוריית הגרסאות (אם יש יותר מגרסה אחת)
+                if (releases.length > 1) {
+                    html += `
+                        <div class="history-section">
+                            <h3>היסטוריית גרסאות קודמות</h3>
+                            <ul class="history-list">
+                    `;
+
+                    // מעבר על כל שאר הגרסאות (מדלגים על הראשונה)
+                    for (let i = 1; i < releases.length; i++) {
+                        const release = releases[i];
+                        const apk = findApkAsset(release.assets);
+                        
+                        if (apk) {
+                            html += `
+                                <li class="history-item">
+                                    <div class="history-info">
+                                        <strong>${release.name || release.tag_name}</strong>
+                                        <span>פורסם ב: ${formatDate(release.published_at)}</span>
+                                    </div>
+                                    <div class="history-download">
+                                        <span class="history-downloads-count">${apk.download_count} הורדות</span>
+                                        <a href="${apk.browser_download_url}" class="history-btn">הורד</a>
+                                    </div>
+                                </li>
+                            `;
+                        }
+                    }
+
+                    html += `
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                contentArea.innerHTML = html;
+            })
+            .catch(error => {
+                document.getElementById('content-area').innerHTML = `
+                    <div class="error">
+                        אירעה שגיאה בטעינת הנתונים: ${error.message}
+                    </div>
+                `;
+            });
+    </script>
+</body>
+</html>
