@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>הורדת אפליקציית האוטובוסים</title>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --primary-bg: #f3f6fc;
@@ -47,7 +48,6 @@
             z-index: 10;
         }
 
-        /* עיצוב הלוגו הראשי */
         .app-logo {
             width: 120px;
             height: 120px;
@@ -56,7 +56,7 @@
             margin-bottom: 20px;
             border: 4px solid var(--card-bg);
             object-fit: cover;
-            background-color: var(--primary-bg); /* רקע במקרה של שקיפות */
+            background-color: var(--primary-bg);
         }
 
         header h1 {
@@ -75,62 +75,47 @@
             font-weight: 300;
         }
 
-        /* אזור גלריית צילומי המסך */
-        .gallery-section {
-            width: 100%;
-            background-color: var(--card-bg);
-            padding: 30px 0;
-            border-bottom: 1px solid var(--border-light);
-            overflow: hidden;
-            display: none; /* יוסתר כברירת מחדל עד שיטענו התמונות */
-        }
-
-        .gallery-container {
-            max-width: 900px;
-            margin: 0 auto;
-            overflow-x: auto;
-            white-space: nowrap;
-            padding: 10px 20px 20px 20px;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .gallery-container::-webkit-scrollbar {
-            height: 8px;
-        }
-        .gallery-container::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 10px;
-        }
-        .gallery-container::-webkit-scrollbar-track {
-            background-color: var(--primary-bg);
-            border-radius: 10px;
-        }
-
-        .gallery-img {
-            display: inline-block;
-            height: 400px;
-            margin-left: 15px;
-            border-radius: 18px;
-            border: 2px solid var(--border-light);
-            box-shadow: var(--shadow-md);
-            transition: transform 0.2s ease;
-            object-fit: cover;
-            background-color: var(--primary-bg);
-        }
-
-        .gallery-img:last-child {
-            margin-left: 0;
-        }
-
-        .gallery-img:hover {
-            transform: scale(1.02);
-        }
-
         .container {
             width: 100%;
             max-width: 700px;
-            padding: 40px 20px;
+            padding: 40px 20px 0 20px; /* הוסר הריווח התחתון כדי לחבר לגלריה */
             flex-grow: 1;
+        }
+
+        /* עיצוב עבור תוכן ה-README */
+        .readme-section {
+            background-color: var(--card-bg);
+            border-radius: 24px;
+            padding: 35px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 40px;
+            border: 1px solid var(--border-light);
+            display: none; /* מוסתר עד שהטקסט נטען */
+        }
+
+        .readme-section h1, .readme-section h2, .readme-section h3 {
+            color: var(--accent-color);
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+
+        .readme-section h1 { font-size: 1.8rem; }
+        .readme-section h2 { font-size: 1.5rem; }
+        .readme-section h3 { font-size: 1.2rem; }
+
+        .readme-section p {
+            margin-bottom: 15px;
+            color: var(--text-main);
+        }
+
+        .readme-section ul, .readme-section ol {
+            margin-bottom: 15px;
+            padding-right: 25px; /* יישור לימין לעברית */
+            color: var(--text-main);
+        }
+
+        .readme-section li {
+            margin-bottom: 5px;
         }
 
         /* כרטיס גרסה ראשית */
@@ -246,6 +231,7 @@
         /* רשימת גרסאות קודמות */
         .history-section {
             margin-top: 20px;
+            margin-bottom: 40px;
         }
 
         .history-section h3 {
@@ -322,6 +308,64 @@
             color: white;
         }
 
+        /* אזור גלריית צילומי המסך - עכשיו למטה */
+        .gallery-section {
+            width: 100%;
+            background-color: transparent;
+            padding: 20px 0 60px 0;
+            overflow: hidden;
+            display: none; /* יוסתר כברירת מחדל עד שיטענו התמונות */
+        }
+
+        .gallery-title {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .gallery-container {
+            max-width: 900px;
+            margin: 0 auto;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px 20px 20px 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .gallery-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .gallery-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+        }
+        .gallery-container::-webkit-scrollbar-track {
+            background-color: var(--primary-bg);
+            border-radius: 10px;
+        }
+
+        .gallery-img {
+            display: inline-block;
+            height: 400px;
+            margin-left: 15px;
+            border-radius: 18px;
+            border: 2px solid var(--border-light);
+            box-shadow: var(--shadow-md);
+            transition: transform 0.2s ease;
+            object-fit: cover;
+            background-color: var(--primary-bg);
+        }
+
+        .gallery-img:last-child {
+            margin-left: 0;
+        }
+
+        .gallery-img:hover {
+            transform: scale(1.02);
+        }
+
         .loading, .error {
             text-align: center;
             padding: 60px;
@@ -351,48 +395,18 @@
         }
 
         @media (max-width: 600px) {
-            header {
-                padding: 40px 20px;
-            }
-            .app-logo {
-                width: 100px;
-                height: 100px;
-                border-radius: 22px;
-            }
-            header h1 {
-                font-size: 2rem;
-            }
-            .gallery-img {
-                height: 300px;
-            }
-            .container {
-                padding: 20px;
-            }
-            .hero-card {
-                padding: 30px 20px;
-            }
-            .version-title {
-                font-size: 1.8rem;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-                padding-top: 25px;
-                margin-top: 25px;
-            }
-            .stat-value {
-                font-size: 1.3rem;
-            }
-            .history-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-                padding: 20px;
-            }
-            .history-action {
-                width: 100%;
-                justify-content: space-between;
-            }
+            header { padding: 40px 20px; }
+            .app-logo { width: 100px; height: 100px; border-radius: 22px; }
+            header h1 { font-size: 2rem; }
+            .container { padding: 20px; }
+            .readme-section { padding: 25px 20px; }
+            .hero-card { padding: 30px 20px; }
+            .version-title { font-size: 1.8rem; }
+            .stats-grid { grid-template-columns: 1fr; gap: 20px; padding-top: 25px; margin-top: 25px; }
+            .stat-value { font-size: 1.3rem; }
+            .history-item { flex-direction: column; align-items: flex-start; gap: 15px; padding: 20px; }
+            .history-action { width: 100%; justify-content: space-between; }
+            .gallery-img { height: 300px; }
         }
     </style>
 </head>
@@ -404,16 +418,19 @@
         <p>זמני תחבורה ציבורית בזמן אמת, תכנון מסלול חכם ומידע מקיף - הכל במקום אחד.</p>
     </header>
 
-    <section class="gallery-section" id="gallery-section">
-        <div class="gallery-container" id="gallery-container">
-            </div>
-    </section>
-
     <div class="container">
+        <div id="readme-section" class="readme-section"></div>
+
         <div id="content-area">
             <div class="loading">מתחבר לשרת ומאמת נתונים...</div>
         </div>
     </div>
+
+    <section class="gallery-section" id="gallery-section">
+        <h3 class="gallery-title">הצצה לאפליקציה</h3>
+        <div class="gallery-container" id="gallery-container">
+            </div>
+    </section>
 
     <footer>
         <p>&copy; 2024 Moovitdos. כל הזכויות שמורות.</p>
@@ -425,6 +442,30 @@
         const repo = 'moovidos';
         const releasesApiUrl = `https://api.github.com/repos/${username}/${repo}/releases`;
         const screenshotsApiUrl = `https://api.github.com/repos/${username}/${repo}/contents/screenshots`;
+        
+        // כתובת הגישה הישירה לקובץ ה-README הפתוח לקריאה
+        const readmeRawUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/README.md`;
+
+        // --- פונקציה לשאיבת טקסט ה-README ---
+        function loadReadme() {
+            fetch(readmeRawUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('README file not found');
+                    return response.text();
+                })
+                .then(text => {
+                    // מוודא שהטקסט לא ריק
+                    if (text.trim().length > 0) {
+                        const readmeSection = document.getElementById('readme-section');
+                        // המרת ה-Markdown ל-HTML והזרקה לתוך הדף
+                        readmeSection.innerHTML = marked.parse(text);
+                        readmeSection.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.log('No README.md found, section will remain hidden.');
+                });
+        }
 
         // --- פונקציה לשאיבת התמונות מהתיקייה ---
         function loadScreenshots() {
@@ -434,7 +475,6 @@
                     return response.json();
                 })
                 .then(files => {
-                    // סינון רק של קבצי תמונה
                     const imageFiles = files.filter(file => file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i));
                     
                     if (imageFiles.length > 0) {
@@ -443,13 +483,12 @@
                         
                         imageFiles.forEach(file => {
                             const img = document.createElement('img');
-                            img.src = file.download_url; // לוקח את הקישור הישיר לתמונה מה-API
+                            img.src = file.download_url;
                             img.alt = file.name;
                             img.className = 'gallery-img';
                             galleryContainer.appendChild(img);
                         });
                         
-                        // מציג את אזור הגלריה ברגע שיש תמונות
                         gallerySection.style.display = 'block';
                     }
                 })
@@ -576,7 +615,8 @@
                 `;
             });
 
-        // הפעלת פונקציית טעינת התמונות כשהדף עולה
+        // הפעלת פונקציות הטעינה (תמונות וטקסט)
+        loadReadme();
         loadScreenshots();
     </script>
 </body>
