@@ -51,11 +51,12 @@
         .app-logo {
             width: 120px;
             height: 120px;
-            border-radius: 26px; /* Squircle appearance */
+            border-radius: 26px;
             box-shadow: 0 6px 16px rgba(0,0,0,0.12);
             margin-bottom: 20px;
             border: 4px solid var(--card-bg);
             object-fit: cover;
+            background-color: var(--primary-bg); /* רקע במקרה של שקיפות */
         }
 
         header h1 {
@@ -81,18 +82,18 @@
             padding: 30px 0;
             border-bottom: 1px solid var(--border-light);
             overflow: hidden;
+            display: none; /* יוסתר כברירת מחדל עד שיטענו התמונות */
         }
 
         .gallery-container {
             max-width: 900px;
             margin: 0 auto;
-            overflow-x: auto; /* מאפשר גלילה אופקית */
-            white-space: nowrap; /* שומר את התמונות בשורה אחת */
+            overflow-x: auto;
+            white-space: nowrap;
             padding: 10px 20px 20px 20px;
-            -webkit-overflow-scrolling: touch; /* גלילה חלקה ב-iOS */
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* עיצוב פס הגלילה */
         .gallery-container::-webkit-scrollbar {
             height: 8px;
         }
@@ -107,13 +108,14 @@
 
         .gallery-img {
             display: inline-block;
-            height: 400px; /* גובה קבוע לצילומי מסך */
-            margin-left: 15px; /* רווח בין התמונות (RTL) */
+            height: 400px;
+            margin-left: 15px;
             border-radius: 18px;
             border: 2px solid var(--border-light);
             box-shadow: var(--shadow-md);
             transition: transform 0.2s ease;
             object-fit: cover;
+            background-color: var(--primary-bg);
         }
 
         .gallery-img:last-child {
@@ -181,7 +183,7 @@
             font-size: 0.95rem;
             color: var(--text-secondary);
             border: 1px solid var(--border-light);
-            white-space: pre-wrap; /* שומר על ירידות שורה מה-Commit message */
+            white-space: pre-wrap;
         }
 
         .download-btn {
@@ -348,7 +350,6 @@
             margin-top: auto;
         }
 
-        /* התאמה למובייל */
         @media (max-width: 600px) {
             header {
                 padding: 40px 20px;
@@ -362,7 +363,7 @@
                 font-size: 2rem;
             }
             .gallery-img {
-                height: 300px; /* צילומי מסך קטנים יותר בנייד */
+                height: 300px;
             }
             .container {
                 padding: 20px;
@@ -398,18 +399,185 @@
 <body>
 
     <header>
-        <img src=https://github.com/moovitdos/moovidos/blob/main/ic_launcher.png alt="סמל אפליקציית האוטובוסים" class="app-logo">
+        <img src="logo.png" alt="סמל אפליקציית האוטובוסים" class="app-logo" onerror="this.style.display='none'">
         <h1>אפליקציית האוטובוסים</h1>
         <p>זמני תחבורה ציבורית בזמן אמת, תכנון מסלול חכם ומידע מקיף - הכל במקום אחד.</p>
     </header>
 
-    <section class="gallery-section">
-        <div class="gallery-container">
-            <img src="PLACEHOLDER_SCREENSHOT_1.png" alt="צילום מסך 1 - מסך ראשי" class="gallery-img">
-            <img src="PLACEHOLDER_SCREENSHOT_2.png" alt="צילום מסך 2 - תכנון מסלול" class="gallery-img">
-            <img src="PLACEHOLDER_SCREENSHOT_3.png" alt="צילום מסך 3 - מפת קווים" class="gallery-img">
-            <img src="PLACEHOLDER_SCREENSHOT_4.png" alt="צילום מסך 4 - לוח זמנים" class="gallery-img">
-        </div>
+    <section class="gallery-section" id="gallery-section">
+        <div class="gallery-container" id="gallery-container">
+            </div>
     </section>
 
     <div class="container">
+        <div id="content-area">
+            <div class="loading">מתחבר לשרת ומאמת נתונים...</div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Moovitdos. כל הזכויות שמורות.</p>
+        <p>האפליקציה מסופקת כפי שהיא (AS-IS) ללא אחריות.</p>
+    </footer>
+
+    <script>
+        const username = 'moovitdos';
+        const repo = 'moovidos';
+        const releasesApiUrl = `https://api.github.com/repos/${username}/${repo}/releases`;
+        const screenshotsApiUrl = `https://api.github.com/repos/${username}/${repo}/contents/screenshots`;
+
+        // --- פונקציה לשאיבת התמונות מהתיקייה ---
+        function loadScreenshots() {
+            fetch(screenshotsApiUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('No screenshots folder found');
+                    return response.json();
+                })
+                .then(files => {
+                    // סינון רק של קבצי תמונה
+                    const imageFiles = files.filter(file => file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i));
+                    
+                    if (imageFiles.length > 0) {
+                        const galleryContainer = document.getElementById('gallery-container');
+                        const gallerySection = document.getElementById('gallery-section');
+                        
+                        imageFiles.forEach(file => {
+                            const img = document.createElement('img');
+                            img.src = file.download_url; // לוקח את הקישור הישיר לתמונה מה-API
+                            img.alt = file.name;
+                            img.className = 'gallery-img';
+                            galleryContainer.appendChild(img);
+                        });
+                        
+                        // מציג את אזור הגלריה ברגע שיש תמונות
+                        gallerySection.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.log('Screenshots folder not found or empty, gallery will remain hidden.');
+                });
+        }
+
+        // --- פונקציות עזר לשחרורים ---
+        function findApkAsset(assets) {
+            return assets.find(asset => asset.name.endsWith('.apk'));
+        }
+
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('he-IL', options);
+        }
+
+        function getFileSizeBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // --- שאיבת נתוני הרליסים ---
+        fetch(releasesApiUrl)
+            .then(response => {
+                if (!response.ok) throw new Error('נכשל בניסיוּן למשוך נתונים מהשרת.');
+                return response.json();
+            })
+            .then(releases => {
+                const contentArea = document.getElementById('content-area');
+                
+                if (!releases || releases.length === 0) {
+                    contentArea.innerHTML = '<div class="error">לא נמצאו גרסאות זמינות להורדה כרגע.</div>';
+                    return;
+                }
+
+                const validReleases = releases.filter(release => findApkAsset(release.assets) !== undefined);
+
+                if (validReleases.length === 0) {
+                    contentArea.innerHTML = '<div class="error">לא נמצאו קבצי התקנה (APK) תקפים בשרת.</div>';
+                    return;
+                }
+
+                const latestRelease = validReleases[0];
+                const latestApk = findApkAsset(latestRelease.assets);
+                
+                let html = '';
+
+                // כרטיס הגרסה העדכנית ביותר
+                html += `
+                    <div class="hero-card">
+                        <span class="badge-latest">הגרסה העדכנית והמומלצת ביותר</span>
+                        <h2 class="version-title">${latestRelease.name || latestRelease.tag_name}</h2>
+                        
+                        <div class="release-notes">${latestRelease.body ? latestRelease.body : 'עדכון זה כולל שיפורי יציבות, ביצועים ותיקוני באגים.'}</div>
+                        
+                        <a href="${latestApk.browser_download_url}" class="download-btn">
+                            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            הורדה ישירה (APK, ${getFileSizeBytes(latestApk.size)})
+                        </a>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <span class="stat-value">${latestApk.download_count.toLocaleString()}</span>
+                                <span class="stat-label">הורדות</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-value">${formatDate(latestRelease.published_at)}</span>
+                                <span class="stat-label">תאריך שחרור</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-value" dir="ltr">${latestRelease.tag_name}</span>
+                                <span class="stat-label">מספר גרסה</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // אזור היסטוריית גרסאות קודמות
+                if (validReleases.length > 1) {
+                    html += `
+                        <div class="history-section">
+                            <h3>היסטוריית גרסאות</h3>
+                            <div class="history-list">
+                    `;
+
+                    for (let i = 1; i < validReleases.length; i++) {
+                        const release = validReleases[i];
+                        const apk = findApkAsset(release.assets);
+                        
+                        html += `
+                            <div class="history-item">
+                                <div class="history-details">
+                                    <strong dir="ltr">${release.name || release.tag_name}</strong>
+                                    <span>שחרור: ${formatDate(release.published_at)}</span>
+                                </div>
+                                <div class="history-action">
+                                    <span class="history-downloads">${apk.download_count.toLocaleString()} הורדות</span>
+                                    <a href="${apk.browser_download_url}" class="secondary-btn">הורד גרסה זו</a>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+
+                contentArea.innerHTML = html;
+            })
+            .catch(error => {
+                document.getElementById('content-area').innerHTML = `
+                    <div class="error">
+                        אירעה שגיאה בטעינת הנתונים.<br>
+                        אנא ודא שאתה מחובר לאינטרנט ונסה לרענן את העמוד.<br>
+                        <small dir="ltr">${error.message}</small>
+                    </div>
+                `;
+            });
+
+        // הפעלת פונקציית טעינת התמונות כשהדף עולה
+        loadScreenshots();
+    </script>
+</body>
+</html>
