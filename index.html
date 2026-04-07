@@ -3,30 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>הורדת אפליקציית האוטובוסים</title>
+    <title>הפתרון - אפליקציית התחבורה הציבורית לבעלי סים כשר</title>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            --primary-bg: #f8fafc;
-            --card-bg: #ffffff;
+            --primary-bg: #f0f4f8;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.5);
             --accent-color: #2563eb;
             --accent-hover: #1d4ed8;
             --text-main: #0f172a;
             --text-secondary: #475569;
-            --border-light: #e2e8f0;
+            --border-light: rgba(226, 232, 240, 0.8);
             --success-color: #059669;
-            --badge-bg: #d1fae5;
-            --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.08);
-            --shadow-hover: 0 20px 40px -10px rgba(37, 99, 235, 0.15);
-            --header-grad: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+            --badge-bg: rgba(209, 250, 229, 0.8);
+            --shadow-soft: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+            --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.05);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
         html {
@@ -38,514 +37,449 @@
             background-color: var(--primary-bg);
             color: var(--text-main);
             line-height: 1.6;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
         }
 
-        /* אנימציות */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Animated Background Blobs */
+        .bg-blobs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            filter: blur(80px);
         }
 
-        @keyframes pulseBtn {
-            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(37, 99, 235, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--accent-color);
+            opacity: 0.15;
+            animation: move 20s infinite alternate;
         }
 
-        .animate-up {
-            animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
+        .blob-1 {
+            width: 500px;
+            height: 500px;
+            top: -100px;
+            right: -100px;
+            background: #6366f1;
+        }
+
+        .blob-2 {
+            width: 400px;
+            height: 400px;
+            bottom: -50px;
+            left: -50px;
+            background: #2563eb;
+            animation-duration: 25s;
+        }
+
+        .blob-3 {
+            width: 300px;
+            height: 300px;
+            top: 40%;
+            left: 20%;
+            background: #38bdf8;
+            animation-duration: 30s;
+        }
+
+        @keyframes move {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(100px, 100px) scale(1.2); }
+        }
+
+        /* Glass Utility */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-soft);
         }
 
         header {
             width: 100%;
-            background: var(--header-grad);
-            padding: 60px 20px 40px 20px;
+            padding: 80px 20px 60px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-            border-bottom: 1px solid var(--border-light);
             position: relative;
         }
 
         .app-logo {
-            width: 130px;
-            height: 130px;
-            border-radius: 30px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            margin-bottom: 25px;
-            border: 4px solid var(--card-bg);
+            width: 140px;
+            height: 140px;
+            border-radius: 32px;
+            box-shadow: var(--shadow-premium);
+            margin-bottom: 30px;
+            border: 5px solid white;
             object-fit: cover;
-            background-color: var(--primary-bg);
-            transition: transform 0.3s ease;
-        }
-
-        .app-logo:hover {
-            transform: translateY(-5px);
         }
 
         header h1 {
-            font-size: 2.8rem;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 10px;
-            letter-spacing: -0.5px;
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1e293b 0%, #2563eb 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+            letter-spacing: -1px;
         }
 
         header p {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             color: var(--text-secondary);
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
-            font-weight: 300;
+            font-weight: 400;
         }
 
-        /* תגית סך כל ההורדות */
         .total-badge {
-            display: inline-block;
-            background: rgba(37, 99, 235, 0.08);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
             color: var(--accent-color);
-            padding: 10px 25px;
-            border-radius: 30px;
+            padding: 12px 28px;
+            border-radius: 100px;
             font-weight: 700;
-            font-size: 1.15rem;
-            margin-top: 25px;
-            border: 1px solid rgba(37, 99, 235, 0.15);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            font-size: 1.1rem;
+            margin-top: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-light);
         }
 
         .container {
             width: 100%;
-            max-width: 750px;
-            padding: 50px 20px 0 20px;
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 20px;
             flex-grow: 1;
         }
 
-        /* עיצוב עבור תוכן ה-README */
         .readme-section {
-            background-color: var(--card-bg);
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: var(--shadow-soft);
-            margin-bottom: 40px;
-            border: 1px solid var(--border-light);
-            display: none; 
-        }
-
-        .readme-section h1, .readme-section h2, .readme-section h3 {
-            color: var(--accent-color);
-            margin-top: 25px;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        .readme-section h1:first-child { margin-top: 0; }
-        .readme-section h1 { font-size: 2rem; border-bottom: 2px solid var(--border-light); padding-bottom: 10px;}
-        .readme-section h2 { font-size: 1.6rem; }
-        .readme-section p, .readme-section li {
-            color: var(--text-main);
-            font-size: 1.05rem;
-        }
-
-        .readme-section ul, .readme-section ol {
-            margin-bottom: 20px;
-            padding-right: 25px;
-        }
-
-        .readme-section li { margin-bottom: 8px; }
-
-        /* כרטיס גרסה ראשית */
-        .hero-card {
-            background-color: var(--card-bg);
             border-radius: 28px;
-            padding: 45px;
+            padding: 40px;
+            margin-bottom: 40px;
+            display: none;
+        }
+
+        .hero-card {
+            border-radius: 32px;
+            padding: 50px;
             text-align: center;
-            box-shadow: var(--shadow-soft);
-            margin-bottom: 50px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid var(--border-light);
-            transition: box-shadow 0.3s ease, transform 0.3s ease;
-            scroll-margin-top: 20px; /* מרווח מלמעלה בזמן קפיצה לעוגן */
+            margin-bottom: 60px;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .hero-card:hover {
-            box-shadow: var(--shadow-hover);
-            transform: translateY(-2px);
-        }
-
-        .hero-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 6px;
-            background: linear-gradient(90deg, var(--accent-color), #38bdf8);
+            transform: scale(1.01);
         }
 
         .badge-latest {
-            display: inline-block;
-            background-color: var(--badge-bg);
+            background: var(--badge-bg);
             color: var(--success-color);
-            padding: 8px 20px;
-            border-radius: 30px;
-            font-size: 0.95rem;
+            padding: 10px 24px;
+            border-radius: 100px;
+            font-size: 1rem;
             font-weight: 600;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
+            display: inline-block;
         }
 
         .version-title {
-            font-size: 2.4rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: var(--text-main);
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 25px;
         }
 
         .release-notes {
-            background-color: var(--primary-bg);
-            padding: 25px;
-            border-radius: 16px;
-            margin-bottom: 35px;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 30px;
+            border-radius: 24px;
+            margin-bottom: 40px;
             text-align: right;
-            font-size: 1rem;
-            color: var(--text-secondary);
-            border: 1px solid var(--border-light);
-            white-space: pre-wrap;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 1.1rem;
         }
 
         .download-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            background-color: var(--accent-color);
-            color: #ffffff !important;
+            gap: 15px;
+            background: var(--accent-color);
+            color: white !important;
             text-decoration: none;
-            padding: 22px 40px;
-            font-size: 1.3rem;
+            padding: 24px 50px;
+            font-size: 1.4rem;
             font-weight: 700;
-            border-radius: 16px;
+            border-radius: 20px;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 15px 35px rgba(37, 99, 235, 0.25);
             width: 100%;
-            animation: pulseBtn 2.5s infinite;
         }
 
         .download-btn:hover {
-            background-color: var(--accent-hover);
-            transform: translateY(-3px);
-            animation: none;
-            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.4);
-        }
-
-        .download-btn svg {
-            width: 28px;
-            height: 28px;
-            fill: currentColor;
+            background: var(--accent-hover);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 45px rgba(37, 99, 235, 0.35);
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 40px;
-            padding-top: 35px;
+            gap: 20px;
+            margin-top: 50px;
+            padding-top: 40px;
             border-top: 1px solid var(--border-light);
         }
 
-        .stat-box { text-align: center; }
-
         .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
             display: block;
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--text-main);
         }
 
         .stat-label {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--text-secondary);
-            margin-top: 5px;
+            font-weight: 600;
             text-transform: uppercase;
-            font-weight: 500;
-        }
-
-        /* רשימת גרסאות קודמות */
-        .history-section {
-            margin-bottom: 50px;
+            letter-spacing: 1px;
         }
 
         .history-section h3 {
-            font-size: 1.6rem;
-            margin-bottom: 25px;
-            color: var(--text-main);
-            font-weight: 700;
-        }
-
-        .history-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 30px;
         }
 
         .history-item {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 22px 25px;
+            border-radius: 24px;
+            padding: 25px 35px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid var(--border-light);
+            margin-bottom: 15px;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
 
         .history-item:hover {
-            transform: translateX(-5px);
-            box-shadow: var(--shadow-soft);
-            border-color: var(--accent-color);
-        }
-
-        .history-details strong {
-            display: block;
-            font-size: 1.2rem;
-            color: var(--text-main);
-            margin-bottom: 6px;
-        }
-
-        .history-details span {
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-        }
-
-        .history-action {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .history-downloads {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            background-color: var(--primary-bg);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: 500;
+            transform: scale(1.02);
+            background: rgba(255, 255, 255, 0.85);
         }
 
         .secondary-btn {
-            background-color: transparent;
             color: var(--accent-color);
             border: 2px solid var(--accent-color);
-            padding: 10px 24px;
-            border-radius: 12px;
+            padding: 12px 28px;
+            border-radius: 14px;
             text-decoration: none;
-            font-weight: 600;
-            font-size: 1rem;
+            font-weight: 700;
             transition: all 0.2s;
         }
 
         .secondary-btn:hover {
-            background-color: var(--accent-color);
-            color: #ffffff !important;
+            background: var(--accent-color);
+            color: white !important;
         }
 
-        /* אזור גלריית צילומי המסך */
         .gallery-section {
-            width: 100%;
-            background-color: transparent;
-            padding: 20px 0 70px 0;
-            overflow: hidden;
-            display: none; 
-        }
-
-        .gallery-title {
-            text-align: center;
-            font-size: 1.8rem;
-            margin-bottom: 30px;
-            color: var(--text-main);
-            font-weight: 700;
+            padding: 60px 0 100px;
+            display: none;
         }
 
         .gallery-container {
-            max-width: 1000px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+            padding: 20px;
+            max-width: 1200px;
             margin: 0 auto;
-            overflow-x: auto;
-            white-space: nowrap;
-            padding: 10px 20px 30px 20px;
-            -webkit-overflow-scrolling: touch;
         }
-
-        .gallery-container::-webkit-scrollbar { height: 10px; }
-        .gallery-container::-webkit-scrollbar-thumb { background-color: var(--text-secondary); border-radius: 10px; }
-        .gallery-container::-webkit-scrollbar-track { background-color: var(--border-light); border-radius: 10px; }
 
         .gallery-img {
-            display: inline-block;
-            height: 450px;
-            margin-left: 20px;
-            border-radius: 20px;
-            border: 1px solid var(--border-light);
-            box-shadow: var(--shadow-soft);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+            height: auto;
+            border-radius: 30px;
+            box-shadow: var(--shadow-premium);
+            transition: transform 0.3s;
             object-fit: cover;
-            background-color: var(--card-bg);
         }
 
-        .gallery-img:last-child { margin-left: 0; }
+        .gallery-img:hover { transform: scale(1.05); }
 
-        .gallery-img:hover {
-            transform: scale(1.03) translateY(-5px);
-            box-shadow: var(--shadow-hover);
+        footer {
+            margin-top: auto;
+            padding: 60px 20px;
+            text-align: center;
+            background: white;
+            border-top: 1px solid var(--border-light);
+            color: var(--text-secondary);
         }
 
-        /* כפתור צף להורדה */
         .fab-btn {
             position: fixed;
             bottom: 30px;
-            left: 30px; /* ממוקם בצד שמאל למטה */
-            background-color: var(--accent-color);
-            color: #ffffff !important;
-            padding: 16px 28px;
-            border-radius: 50px;
+            left: 30px;
+            background: var(--accent-color);
+            color: white !important;
+            padding: 18px 32px;
+            border-radius: 100px;
             text-decoration: none;
             font-weight: 700;
-            font-size: 1.15rem;
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+            font-size: 1.2rem;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+            z-index: 1000;
             display: flex;
             align-items: center;
             gap: 12px;
-            z-index: 1000;
-            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
-            opacity: 0;
-            animation: fadeInUp 0.5s ease 1s forwards; /* מופיע עם עיכוב קל */
+            transition: all 0.3s ease;
         }
 
         .fab-btn:hover {
-            transform: translateY(-5px) scale(1.03);
-            background-color: var(--accent-hover);
-            box-shadow: 0 15px 30px rgba(37, 99, 235, 0.5);
+            transform: scale(1.05) translateY(-5px);
+            background: var(--accent-hover);
         }
 
-        .fab-btn svg {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
+        /* Animation utilities */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
         }
 
-        .loading, .error {
-            text-align: center;
-            padding: 60px;
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            background-color: var(--card-bg);
-            border-radius: 24px;
-            border: 1px solid var(--border-light);
-            box-shadow: var(--shadow-soft);
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        .error {
-            color: #ef4444;
-            background-color: #fef2f2;
-            border-color: #fecaca;
+        @media (max-width: 768px) {
+            header h1 { font-size: 2.5rem; }
+            .hero-card { padding: 30px 20px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .history-item { flex-direction: column; text-align: center; gap: 20px; }
+            .fab-btn { width: 90%; left: 5%; bottom: 20px; justify-content: center; }
+            .navbar { display: none; } /* Hide navbar on mobile or make it simpler */
         }
 
-        footer {
+        /* Navbar Styling */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            text-align: center;
-            padding: 40px 20px 100px 20px; /* תוספת ריווח למטה שלא יסתיר את הכפתור הצף */
-            color: var(--text-secondary);
-            font-size: 1rem;
-            border-top: 1px solid var(--border-light);
-            background-color: var(--card-bg);
-            margin-top: auto;
+            z-index: 2000;
+            padding: 15px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        @media (max-width: 600px) {
-            header { padding: 50px 20px 40px; }
-            .app-logo { width: 100px; height: 100px; border-radius: 24px; }
-            header h1 { font-size: 2.2rem; }
-            .total-badge { font-size: 1rem; padding: 8px 20px; }
-            .container { padding: 20px 15px 0; }
-            .readme-section { padding: 30px 20px; }
-            .hero-card { padding: 35px 20px; }
-            .version-title { font-size: 2rem; }
-            .download-btn { padding: 18px 20px; font-size: 1.15rem; }
-            .stats-grid { grid-template-columns: 1fr; gap: 20px; }
-            .stat-value { font-size: 1.4rem; }
-            .history-item { flex-direction: column; align-items: flex-start; gap: 18px; padding: 20px; }
-            .history-action { width: 100%; justify-content: space-between; }
-            .gallery-img { height: 350px; }
-            .fab-btn {
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%); /* ממרכז את הכפתור בנייד */
-                width: 90%;
-                justify-content: center;
-            }
-            .fab-btn:hover {
-                transform: translateX(-50%) translateY(-3px);
-            }
-            @keyframes fadeInUp {
-                from { opacity: 0; transform: translateY(30px) translateX(0); }
-                to { opacity: 1; transform: translateY(0) translateX(0); }
-            }
-            /* התאמת האנימציה בנייד בגלל ה- translateX */
-            .fab-btn {
-                animation: mobileFabIn 0.5s ease 1s forwards;
-            }
-            @keyframes mobileFabIn {
-                from { opacity: 0; transform: translateY(30px) translateX(-50%); }
-                to { opacity: 1; transform: translateY(0) translateX(-50%); }
-            }
+        /* Integrated Badge next to text */
+        .download-badge {
+            display: none; 
+            background: rgba(37, 99, 235, 0.08); /* Subtle blue tint */
+            color: var(--accent-color) !important;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 100px;
+            font-weight: 700;
+            margin-right: 6px; /* Space from the text */
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            vertical-align: middle;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover .download-badge {
+            background: var(--accent-color);
+            color: white !important;
+        }
+
+        .navbar a {
+            display: inline-flex;
+            align-items: center;
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 8px 16px;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .navbar a:hover {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--accent-color);
+        }
+
+        html {
+            scroll-padding-top: 80px; /* Space for the fixed navbar */
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <img src="logo.png" alt="סמל אפליקציית האוטובוסים" class="app-logo animate-up" onerror="this.style.display='none'">
-        <h1 class="animate-up" style="animation-delay: 0.1s;">אפליקציית האוטובוסים</h1>
-        <p class="animate-up" style="animation-delay: 0.2s;">זמני תחבורה ציבורית בזמן אמת, תכנון מסלול חכם ומידע מקיף - הכל במקום אחד.</p>
-        
-        <div class="total-badge animate-up" style="animation-delay: 0.3s;">
-            סה"כ הורדות לאפליקציה: <span id="total-downloads-count">טוען...</span>
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <nav class="navbar glass">
+        <div class="nav-links">
+            <a href="#home">בית</a>
+            <a href="#readme-section">מידע</a>
+            <a href="#content-area">
+                הורדה
+                <span id="nav-total-chip" class="download-badge">...</span>
+            </a>
+            <a href="#gallery-section">גלריה</a>
         </div>
+    </nav>
+
+    <header id="home">
+        <img src="logo.png" alt="לוגו אפליקציית האוטובוסים" class="app-logo">
+        <h1 class="reveal">הפתרון - אפליקציית התחבורה הציבורית לבעלי סים כשר</h1>
+        <p class="reveal">מידע בזמן אמת, וזמני הגעה - הכל בחוויה אחת חלקה.</p>
     </header>
 
     <div class="container">
-        <div id="readme-section" class="readme-section animate-up" style="animation-delay: 0.4s;"></div>
+        <div id="readme-section" class="readme-section glass reveal"></div>
 
-        <div id="download-section" class="animate-up" style="animation-delay: 0.5s;">
-            <div id="content-area">
-                <div class="loading">מתחבר לשרת ומאמת נתונים...</div>
+        <div id="content-area">
+            <div class="loading reveal" style="text-align: center; padding: 100px;">
+                <svg width="50" height="50" viewBox="0 0 50 50" style="animation: spin 1s linear infinite;">
+                    <circle cx="25" cy="25" r="20" fill="none" stroke="#2563eb" stroke-width="5" stroke-dasharray="31.4" />
+                </svg>
+                <style> @keyframes spin { to { transform: rotate(360deg); } } </style>
             </div>
         </div>
     </div>
 
-    <section class="gallery-section animate-up" id="gallery-section" style="animation-delay: 0.6s;">
-        <h3 class="gallery-title">הצצה לאפליקציה</h3>
-        <div class="gallery-container" id="gallery-container">
-            </div>
+    <section class="gallery-section reveal" id="gallery-section">
+        <h3 style="text-align:center; font-size: 2rem; margin-bottom: 40px;">הצצה לאפליקציה</h3>
+        <div class="gallery-container" id="gallery-container"></div>
     </section>
 
     <footer>
-        <p>&copy; 2024 Moovitdos. כל הזכויות שמורות.</p>
-        <p>האפליקציה מסופקת כפי שהיא (AS-IS) ללא אחריות.</p>
+        <p>כל הזכויות שמורות</p>
     </footer>
 
-    <a href="#download-section" class="fab-btn">
-        להורדת הגרסה האחרונה
-        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+    <a href="#content-area" class="fab-btn">
+        <span>הורד עכשיו</span>
+        <svg fill="currentColor" width="24" height="24" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
     </a>
 
     <script>
-        // נתוני גיטהאב
         const username = 'moovitdos';
         const repo = 'moovidos';
         const releasesApiUrl = `https://api.github.com/repos/${username}/${repo}/releases`;
@@ -554,148 +488,113 @@
 
         function loadReadme() {
             fetch(readmeRawUrl)
-                .then(response => {
-                    if (!response.ok) throw new Error('README file not found');
-                    return response.text();
-                })
+                .then(r => r.text())
                 .then(text => {
-                    if (text.trim().length > 0) {
-                        const readmeSection = document.getElementById('readme-section');
-                        readmeSection.innerHTML = marked.parse(text);
-                        readmeSection.style.display = 'block';
+                    if (text.trim()) {
+                        const section = document.getElementById('readme-section');
+                        section.innerHTML = marked.parse(text);
+                        section.style.display = 'block';
+                        section.classList.add('active');
                     }
-                })
-                .catch(error => console.log('No README.md found.'));
+                }).catch(() => {});
         }
 
         function loadScreenshots() {
             fetch(screenshotsApiUrl)
-                .then(response => {
-                    if (!response.ok) throw new Error('No screenshots folder found');
-                    return response.json();
-                })
+                .then(r => r.json())
                 .then(files => {
-                    const imageFiles = files.filter(file => file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i));
-                    if (imageFiles.length > 0) {
-                        const galleryContainer = document.getElementById('gallery-container');
-                        const gallerySection = document.getElementById('gallery-section');
-                        
-                        imageFiles.forEach(file => {
+                    const images = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp)$/i));
+                    if (images.length) {
+                        const container = document.getElementById('gallery-container');
+                        images.forEach(f => {
                             const img = document.createElement('img');
-                            img.src = file.download_url;
-                            img.alt = file.name;
+                            img.src = f.download_url;
                             img.className = 'gallery-img';
-                            galleryContainer.appendChild(img);
+                            container.appendChild(img);
                         });
-                        
-                        gallerySection.style.display = 'block';
+                        document.getElementById('gallery-section').style.display = 'block';
+                        document.getElementById('gallery-section').classList.add('active');
                     }
-                })
-                .catch(error => console.log('Screenshots folder not found.'));
+                }).catch(() => {});
         }
 
-        function findApkAsset(assets) { return assets.find(asset => asset.name.endsWith('.apk')); }
-        
-        function formatDate(dateString) {
-            return new Date(dateString).toLocaleDateString('he-IL', { year: 'numeric', month: 'long', day: 'numeric' });
-        }
-
-        function getFileSizeBytes(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        function findApk(assets) { return assets.find(a => a.name.endsWith('.apk')); }
+        function formatDate(d) { return new Date(d).toLocaleDateString('he-IL', { year: 'numeric', month: 'long', day: 'numeric' }); }
+        function formatSize(b) {
+            const i = Math.floor(Math.log(b) / Math.log(1024));
+            return (b / Math.pow(1024, i)).toFixed(1) * 1 + ' ' + ['B', 'KB', 'MB', 'GB'][i];
         }
 
         fetch(releasesApiUrl)
-            .then(response => {
-                if (!response.ok) throw new Error('נכשל בניסיון למשוך נתונים מהשרת.');
-                return response.json();
-            })
+            .then(r => r.json())
             .then(releases => {
-                const contentArea = document.getElementById('content-area');
-                if (!releases || releases.length === 0) {
-                    contentArea.innerHTML = '<div class="error">לא נמצאו גרסאות זמינות להורדה כרגע.</div>';
-                    document.getElementById('total-downloads-count').innerText = "0";
-                    return;
-                }
-
-                const validReleases = releases.filter(release => findApkAsset(release.assets) !== undefined);
-                if (validReleases.length === 0) {
-                    contentArea.innerHTML = '<div class="error">לא נמצאו קבצי התקנה (APK) תקפים בשרת.</div>';
-                    document.getElementById('total-downloads-count').innerText = "0";
-                    return;
-                }
-
-                // חישוב סך כל ההורדות מכל הגרסאות
-                let totalDownloadsSum = 0;
-                validReleases.forEach(release => {
-                    const apk = findApkAsset(release.assets);
-                    if(apk) {
-                        totalDownloadsSum += apk.download_count;
-                    }
-                });
-                // עדכון התגית בראש העמוד
-                document.getElementById('total-downloads-count').innerText = totalDownloadsSum.toLocaleString();
-
-                const latestRelease = validReleases[0];
-                const latestApk = findApkAsset(latestRelease.assets);
+                const area = document.getElementById('content-area');
+                const valid = releases.filter(r => findApk(r.assets));
                 
+                if (!valid.length) {
+                    area.innerHTML = '<p style="text-align:center;">לא נמצאו גרסאות.</p>';
+                    return;
+                }
+
+                let total = 0;
+                valid.forEach(r => {
+                    const a = findApk(r.assets);
+                    if (a) total += a.download_count;
+                });
+                
+                const chip = document.getElementById('nav-total-chip');
+                if (chip) {
+                    chip.innerText = total.toLocaleString();
+                    chip.style.display = 'inline-block';
+                }
+
+
+                const latest = valid[0];
+                const apk = findApk(latest.assets);
+
                 let html = `
-                    <div class="hero-card">
-                        <span class="badge-latest">הגרסה העדכנית והמומלצת ביותר</span>
-                        <h2 class="version-title">${latestRelease.name || latestRelease.tag_name}</h2>
-                        <div class="release-notes">${latestRelease.body || 'עדכון זה כולל שיפורי יציבות, ביצועים ותיקוני באגים.'}</div>
-                        
-                        <a href="${latestApk.browser_download_url}" class="download-btn">
-                            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                            הורדה ישירה (APK, ${getFileSizeBytes(latestApk.size)})
+                    <div class="hero-card glass reveal active">
+                        <span class="badge-latest">הגרסה האחרונה</span>
+                        <h2 class="version-title">${latest.name || latest.tag_name}</h2>
+                        <div class="release-notes">${(latest.body || 'שיפורי ביצועים ושינויים פנימיים.').replace('### מה התחדש בגרסה זו?', 'מה חדש?').replace('### מה חדש?', 'מה חדש?')}</div>
+                        <a href="${apk.browser_download_url}" class="download-btn">
+                            הורדה ישירה (${formatSize(apk.size)})
                         </a>
-                        
                         <div class="stats-grid">
                             <div class="stat-box">
-                                <span class="stat-value">${latestApk.download_count.toLocaleString()}</span>
-                                <span class="stat-label">הורדות לגרסה זו</span>
+                                <span class="stat-value">${apk.download_count.toLocaleString()}</span>
+                                <span class="stat-label">הורדות</span>
                             </div>
                             <div class="stat-box">
-                                <span class="stat-value">${formatDate(latestRelease.published_at)}</span>
-                                <span class="stat-label">תאריך שחרור</span>
+                                <span class="stat-value">${formatDate(latest.published_at)}</span>
+                                <span class="stat-label">פורסם ב</span>
                             </div>
                             <div class="stat-box">
-                                <span class="stat-value" dir="ltr">${latestRelease.tag_name}</span>
-                                <span class="stat-label">מספר גרסה</span>
+                                <span class="stat-value" dir="ltr">${latest.tag_name}</span>
+                                <span class="stat-label">גרסה</span>
                             </div>
                         </div>
                     </div>
                 `;
 
-                if (validReleases.length > 1) {
-                    html += `
-                        <div class="history-section">
-                            <h3>היסטוריית גרסאות</h3>
-                            <div class="history-list">
-                    `;
-                    for (let i = 1; i < validReleases.length; i++) {
-                        const release = validReleases[i];
-                        const apk = findApkAsset(release.assets);
+                if (valid.length > 1) {
+                    html += `<div class="history-section reveal active"><h3>גרסאות קודמות</h3>`;
+                    valid.slice(1, 5).forEach(r => {
+                        const a = findApk(r.assets);
                         html += `
-                            <div class="history-item">
-                                <div class="history-details">
-                                    <strong dir="ltr">${release.name || release.tag_name}</strong>
-                                    <span>שחרור: ${formatDate(release.published_at)}</span>
+                            <div class="history-item glass">
+                                <div>
+                                    <strong dir="ltr">${r.name || r.tag_name}</strong>
+                                    <small>${formatDate(r.published_at)}</small>
                                 </div>
-                                <div class="history-action">
-                                    <span class="history-downloads">${apk.download_count.toLocaleString()} הורדות</span>
-                                    <a href="${apk.browser_download_url}" class="secondary-btn">הורד גרסה זו</a>
-                                </div>
+                                <a href="${a.browser_download_url}" class="secondary-btn">הורדה</a>
                             </div>
                         `;
-                    }
-                    html += `</div></div>`;
+                    });
+                    html += `</div>`;
                 }
 
-                contentArea.innerHTML = html;
+                area.innerHTML = html;
             })
             .catch(error => {
                 document.getElementById('content-area').innerHTML = `
@@ -705,11 +604,23 @@
                         <small dir="ltr">${error.message}</small>
                     </div>
                 `;
-                document.getElementById('total-downloads-count').innerText = "שגיאה";
+
             });
 
-        loadReadme();
-        loadScreenshots();
+        // Entrance animations
+        window.addEventListener('scroll', () => {
+            document.querySelectorAll('.reveal').forEach(el => {
+                if (el.getBoundingClientRect().top < window.innerHeight - 50) el.classList.add('active');
+            });
+        });
+        window.onload = () => {
+            document.querySelectorAll('header .reveal').forEach((el, i) => {
+                setTimeout(() => el.classList.add('active'), i * 150);
+            });
+            loadReadme();
+            loadScreenshots();
+        };
     </script>
 </body>
+
 </html>
