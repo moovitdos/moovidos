@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> אפליקציית התחבורה הציבורית לבעלי סים כשר</title>
+    <title>הפתרון - אפליקציית התחבורה הציבורית לבעלי סים כשר</title>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -424,6 +424,143 @@
         html {
             scroll-padding-top: 80px; /* Space for the fixed navbar */
         }
+
+        /* Contact Section */
+        .contact-section {
+            padding: 100px 20px;
+            text-align: center;
+        }
+
+        .contact-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 50px;
+            border-radius: 40px;
+        }
+
+        .contact-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 40px;
+            color: #1e3a8a; /* Deep blue from image */
+        }
+
+        .contact-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            text-align: right;
+        }
+
+        .form-group-full {
+            grid-column: span 2;
+        }
+
+        .contact-form input, 
+        .contact-form select, 
+        .contact-form textarea {
+            width: 100%;
+            padding: 18px 25px;
+            border-radius: 100px; /* Pill shape */
+            border: 1px solid #e2e8f0;
+            background: white;
+            font-family: inherit;
+            font-size: 1.05rem;
+            outline: none;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        .contact-form textarea {
+            border-radius: 30px;
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .contact-form input:focus, 
+        .contact-form select:focus, 
+        .contact-form textarea:focus {
+            border-color: #1e3a8a;
+            box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.05);
+        }
+
+        .consent-row {
+            grid-column: span 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .consent-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            grid-column: span 2;
+            background: #001a8e; /* Very dark blue from image */
+            color: white !important;
+            padding: 22px;
+            border-radius: 100px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 26, 142, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            background: #000c4d;
+            box-shadow: 0 15px 40px rgba(0, 26, 142, 0.4);
+        }
+
+        .submit-btn .arrow-icon {
+            transform: rotate(180deg); /* Mirror it for RTL if needed, image shows left arrow */
+        }
+
+        .gmail-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #f1f5f9;
+            color: #334155;
+            padding: 12px 25px;
+            border-radius: 100px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        .gmail-btn:hover {
+            background: white;
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        @media (max-width: 600px) {
+            .contact-form { grid-template-columns: 1fr; }
+            .form-group-full { grid-column: span 1; }
+            .submit-btn { grid-column: span 1; }
+            .consent-row { grid-column: span 1; }
+            .contact-container { padding: 30px 20px; }
+        }
     </style>
 </head>
 <body>
@@ -443,6 +580,7 @@
                 <span id="nav-total-chip" class="download-badge">...</span>
             </a>
             <a href="#gallery-section">גלריה</a>
+            <a href="#contact-section">צור קשר</a>
         </div>
     </nav>
 
@@ -468,6 +606,43 @@
     <section class="gallery-section reveal" id="gallery-section">
         <h3 style="text-align:center; font-size: 2rem; margin-bottom: 40px;">הצצה לאפליקציה</h3>
         <div class="gallery-container" id="gallery-container"></div>
+    </section>
+
+    <section class="contact-section reveal" id="contact-section">
+        <div class="contact-container glass">
+            <h3 class="contact-title">כתבו לנו</h3>
+            
+            <form action="https://formspree.io/f/mojpzpqy" method="POST" class="contact-form" style="grid-template-columns: 1fr;">
+                <div class="form-group-full">
+                    <input type="text" name="name" placeholder="שם (אופציונלי)">
+                </div>
+                
+                <div class="form-group-full">
+                    <input type="email" name="email" placeholder="אימייל*" required>
+                </div>
+                
+                <div class="form-group-full">
+                    <textarea name="message" placeholder="הודעה*" required></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submit-btn" style="grid-column: span 1;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="arrow-icon">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                    <span>שלח</span>
+                </button>
+            </form>
+
+            <div style="margin-top: 30px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 25px;">
+                <p style="color: var(--text-secondary); margin-bottom: 15px; font-size: 0.95rem;">או פשוט שלחו לנו מייל ישירות:</p>
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=moovitdos@gmail.com&su=בנוגע לאפליקציה" target="_blank" class="gmail-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                    </svg>
+                    שליחה מהירה דרך Gmail
+                </a>
+            </div>
+        </div>
     </section>
 
     <footer>
