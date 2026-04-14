@@ -232,6 +232,52 @@
             box-shadow: 0 20px 45px rgba(37, 99, 235, 0.35);
         }
 
+        .download-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .download-btn.secondary {
+            background: white;
+            color: var(--accent-color) !important;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            font-size: 1.1rem;
+            padding: 18px 30px;
+        }
+
+        .download-btn.secondary:hover {
+            background: var(--accent-color);
+            color: white !important;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+        }
+
+        .download-btn.tertiary {
+            background: #f1f5f9;
+            color: var(--text-secondary) !important;
+            border: 2px solid #e2e8f0;
+            box-shadow: none;
+            font-size: 1rem;
+            padding: 15px 25px;
+        }
+
+        .download-btn.tertiary:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+
+        @media (min-width: 600px) {
+            .download-grid {
+                grid-template-columns: 1.5fr 1fr;
+            }
+            .download-grid .full-btn { grid-column: span 1; }
+            .download-grid .lite-btn { grid-column: span 1; }
+            .download-grid .zip-btn { grid-column: span 2; }
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -702,9 +748,21 @@
                 }).catch(() => {});
         }
 
-        function findApk(assets) { return assets.find(a => a.name.endsWith('.apk')); }
+        function findAssets(assets) {
+            const res = { full: null, lite: null, zip: null };
+            assets.forEach(a => {
+                const name = a.name.toLowerCase();
+                if (name.includes('full') && name.endsWith('.apk')) res.full = a;
+                else if (name.includes('lite') && name.endsWith('.apk')) res.lite = a;
+                else if (name.endsWith('.zip')) res.zip = a;
+            });
+            // Fallback for single-APK releases
+            if (!res.full && !res.lite) res.full = assets.find(a => a.name.endsWith('.apk'));
+            return res;
+        }
         function formatDate(d) { return new Date(d).toLocaleDateString('he-IL', { year: 'numeric', month: 'long', day: 'numeric' }); }
         function formatSize(b) {
+            if (!b) return '';
             const i = Math.floor(Math.log(b) / Math.log(1024));
             return (b / Math.pow(1024, i)).toFixed(1) * 1 + ' ' + ['B', 'KB', 'MB', 'GB'][i];
         }
@@ -713,7 +771,10 @@
             .then(r => r.json())
             .then(releases => {
                 const area = document.getElementById('content-area');
-                const valid = releases.filter(r => findApk(r.assets));
+                const valid = releases.filter(r => {
+                    const assets = findAssets(r.assets);
+                    return assets.full || assets.lite;
+                });
                 
                 if (!valid.length) {
                     area.innerHTML = `
@@ -742,7 +803,8 @@
 
                 let total = 0;
                 valid.forEach(r => {
-                    const a = findApk(r.assets);
+                    const assets = findAssets(r.assets);
+                    const a = assets.full || assets.lite;
                     if (a) total += a.download_count;
                 });
                 
@@ -754,7 +816,40 @@
 
 
                 const latest = valid[0];
-                const apk = findApk(latest.assets);
+                const res = findAssets(latest.assets);
+                
+                let downloadsHtml = '';
+                if (res.full) {
+                    downloadsHtml += `
+                        <a href="${res.full.browser_download_url}" class="download-btn full-btn">
+                            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
+                                <span style="font-size: 1.3rem;">גרסה מלאה</span>
+                                <small style="font-size: 0.8rem; opacity: 0.9;">כולל את כל הנתונים (${formatSize(res.full.size)})</small>
+                            </div>
+                            <svg fill="currentColor" width="24" height="24" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                        </a>
+                    `;
+                }
+                if (res.lite) {
+                    downloadsHtml += `
+                        <a href="${res.lite.browser_download_url}" class="download-btn secondary lite-btn">
+                            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
+                                <span style="font-size: 1.1rem;">גרסה קלה</span>
+                                <small style="font-size: 0.75rem;">אפליקציה בלבד (${formatSize(res.lite.size)})</small>
+                            </div>
+                        </a>
+                    `;
+                }
+                if (res.zip) {
+                    downloadsHtml += `
+                        <a href="${res.zip.browser_download_url}" class="download-btn tertiary zip-btn">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;">
+                                <svg fill="currentColor" width="18" height="18" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                                <span>נתונים בלבד (לייבוא ידני) - ${formatSize(res.zip.size)}</span>
+                            </div>
+                        </a>
+                    `;
+                }
 
                 let html = `
                     <div class="history-item glass reveal active" style="flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 40px; border: 2px solid var(--accent-color);">
@@ -766,25 +861,21 @@
                                 <span class="badge-latest" style="margin-bottom: 0; padding: 4px 12px; font-size: 0.8rem;">הגרסה האחרונה</span>
                             </div>
                             <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; opacity: 0.8; width: 100%;">
-                                <strong>${apk.download_count.toLocaleString()}</strong> הורדות
+                                <strong>${(res.full?.download_count || 0).toLocaleString()}</strong> הורדות
                             </div>
                             <div style="display: flex; justify-content: center; width: 100%; margin: 10px 0;">
                                 <div style="background: rgba(37, 99, 235, 0.07); color: var(--accent-color); padding: 10px 30px; border-radius: 12px; font-weight: 700; font-size: 1.1rem; border: 1px solid rgba(37, 99, 235, 0.1);">
-                                    מה חדש? כולל בחירת תאריך
+                                    מה חדש?
                                 </div>
                             </div>
                         <div class="history-notes" style="width: 100%; border-right-color: var(--accent-color);">
                             ${marked.parse((latest.body || 'שיפורי ביצועים ושינויים פנימיים.')
                                 .replace(/### (מה התחדש בגרסה זו\?|מה חדש\?)/g, '')
-                                .replace(/מה חדש\?\s*כולל בחירת תאריך/g, '')
-                                .replace(/כולל בחירת תאריך/g, '')
+                                .replace(/---/g, '<hr style="border:0; border-top:1px solid #e2e8f0; margin: 15px 0;">')
                                 .trim())}
                         </div>
-                        <div style="display: flex; justify-content: center; width: 100%; margin-top: 5px;">
-                            <a href="${apk.browser_download_url}" class="download-btn" style="width: auto; padding: 18px 45px; font-size: 1.2rem; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);">
-                                <span>הורדה ישירה (${formatSize(apk.size)})</span>
-                                <svg fill="currentColor" width="20" height="20" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                            </a>
+                        <div class="download-grid">
+                            ${downloadsHtml}
                         </div>
                     </div>
                 `;
