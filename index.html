@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>הפתרון - אפליקציית התחבורה הציבורית לבעלי סים כשר</title>
+    <title>מוביטדוס - אפליקציית התחבורה הציבורית לבעלי סים כשר</title>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -91,8 +92,13 @@
         }
 
         @keyframes move {
-            from { transform: translate(0, 0) scale(1); }
-            to { transform: translate(100px, 100px) scale(1.2); }
+            from {
+                transform: translate(0, 0) scale(1);
+            }
+
+            to {
+                transform: translate(100px, 100px) scale(1.2);
+            }
         }
 
         /* Glass Utility */
@@ -151,7 +157,7 @@
             font-weight: 700;
             font-size: 1.1rem;
             margin-top: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             border: 1px solid var(--border-light);
         }
 
@@ -274,9 +280,18 @@
             .download-grid {
                 grid-template-columns: 1fr 1fr;
             }
-            .download-grid .full-btn { grid-column: span 2; }
-            .download-grid .lite-btn { grid-column: span 1; }
-            .download-grid .zip-btn { grid-column: span 1; }
+
+            .download-grid .full-btn {
+                grid-column: span 2;
+            }
+
+            .download-grid .lite-btn {
+                grid-column: span 1;
+            }
+
+            .download-grid .zip-btn {
+                grid-column: span 1;
+            }
         }
 
         .stats-grid {
@@ -330,11 +345,27 @@
             width: 100%;
         }
 
-        .history-notes p { margin-bottom: 5px; }
-        .history-notes ul { margin-right: 20px; }
-        .history-notes li { margin-bottom: 15px; line-height: 1.8; }
-        .history-notes ol { margin-right: 20px; }
-        .history-notes ol li { margin-bottom: 15px; line-height: 1.8; }
+        .history-notes p {
+            margin-bottom: 5px;
+        }
+
+        .history-notes ul {
+            margin-right: 20px;
+        }
+
+        .history-notes li {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        .history-notes ol {
+            margin-right: 20px;
+        }
+
+        .history-notes ol li {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
 
         .secondary-btn {
             color: var(--accent-color);
@@ -374,7 +405,9 @@
             object-fit: cover;
         }
 
-        .gallery-img:hover { transform: scale(1.05); }
+        .gallery-img:hover {
+            transform: scale(1.05);
+        }
 
         footer {
             margin-top: auto;
@@ -422,12 +455,36 @@
         }
 
         @media (max-width: 768px) {
-            header h1 { font-size: 2.5rem; }
-            .hero-card { padding: 30px 20px; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .history-item { flex-direction: column; text-align: center; gap: 20px; }
-            .fab-btn { width: 90%; left: 5%; bottom: 20px; justify-content: center; }
-            .navbar { display: none; } /* Hide navbar on mobile or make it simpler */
+            header h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-card {
+                padding: 30px 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .history-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+
+            .fab-btn {
+                width: 90%;
+                left: 5%;
+                bottom: 20px;
+                justify-content: center;
+            }
+
+            .navbar {
+                display: none;
+            }
+
+            /* Hide navbar on mobile or make it simpler */
         }
 
         /* Navbar Styling */
@@ -446,14 +503,16 @@
 
         /* Integrated Badge next to text */
         .download-badge {
-            display: none; 
-            background: rgba(37, 99, 235, 0.08); /* Subtle blue tint */
+            display: none;
+            background: rgba(37, 99, 235, 0.08);
+            /* Subtle blue tint */
             color: var(--accent-color) !important;
             font-size: 0.75rem;
             padding: 2px 8px;
             border-radius: 100px;
             font-weight: 700;
-            margin-right: 6px; /* Space from the text */
+            margin-right: 6px;
+            /* Space from the text */
             border: 1px solid rgba(37, 99, 235, 0.15);
             vertical-align: middle;
             transition: all 0.2s;
@@ -482,7 +541,8 @@
         }
 
         html {
-            scroll-padding-top: 80px; /* Space for the fixed navbar */
+            scroll-padding-top: 80px;
+            /* Space for the fixed navbar */
         }
 
         /* Contact Section */
@@ -502,7 +562,8 @@
             font-size: 2.8rem;
             font-weight: 800;
             margin-bottom: 40px;
-            color: #1e3a8a; /* Deep blue from image */
+            color: #1e3a8a;
+            /* Deep blue from image */
         }
 
         .contact-form {
@@ -516,19 +577,20 @@
             grid-column: span 2;
         }
 
-        .contact-form input, 
-        .contact-form select, 
+        .contact-form input,
+        .contact-form select,
         .contact-form textarea {
             width: 100%;
             padding: 18px 25px;
-            border-radius: 100px; /* Pill shape */
+            border-radius: 100px;
+            /* Pill shape */
             border: 1px solid #e2e8f0;
             background: white;
             font-family: inherit;
             font-size: 1.05rem;
             outline: none;
             transition: all 0.3s;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
         }
 
         .contact-form textarea {
@@ -537,8 +599,8 @@
             resize: vertical;
         }
 
-        .contact-form input:focus, 
-        .contact-form select:focus, 
+        .contact-form input:focus,
+        .contact-form select:focus,
         .contact-form textarea:focus {
             border-color: #1e3a8a;
             box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.05);
@@ -564,7 +626,8 @@
 
         .submit-btn {
             grid-column: span 2;
-            background: #001a8e; /* Very dark blue from image */
+            background: #001a8e;
+            /* Very dark blue from image */
             color: white !important;
             padding: 22px;
             border-radius: 100px;
@@ -588,7 +651,8 @@
         }
 
         .submit-btn .arrow-icon {
-            transform: rotate(180deg); /* Mirror it for RTL if needed, image shows left arrow */
+            transform: rotate(180deg);
+            /* Mirror it for RTL if needed, image shows left arrow */
         }
 
         .gmail-btn {
@@ -611,18 +675,33 @@
             color: var(--accent-color);
             border-color: var(--accent-color);
             transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
         @media (max-width: 600px) {
-            .contact-form { grid-template-columns: 1fr; }
-            .form-group-full { grid-column: span 1; }
-            .submit-btn { grid-column: span 1; }
-            .consent-row { grid-column: span 1; }
-            .contact-container { padding: 30px 20px; }
+            .contact-form {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group-full {
+                grid-column: span 1;
+            }
+
+            .submit-btn {
+                grid-column: span 1;
+            }
+
+            .consent-row {
+                grid-column: span 1;
+            }
+
+            .contact-container {
+                padding: 30px 20px;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div class="bg-blobs">
@@ -656,9 +735,16 @@
         <div id="content-area">
             <div class="loading reveal" style="text-align: center; padding: 100px;">
                 <svg width="50" height="50" viewBox="0 0 50 50" style="animation: spin 1s linear infinite;">
-                    <circle cx="25" cy="25" r="20" fill="none" stroke="#2563eb" stroke-width="5" stroke-dasharray="31.4" />
+                    <circle cx="25" cy="25" r="20" fill="none" stroke="#2563eb" stroke-width="5"
+                        stroke-dasharray="31.4" />
                 </svg>
-                <style> @keyframes spin { to { transform: rotate(360deg); } } </style>
+                <style>
+                    @keyframes spin {
+                        to {
+                            transform: rotate(360deg);
+                        }
+                    }
+                </style>
             </div>
         </div>
     </div>
@@ -671,22 +757,24 @@
     <section class="contact-section reveal" id="contact-section">
         <div class="contact-container glass">
             <h3 class="contact-title">כתבו לנו</h3>
-            
-            <form action="https://formspree.io/f/mojpzpqy" method="POST" class="contact-form" style="grid-template-columns: 1fr;">
+
+            <form action="https://formspree.io/f/mojpzpqy" method="POST" class="contact-form"
+                style="grid-template-columns: 1fr;">
                 <div class="form-group-full">
                     <input type="text" name="name" placeholder="שם (אופציונלי)">
                 </div>
-                
+
                 <div class="form-group-full">
                     <input type="email" name="email" placeholder="אימייל*" required>
                 </div>
-                
+
                 <div class="form-group-full">
                     <textarea name="message" placeholder="הודעה*" required></textarea>
                 </div>
-                
+
                 <button type="submit" class="submit-btn" id="submit-btn" style="grid-column: span 1;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="arrow-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round" class="arrow-icon">
                         <polyline points="15 18 9 12 15 6"></polyline>
                     </svg>
                     <span>שלח</span>
@@ -696,7 +784,8 @@
             <div style="margin-top: 30px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 25px;">
                 <a href="mailto:moovitdos@gmail.com" class="gmail-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                        <path
+                            d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                     </svg>
                     moovitdos@gmail.com
                 </a>
@@ -714,7 +803,9 @@
 
     <a href="#content-area" class="fab-btn">
         <span>הורד עכשיו</span>
-        <svg fill="currentColor" width="24" height="24" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        <svg fill="currentColor" width="24" height="24" viewBox="0 0 24 24">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+        </svg>
     </a>
 
     <script>
@@ -734,7 +825,7 @@
                         section.style.display = 'block';
                         section.classList.add('active');
                     }
-                }).catch(() => {});
+                }).catch(() => { });
         }
 
         function loadScreenshots() {
@@ -753,7 +844,7 @@
                         document.getElementById('gallery-section').style.display = 'block';
                         document.getElementById('gallery-section').classList.add('active');
                     }
-                }).catch(() => {});
+                }).catch(() => { });
         }
 
         function findAssets(assets) {
@@ -783,7 +874,7 @@
                     const assets = findAssets(r.assets);
                     return assets.full || assets.lite;
                 });
-                
+
                 if (!valid.length) {
                     area.innerHTML = `
                         <div class="hero-card glass reveal active" style="margin-top: 40px; padding: 60px 40px;">
@@ -815,7 +906,7 @@
                     const a = assets.full || assets.lite;
                     if (a) total += a.download_count;
                 });
-                
+
                 const chip = document.getElementById('nav-total-chip');
                 if (chip) {
                     chip.innerText = total.toLocaleString();
@@ -825,7 +916,7 @@
 
                 const latest = valid[0];
                 const res = findAssets(latest.assets);
-                
+
                 let downloadsHtml = '';
                 if (res.full) {
                     downloadsHtml += `
@@ -878,12 +969,12 @@
                             </div>
                         <div class="history-notes" style="width: 100%; border-right-color: var(--accent-color);">
                             ${marked.parse((latest.body || 'שיפורי ביצועים ושינויים פנימיים.')
-                                .replace(/### (מה התחדש בגרסה זו\?|מה חדש\?)/gi, '')
-                                .replace(/(\d+)\.\s\*\*/g, '<br>$1. **')
-                                .replace(/---/g, '<hr style="border:0; border-top:1px solid #e2e8f0; margin: 15px 0;">')
-                                .trim())
-                                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                            }
+                    .replace(/### (מה התחדש בגרסה זו\?|מה חדש\?)/gi, '')
+                    .replace(/(\d+)\.\s\*\*/g, '<br>$1. **')
+                    .replace(/---/g, '<hr style="border:0; border-top:1px solid #e2e8f0; margin: 15px 0;">')
+                    .trim())
+                        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                    }
                         </div>
                         <div class="download-grid">
                             ${downloadsHtml}
