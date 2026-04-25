@@ -496,24 +496,28 @@
             }
 
             .navbar {
-                padding: 0; /* Remove navbar padding to give grid full width */
+                padding: 0;
                 border: none;
                 background: transparent;
                 backdrop-filter: none;
                 -webkit-backdrop-filter: none;
+                pointer-events: none;
             }
 
             .nav-links {
+                pointer-events: auto;
                 display: grid;
                 grid-template-columns: repeat(6, 1fr);
-                width: 100%; /* Use full width for safety */
-                margin: 0;
-                background: var(--glass-bg);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-                border-bottom: 1px solid var(--glass-border);
-                box-shadow: var(--shadow-soft);
-                overflow: hidden;
+                width: 94%;
+                margin: 15px auto 0;
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                border: 1px solid rgba(255, 255, 255, 0.4);
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+                border-radius: 100px;
+                padding: 6px;
+                gap: 2px;
             }
 
             .nav-links::-webkit-scrollbar {
@@ -524,9 +528,10 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                padding: 15px 0;
+                padding: 12px 0;
                 width: 100%;
-                min-width: 0; /* Prevent overflow */
+                border-radius: 100px;
+                min-width: 0;
             }
 
             .navbar a svg {
@@ -586,6 +591,12 @@
         .nav-links a:hover .download-badge {
             background: var(--accent-color);
             color: white !important;
+        }
+
+        .navbar a.active .download-badge {
+            background: white !important;
+            color: var(--accent-color) !important;
+            border-color: white !important;
         }
 
         .navbar a {
