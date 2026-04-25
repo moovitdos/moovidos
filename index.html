@@ -1106,8 +1106,21 @@
             return (b / Math.pow(1024, i)).toFixed(1) * 1 + ' ' + ['B', 'KB', 'MB', 'GB'][i];
         }
 
-        fetch(releasesApiUrl)
-            .then(r => r.json())
+        const fetchAllReleases = async () => {
+            let all = [], page = 1;
+            while (true) {
+                const r = await fetch(`${releasesApiUrl}?per_page=100&page=${page}`);
+                if (!r.ok) break;
+                const data = await r.json();
+                if (!Array.isArray(data)) break;
+                all = all.concat(data);
+                if (data.length < 100) break;
+                page++;
+            }
+            return all;
+        };
+
+        fetchAllReleases()
             .then(releases => {
                 const area = document.getElementById('content-area');
                 const valid = releases.filter(r => {
@@ -1142,9 +1155,11 @@
 
                 let total = 0;
                 valid.forEach(r => {
-                    const assets = findAssets(r.assets);
-                    const a = assets.full || assets.lite;
-                    if (a) total += a.download_count;
+                    if (r.assets) {
+                        r.assets.forEach(a => {
+                            total += a.download_count || 0;
+                        });
+                    }
                 });
 
                 const chip = document.getElementById('nav-total-chip');
@@ -1156,6 +1171,7 @@
 
                 const latest = valid[0];
                 const res = findAssets(latest.assets);
+                const latestDownloads = latest.assets ? latest.assets.reduce((sum, a) => sum + (a.download_count || 0), 0) : 0;
 
                 let downloadsHtml = '';
                 if (res.full) {
@@ -1205,7 +1221,7 @@
                                 <span class="badge-latest" style="margin-bottom: 0; padding: 4px 12px; font-size: 0.8rem;">הגרסה האחרונה</span>
                             </div>
                             <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; opacity: 0.8; width: 100%;">
-                                <strong>${(res.full?.download_count || 0).toLocaleString()}</strong> הורדות
+                                <strong>${latestDownloads.toLocaleString()}</strong> הורדות
                             </div>
                         <div class="history-notes" style="width: 100%; border-right-color: var(--accent-color);">
                             ${marked.parse((latest.body || 'שיפורי ביצועים ושינויים פנימיים.')
