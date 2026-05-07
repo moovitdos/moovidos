@@ -452,18 +452,6 @@
             display: inline-block;
         }
 
-        .price-tag {
-            background: var(--badge-bg);
-            color: var(--success-color);
-            padding: 15px 25px;
-            border-radius: 20px;
-            font-weight: 800;
-            font-size: 1.5rem;
-            display: inline-block;
-            margin: 20px 0;
-            border: 2px dashed var(--success-color);
-        }
-
         .section-header {
             text-align: center;
             margin-bottom: 40px;
@@ -1182,13 +1170,14 @@
                     icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
                     list: [
                         "<strong>חיפוש חכם:</strong> איתור מהיר לפי מספר קו, מספר תחנה (מק\"ט), שם תחנה, מיקום נוכחי או כתובת.",
+                        "<strong>שילוב עם מפות:</strong> האפליקציה משתלבת עם אפליקציית מפות המותקנת על מכשירכם. ניתן לשתף מיקום מכל אפליקציית מפות אל \"מוביטדוס\" ולראות מיד את כל התחנות שבאזור. כמו כן ניתן לשתף מיקום של תחנה, כתובת או נקודת עניין לאפליקציית המפות שלכם ולראות אותה על המפה.",
                         "<strong>מועדפים:</strong> שמירה של תחנות, קווים, מיקומים ואנשי קשר לחיוג מהיר, לגישה נוחה ביומיום.",
                         "<strong>לוחות זמנים אופליין:</strong> צפייה בלוחות הזמנים המלאים והרשמיים של כל קו – ללא צורך בחיבור לאינטרנט!"
                     ]
                 },
                 {
-                    title: "ניווט למכשירי מקשים",
-                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>',
+                    title: "התאמה למכשירי מקשים",
+                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><path d="M6 8h.01"></path><path d="M10 8h.01"></path><path d="M14 8h.01"></path><path d="M18 8h.01"></path><path d="M6 12h.01"></path><path d="M10 12h.01"></path><path d="M14 12h.01"></path><path d="M18 12h.01"></path><path d="M6 16h.01"></path><path d="M10 16h.01"></path><path d="M14 16h.01"></path><path d="M18 16h.01"></path></svg>',
                     content: "האפליקציה עברה התאמה מיוחדת לשימוש קל ונוח דרך המקשים הפיזיים של המכשיר:",
                     list: [
                         "מקש <span class=\"key-badge\">*</span> (כוכבית): חזרה למסך הבית.",
@@ -1201,7 +1190,7 @@
                     title: "עלות ורכישה",
                     icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
                     content: "האפליקציה ניתנת לשימוש <strong>בחינם ללא הגבלה</strong> עד לסוף בין הזמנים ניסן (כרגע). לאחר מכן, השימוש באפליקציה כרוך בתשלום חד-פעמי של:",
-                    price: "10 ש\"ח בלבד",
+                    price: "10 ש\"ח בלבד.",
                     footer: "לרכישת רישיון שימוש, יש לפנות לכתובת המייל המופיעה בתחתית הדף."
                 }
             ],
@@ -1227,7 +1216,7 @@
                         <h4>${s.icon} ${s.title}</h4>
                         ${s.content ? `<p>${s.content}</p>` : ''}
                         ${s.list ? `<ul>${s.list.map(li => `<li>${li}</li>`).join('')}</ul>` : ''}
-                        ${s.price ? `<div style="text-align:center;"><div class="price-tag">${s.price}</div></div>` : ''}
+                        ${s.price ? `<p><strong>${s.price}</strong></p>` : ''}
                         ${s.footer ? `<p style="font-size:0.85rem; opacity:0.8; margin-top:auto;">${s.footer}</p>` : ''}
                     </div>
                 `;
