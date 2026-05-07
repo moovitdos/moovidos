@@ -1111,7 +1111,7 @@
             fetch(screenshotsApiUrl)
                 .then(r => r.json())
                 .then(files => {
-                    const images = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp)$/i));
+                    const images = files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
                     if (images.length) {
                         const container = document.getElementById('gallery-container');
                         images.forEach(f => {
