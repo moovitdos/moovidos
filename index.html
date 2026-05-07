@@ -381,33 +381,102 @@
             background: rgba(255, 255, 255, 0.85);
         }
 
-        .history-notes {
-            margin-top: 10px;
-            font-size: 0.95rem;
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .info-card {
+            padding: 30px;
+            border-radius: 24px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: right;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: var(--shadow-premium);
+        }
+
+        .info-card h4 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .info-card p {
+            font-size: 1rem;
             color: var(--text-secondary);
-            width: 100%;
+            line-height: 1.6;
         }
 
-        .history-notes p {
-            margin-bottom: 5px;
+        .info-card ul {
+            list-style: none;
+            padding: 0;
         }
 
-        .history-notes ul {
-            margin-right: 20px;
+        .info-card li {
+            position: relative;
+            padding-right: 25px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
         }
 
-        .history-notes li {
-            margin-bottom: 15px;
-            line-height: 1.8;
+        .info-card li::before {
+            content: "•";
+            position: absolute;
+            right: 0;
+            color: var(--accent-color);
+            font-weight: bold;
         }
 
-        .history-notes ol {
-            margin-right: 20px;
+        .key-badge {
+            background: #e2e8f0;
+            color: #1e293b;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: 700;
+            border-bottom: 3px solid #cbd5e1;
+            margin: 0 4px;
+            display: inline-block;
         }
 
-        .history-notes ol li {
-            margin-bottom: 15px;
-            line-height: 1.8;
+        .price-tag {
+            background: var(--badge-bg);
+            color: var(--success-color);
+            padding: 15px 25px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 1.5rem;
+            display: inline-block;
+            margin: 20px 0;
+            border: 2px dashed var(--success-color);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-header h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #1e293b 0%, #2563eb 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .secondary-btn {
@@ -498,6 +567,10 @@
         }
 
         @media (max-width: 768px) {
+            header {
+                padding: 60px 15px 40px;
+            }
+
             header h1 {
                 font-size: 1.8rem;
                 padding: 0 15px;
@@ -960,7 +1033,7 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 <span class="nav-text">בית</span>
             </a>
-            <a href="#readme-section">
+            <a href="#info-section">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 <span class="nav-text">מידע</span>
             </a>
@@ -991,7 +1064,9 @@
     </header>
 
     <div class="container">
-        <div id="readme-section" class="readme-section glass reveal"></div>
+        <div id="info-section" class="readme-section glass reveal">
+            <!-- Content will be injected by JS -->
+        </div>
 
         <div id="content-area">
             <div class="loading reveal" style="text-align: center; padding: 100px;">
@@ -1092,17 +1167,83 @@
         const readmeRawUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/README.md`;
         const guideRawUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/User_Guide.md`;
 
-        function loadReadme() {
-            fetch(readmeRawUrl)
-                .then(r => r.text())
-                .then(text => {
-                    if (text.trim()) {
-                        const section = document.getElementById('readme-section');
-                        section.innerHTML = marked.parse(text);
-                        section.style.display = 'block';
-                        section.classList.add('active');
-                    }
-                }).catch(() => { });
+        // Content Configuration - Edit text here easily!
+        const SITE_INFO_CONTENT = {
+            title: "Moovitdos - תחבורה ציבורית לכולם",
+            intro: "האפליקציה מאפשרת קבלת מידע חכם ומהיר על תחבורה ציבורית, ומותאמת במיוחד לבעלי מכשירים עם סים כשר ומכשירי מקשים [אנדרואיד 4.4 ומעלה].",
+            sections: [
+                {
+                    title: "איך זה עובד?",
+                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>',
+                    content: "קבלת המידע בזמן אמת נעשית באמצעות חיוג אוטומטי מתוך האפליקציה לקווי מידע קוליים (כמו 'קל קו'). האפליקציה חוסכת לכם את ההאזנה לתפריטים – היא שולחת באופן אוטומטי את מספר התחנה והקו המבוקשים מיד עם תחילת השיחה, כך שהמידע מתקבל באופן מיידי."
+                },
+                {
+                    title: "תכונות מרכזיות",
+                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
+                    list: [
+                        "<strong>חיפוש חכם:</strong> איתור מהיר לפי מספר קו, מספר תחנה (מק\"ט), שם תחנה, מיקום נוכחי או כתובת.",
+                        "<strong>מועדפים:</strong> שמירה של תחנות, קווים, מיקומים ואנשי קשר לחיוג מהיר, לגישה נוחה ביומיום.",
+                        "<strong>לוחות זמנים אופליין:</strong> צפייה בלוחות הזמנים המלאים והרשמיים של כל קו – ללא צורך בחיבור לאינטרנט!"
+                    ]
+                },
+                {
+                    title: "ניווט למכשירי מקשים",
+                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>',
+                    content: "האפליקציה עברה התאמה מיוחדת לשימוש קל ונוח דרך המקשים הפיזיים של המכשיר:",
+                    list: [
+                        "מקש <span class=\"key-badge\">*</span> (כוכבית): חזרה למסך הבית.",
+                        "מקש <span class=\"key-badge\">#</span> (סולמית): פתיחת מסך ההגדרות.",
+                        "מקש <strong>שמאלי</strong>: ביצוע חיוג (במסכי החיפוש הרגילים).",
+                        "מקש <strong>אישור</strong> (אמצעי): ביצוע חיוג ישיר (במסך המועדפים)."
+                    ]
+                },
+                {
+                    title: "עלות ורכישה",
+                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
+                    content: "האפליקציה ניתנת לשימוש <strong>בחינם ללא הגבלה</strong> עד לסוף בין הזמנים ניסן (כרגע). לאחר מכן, השימוש באפליקציה כרוך בתשלום חד-פעמי של:",
+                    price: "10 ש\"ח בלבד",
+                    footer: "לרכישת רישיון שימוש, יש לפנות לכתובת המייל המופיעה בתחתית הדף."
+                }
+            ],
+            feedback: {
+                title: "משוב והערות",
+                content: "האפליקציה פותחה במטרה לעזור ולייעל את הנסיעה שלכם. אשמח מאוד לשמוע מכם הערות, הארות והצעות לשיפור. אני קורא הכל ואולי אף אשפר את האפליקציה בהתאם."
+            }
+        };
+
+        function renderInfo() {
+            const container = document.getElementById('info-section');
+            let html = `
+                <div class="section-header">
+                    <h2>${SITE_INFO_CONTENT.title}</h2>
+                    <p>${SITE_INFO_CONTENT.intro}</p>
+                </div>
+                <div class="info-grid">
+            `;
+
+            SITE_INFO_CONTENT.sections.forEach(s => {
+                html += `
+                    <div class="info-card glass">
+                        <h4>${s.icon} ${s.title}</h4>
+                        ${s.content ? `<p>${s.content}</p>` : ''}
+                        ${s.list ? `<ul>${s.list.map(li => `<li>${li}</li>`).join('')}</ul>` : ''}
+                        ${s.price ? `<div style="text-align:center;"><div class="price-tag">${s.price}</div></div>` : ''}
+                        ${s.footer ? `<p style="font-size:0.85rem; opacity:0.8; margin-top:auto;">${s.footer}</p>` : ''}
+                    </div>
+                `;
+            });
+
+            html += `
+                </div>
+                <div class="info-card glass" style="margin-top: 30px; border-right: 4px solid var(--accent-color);">
+                    <h4>${SITE_INFO_CONTENT.feedback.title}</h4>
+                    <p>${SITE_INFO_CONTENT.feedback.content}</p>
+                </div>
+            `;
+
+            container.innerHTML = html;
+            container.style.display = 'block';
+            container.classList.add('active');
         }
 
         function loadGuide() {
@@ -1350,7 +1491,7 @@
             // Update navbar active state
             const sections = [
                 { id: 'home', el: document.getElementById('home') },
-                { id: 'readme-section', el: document.getElementById('readme-section') },
+                { id: 'info-section', el: document.getElementById('info-section') },
                 { id: 'content-area', el: document.getElementById('content-area') },
                 { id: 'gallery-section', el: document.getElementById('gallery-section') },
                 { id: 'contact-section', el: document.getElementById('contact-section') }
@@ -1390,7 +1531,7 @@
             document.querySelectorAll('header .reveal').forEach((el, i) => {
                 setTimeout(() => el.classList.add('active'), i * 150);
             });
-            loadReadme();
+            renderInfo();
             loadGuide();
             loadScreenshots();
         };
