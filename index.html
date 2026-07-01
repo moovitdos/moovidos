@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מובידוס - אפליקציית התחבורה הציבורית לבעלי סים כשר</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="מובידוס - אפליקציית התחבורה הציבורית המובילה והמותאמת לבעלי סים כשר ולציבור החרדי. הורדה ישירה, זמני אוטובוסים ומידע בזמן אמת.">
+    <meta name="keywords"
+        content="מובידוס, תחבורה ציבורית, סים כשר, אפליקציה כשרה, זמני אוטובוסים, קווים, חרדים, Moovitdos">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Moovitdos">
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="מובידוס - אפליקציית התחבורה הציבורית לבעלי סים כשר">
+    <meta property="og:description"
+        content="הורידו את מובידוס - האפליקציה המובילה לתחבורה ציבורית, מותאמת אישית לציבור החרדי ולמכשירי סים כשר.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://moovitdos.github.io/moovidos/">
+    <meta property="og:site_name" content="מובידוס">
+    <meta property="og:locale" content="he_IL">
+    <!-- TODO (owner): supply a 1200×630 share image at og-image.png — we cannot generate it here. The logo.png is square and crops badly in WhatsApp/social previews. -->
+    <meta property="og:image" content="https://moovitdos.github.io/moovidos/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Favicon and Search Engine Icons -->
+    <link rel="icon" href="logo.png" type="image/png">
+    <link rel="shortcut icon" href="logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="logo.png">
+
+    <!-- Structured Data for Google Search Logo -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "url": "https://moovitdos.github.io/moovidos/",
+      "logo": "https://moovitdos.github.io/moovidos/logo.png"
+    }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+
+    <!-- Styles + scripts (JS written by another agent) -->
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="js/config.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/main.js" defer></script>
+</head>
+
+<body>
+
+    <!-- Decorative animated background blobs (aria-hidden, disabled on reduced-motion) -->
+    <div class="bg-blobs" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Skip link for keyboard users -->
+    <a href="#content-area" class="skip-link">דלג לאזור ההורדה</a>
+
+    <!-- ============ NAVBAR ============ -->
+    <nav class="navbar glass" aria-label="ניווט ראשי">
+        <div class="nav-links">
+            <a href="#home" aria-label="בית">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                <span class="nav-text">בית</span>
+            </a>
+            <a href="#info-section" aria-label="מידע">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <span class="nav-text">מידע</span>
+            </a>
+            <a href="#content-area" aria-label="הורדה">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span class="nav-text">הורדה</span>
+                <span id="nav-total-chip" class="download-badge">...</span>
+            </a>
+            <a href="#gallery-section" aria-label="גלריה">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span class="nav-text">גלריה</span>
+            </a>
+            <a href="#guide" aria-label="מדריך למשתמש">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+                <span class="nav-text">מדריך</span>
+            </a>
+            <a href="#contact-section" aria-label="צור קשר">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <span class="nav-text">צור קשר</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ============ HERO ============ -->
+    <header id="home">
+        <img src="logo.png" alt="לוגו אפליקציית מובידוס" class="app-logo" width="140" height="140">
+        <h1 class="reveal">לא מנחשים, לא מסתבכים</h1>
+        <p class="reveal">זמן אמת בחיוג אוטומטי · תכנון מסלול חכם · לוחות זמנים אופליין</p>
+        <div class="hero-cta reveal">
+            <a href="#content-area" class="hero-btn">הורידו עכשיו</a>
+            <a href="#info-section" class="hero-btn secondary">איך זה עובד?</a>
+        </div>
+        <p class="hero-micro reveal">רכישה חד-פעמית · אנדרואיד 4.4 ומעלה</p>
+    </header>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <main class="container">
+        <!-- Info / feature cards (JS injects innerHTML, then un-hides) -->
+        <section id="info-section" class="readme-section glass reveal" aria-label="מידע על האפליקציה">
+            <!-- Content injected by JS -->
+        </section>
+
+        <!-- Updates / changelog (JS replaces the spinner placeholder) -->
+        <section class="updates-section reveal" aria-label="עדכונים והורדות">
+            <h2 class="section-title">מרכז העדכונים וההורדות</h2>
+            <p class="section-subtitle">הורדת הגרסה האחרונה, ופירוט מה התחדש בכל הגרסאות.</p>
+            <div id="content-area">
+                <div class="loading" role="status" aria-live="polite">
+                    <svg width="50" height="50" viewBox="0 0 50 50" class="spinner" aria-hidden="true">
+                        <circle cx="25" cy="25" r="20" fill="none" stroke="var(--accent-color)" stroke-width="5"
+                            stroke-linecap="round" stroke-dasharray="90 150" />
+                    </svg>
+                    <span class="loading-text">טוען נתונים…</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ============ TRUST BLOCK (static, near downloads) ============ -->
+    <section class="trust-block reveal" aria-label="בטוח להתקנה">
+        <h3>בטוח ופרטי להתקנה</h3>
+        <ul class="trust-list">
+            <li>ללא איסוף מידע — הנתונים נשארים אצלכם במכשיר.</li>
+            <li>ללא פרסומות וללא חלונות קופצים.</li>
+            <li>ללא הרשאות מיותרות — רק מה שצריך כדי לפעול.</li>
+        </ul>
+    </section>
+
+    <!-- ============ GALLERY (starts hidden; JS appends imgs + un-hides) ============ -->
+    <section class="gallery-section reveal" id="gallery-section" aria-label="גלריית תמונות">
+        <h2 class="gallery-title">הצצה לאפליקציה</h2>
+        <p class="gallery-subtitle">ככה זה נראה. החליקו לצדדים, ולחצו על תמונה להגדלה.</p>
+        <div class="gallery-container" id="gallery-container"></div>
+    </section>
+
+    <!-- ============ GUIDE / HELP CENTER (inline, sidebar TOC) ============ -->
+    <section class="support-center reveal" id="guide" aria-label="מדריך למשתמש">
+        <h2 class="support-title">מרכז העזרה — מדריך למשתמש</h2>
+        <div class="support-layout">
+            <aside class="support-sidebar" id="docs-sidebar" aria-label="ניווט בתוכן המדריך"></aside>
+            <article class="support-content" id="docs-content">
+                <div class="loading" aria-live="polite">
+                    <svg width="40" height="40" viewBox="0 0 50 50" style="animation: spin 1s linear infinite;"
+                        aria-hidden="true">
+                        <circle cx="25" cy="25" r="20" fill="none" stroke="var(--accent-color)" stroke-width="5"
+                            stroke-dasharray="31.4" />
+                    </svg>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- ============ CONTACT (static formspree form) ============ -->
+    <section class="contact-section reveal" id="contact-section" aria-label="צור קשר">
+        <div class="contact-container glass">
+            <h2 class="contact-title">כתבו לנו</h2>
+
+            <form action="https://formspree.io/f/mojpzpqy" method="POST" class="contact-form">
+                <div class="form-group-full">
+                    <label class="visually-hidden" for="contact-name">שם (אופציונלי)</label>
+                    <input id="contact-name" type="text" name="name" placeholder="שם (אופציונלי)" autocomplete="name">
+                </div>
+
+                <div class="form-group-full">
+                    <label class="visually-hidden" for="contact-email">אימייל</label>
+                    <input id="contact-email" type="email" name="email" placeholder="אימייל*" autocomplete="email"
+                        required>
+                </div>
+
+                <div class="form-group-full">
+                    <label class="visually-hidden" for="contact-message">הודעה</label>
+                    <textarea id="contact-message" name="message" placeholder="הודעה*" required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submit-btn">
+                    <span>שלח</span>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round" class="arrow-icon" aria-hidden="true">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+            </form>
+
+            <div class="contact-alt">
+                <a href="mailto:moovitdos@gmail.com" class="gmail-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path
+                            d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                    </svg>
+                    moovitdos@gmail.com
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ FOOTER ============ -->
+    <footer>
+        <p>כל הזכויות שמורות</p>
+    </footer>
+
+    <!-- ============ FAB ============ -->
+    <a href="#content-area" class="fab-btn" aria-label="הורד עכשיו">
+        <span>הורד עכשיו</span>
+        <svg fill="currentColor" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+        </svg>
+    </a>
+
+    <!-- ============ GALLERY IMMERSIVE VIEWER (JS toggles .active) ============ -->
+    <div class="gallery-lightbox" id="gallery-lightbox" role="dialog" aria-modal="true"
+        aria-label="תצוגה מוגדלת של צילום מסך" aria-hidden="true">
+        <button type="button" class="gallery-lightbox-close" id="gallery-lightbox-close" data-lightbox-close
+            aria-label="סגירה">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+            </svg>
+        </button>
+
+        <span class="gallery-lightbox-counter" id="gallery-lightbox-counter" dir="ltr" aria-hidden="true"></span>
+
+        <div class="gallery-lightbox-stage">
+            <img class="gallery-lightbox-img" id="gallery-lightbox-img" alt="">
+        </div>
+
+        <!-- RTL: "prev" (towards the first shot) points RIGHT; "next" points LEFT. -->
+        <button type="button" class="gallery-lightbox-nav gallery-lightbox-prev" id="gallery-lightbox-prev"
+            aria-label="הצילום הקודם">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </button>
+        <button type="button" class="gallery-lightbox-nav gallery-lightbox-next" id="gallery-lightbox-next"
+            aria-label="הצילום הבא">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+    </div>
+
+
+</body>
+
+</html>
