@@ -1,0 +1,2091 @@
+/* =============================================================
+   Moovitdos / מובידוס — landing page design system
+   RTL Hebrew · EXACT old-site palette · MATERIAL DESIGN aesthetic.
+   Material elevation (dp shadow levels) replaces frosted glass,
+   Material easing + ripple-ish feedback, Filled / FilledTonal /
+   Outlined button treatments, Material app-bar navbar & FAB.
+   All class names below are part of the JS<->CSS shared contract.
+   ============================================================= */
+
+/* -------------------------------------------------------------
+   1. DESIGN TOKENS — palette is verbatim from the old site
+   ------------------------------------------------------------- */
+:root {
+    /* ---- EXACT old-site palette (do not change) ---- */
+    --primary-bg: #f0f4f8;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --accent-color: #2563eb;
+    --accent-hover: #1d4ed8;
+    --text-main: #0f172a;
+    --text-secondary: #475569;
+    --border-light: rgba(226, 232, 240, 0.8);
+    --success-color: #059669;
+    --badge-bg: rgba(209, 250, 229, 0.8);
+    --shadow-soft: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.05);
+
+    /* Accent as RGB for translucent ripples / tints */
+    --accent-rgb: 37, 99, 235;
+
+    /* Material surfaces (built from the palette, opaque for Material) */
+    --surface: #ffffff;
+    --surface-1: #ffffff;
+    /* dp1 card */
+    --surface-2: #fbfcfe;
+    /* dp app-bar */
+    --surface-tonal: #e8eefb;
+    /* FilledTonal container (accent-tinted) */
+    --surface-tonal-text: #173a9e;
+    /* on FilledTonal */
+    --text-muted: #94a3b8;
+    --input-bg: #ffffff;
+    --input-border: #e2e8f0;
+    --key-bg: #e2e8f0;
+    --key-text: #1e293b;
+    --key-edge: #cbd5e1;
+
+    /* Contact deep-blues stay exactly as the old site */
+    --contact-blue: #1e3a8a;
+    --contact-blue-dark: #001a8e;
+    --contact-blue-darker: #000c4d;
+
+    /* ---- Material elevation system (dp1 / dp2 / dp4 / dp8 / dp16) ---- */
+    --elev-1: 0 1px 2px rgba(15, 23, 42, 0.10), 0 1px 3px rgba(15, 23, 42, 0.06);
+    --elev-2: 0 2px 4px rgba(15, 23, 42, 0.10), 0 1px 5px rgba(15, 23, 42, 0.06);
+    --elev-4: 0 4px 8px rgba(15, 23, 42, 0.12), 0 2px 4px rgba(15, 23, 42, 0.08);
+    --elev-8: 0 8px 16px rgba(15, 23, 42, 0.14), 0 3px 6px rgba(15, 23, 42, 0.10);
+    --elev-16: 0 16px 32px rgba(15, 23, 42, 0.16), 0 6px 12px rgba(15, 23, 42, 0.12);
+    /* Accent-tinted elevation for filled accent buttons / FAB */
+    --elev-accent: 0 4px 10px rgba(var(--accent-rgb), 0.30), 0 2px 4px rgba(var(--accent-rgb), 0.20);
+    --elev-accent-hi: 0 10px 22px rgba(var(--accent-rgb), 0.38), 0 4px 8px rgba(var(--accent-rgb), 0.24);
+
+    /* ---- Material shape (rounded) scale ---- */
+    --r-xs: 8px;
+    --r-sm: 12px;
+    --r-md: 16px;
+    --r-lg: 24px;
+    --r-xl: 28px;
+    --r-pill: 100px;
+
+    /* ---- Material motion: standard & emphasized easing ---- */
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+    --ease-emphasized-decel: cubic-bezier(0.05, 0.7, 0.1, 1);
+    --ease-emphasized-accel: cubic-bezier(0.3, 0, 0.8, 0.15);
+    --dur-short: 0.18s;
+    --dur-medium: 0.3s;
+    --dur-long: 0.45s;
+
+    /* Heading gradient (uses palette blues) */
+    --grad-heading: linear-gradient(135deg, #1e293b 0%, #2563eb 100%);
+
+    --nav-offset: 96px;
+}
+
+/* -------------------------------------------------------------
+   2. DARK MODE — Material dark surfaces, same blue identity
+   ------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary-bg: #0e1525;
+        --glass-bg: rgba(30, 41, 59, 0.92);
+        --glass-border: rgba(148, 163, 184, 0.14);
+        --text-main: #e9eef6;
+        --text-secondary: #aab6cc;
+        --border-light: rgba(148, 163, 184, 0.20);
+        --badge-bg: rgba(6, 95, 70, 0.35);
+
+        --surface: #18233a;
+        --surface-1: #1c2840;
+        --surface-2: #1f2c46;
+        --surface-tonal: #23335c;
+        --surface-tonal-text: #cdddff;
+        --text-muted: #76859e;
+        --input-bg: #131c2e;
+        --input-border: rgba(148, 163, 184, 0.28);
+        --key-bg: #1e293b;
+        --key-text: #e2e8f0;
+        --key-edge: #0f172a;
+
+        /* Material dark uses deeper, softer shadows */
+        --elev-1: 0 1px 3px rgba(0, 0, 0, 0.5);
+        --elev-2: 0 2px 5px rgba(0, 0, 0, 0.5);
+        --elev-4: 0 4px 10px rgba(0, 0, 0, 0.55);
+        --elev-8: 0 8px 18px rgba(0, 0, 0, 0.6);
+        --elev-16: 0 16px 34px rgba(0, 0, 0, 0.65);
+        --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.45);
+        --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.55);
+
+        --grad-heading: linear-gradient(135deg, #cdd9ef 0%, #60a5fa 100%);
+    }
+
+    /* Solid headings read slightly lighter in dark mode for contrast */
+    header h1,
+    .section-header h2,
+    .gallery-title {
+        color: #93b4ff;
+    }
+}
+
+/* -------------------------------------------------------------
+   3. RESET & BASE
+   ------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: var(--nav-offset);
+}
+
+body {
+    font-family: 'Rubik', system-ui, -apple-system, sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--text-main);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+/* Material-style visible focus ring */
+:focus-visible {
+    outline: 3px solid var(--accent-color);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+
+.visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.skip-link {
+    position: fixed;
+    top: -100px;
+    right: 20px;
+    z-index: 5000;
+    background: var(--accent-color);
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 0 0 var(--r-sm) var(--r-sm);
+    font-weight: 700;
+    box-shadow: var(--elev-8);
+    transition: top var(--dur-medium) var(--ease-emphasized-decel);
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* -------------------------------------------------------------
+   4. ANIMATED BACKGROUND BLOBS (colors unchanged from old site)
+   ------------------------------------------------------------- */
+.bg-blobs {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    filter: blur(80px);
+    pointer-events: none;
+}
+
+/* Toned down for a calmer, more trustworthy feel: static (no movement)
+   and very low opacity so the background stays quiet. Selectors kept
+   intact because the HTML still references them. */
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.07;
+}
+
+.blob-1 {
+    width: 500px;
+    height: 500px;
+    top: -100px;
+    right: -100px;
+    background: #6366f1;
+}
+
+.blob-2 {
+    width: 400px;
+    height: 400px;
+    bottom: -50px;
+    left: -50px;
+    background: #2563eb;
+}
+
+.blob-3 {
+    width: 300px;
+    height: 300px;
+    top: 40%;
+    left: 20%;
+    background: #38bdf8;
+}
+
+@media (prefers-color-scheme: dark) {
+    .blob {
+        opacity: 0.10;
+    }
+}
+
+/* -------------------------------------------------------------
+   5. .glass — now a MATERIAL ELEVATED SURFACE (opaque, dp1)
+   ------------------------------------------------------------- */
+.glass {
+    background: var(--surface-1);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--elev-1);
+}
+
+/* -------------------------------------------------------------
+   6. NAVBAR — Material top app-bar
+   ------------------------------------------------------------- */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 2000;
+    padding: 16px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    transition: padding var(--dur-medium) var(--ease-standard),
+        background var(--dur-medium) var(--ease-standard),
+        box-shadow var(--dur-medium) var(--ease-standard);
+}
+
+/* On scroll (JS toggles .scrolled) the app-bar gains an elevation surface */
+.navbar.scrolled {
+    padding: 8px 0;
+    background: var(--surface-2);
+    box-shadow: var(--elev-4);
+}
+
+.nav-links {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    background: var(--surface-1);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--elev-2);
+    border-radius: var(--r-pill);
+    padding: 6px;
+}
+
+.navbar a {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 10px 18px;
+    border-radius: var(--r-pill);
+    position: relative;
+    overflow: hidden;
+    /* clip ripple */
+    transition: background var(--dur-short) var(--ease-standard),
+        color var(--dur-short) var(--ease-standard);
+}
+
+.navbar a svg {
+    opacity: 0.75;
+    transition: opacity var(--dur-short) var(--ease-standard),
+        transform var(--dur-short) var(--ease-standard);
+    z-index: 1;
+}
+
+.navbar a .nav-text,
+.navbar a .download-badge {
+    z-index: 1;
+}
+
+/* Material state-layer / ripple: a tinted circle that expands on press */
+.navbar a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(var(--accent-rgb), 0.20);
+    transform: translateZ(0);
+    opacity: 0;
+    transition: width var(--dur-medium) var(--ease-emphasized-decel),
+        height var(--dur-medium) var(--ease-emphasized-decel),
+        opacity var(--dur-medium) var(--ease-standard);
+    pointer-events: none;
+}
+
+.navbar a:hover {
+    background: rgba(var(--accent-rgb), 0.08);
+    color: var(--accent-color);
+}
+
+.navbar a:hover svg {
+    opacity: 1;
+}
+
+.navbar a:active::after {
+    width: 220%;
+    height: 220%;
+    opacity: 1;
+    transition-duration: 0s;
+}
+
+.navbar a.active {
+    background: var(--accent-color);
+    color: #fff;
+    box-shadow: var(--elev-2);
+}
+
+.navbar a.active svg {
+    opacity: 1;
+}
+
+/* Download counter chip (starts hidden; JS un-hides) */
+.download-badge {
+    display: none;
+    background: rgba(var(--accent-rgb), 0.10);
+    color: var(--accent-color);
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    font-weight: 700;
+    margin-inline-start: 4px;
+    border: 1px solid rgba(var(--accent-rgb), 0.18);
+    vertical-align: middle;
+    transition: background var(--dur-short) var(--ease-standard),
+        color var(--dur-short) var(--ease-standard);
+}
+
+.nav-links a:hover .download-badge {
+    background: var(--accent-color);
+    color: #fff;
+}
+
+.navbar a.active .download-badge {
+    background: #fff;
+    color: var(--accent-color);
+    border-color: #fff;
+}
+
+/* -------------------------------------------------------------
+   7. HERO / HEADER
+   ------------------------------------------------------------- */
+header {
+    width: 100%;
+    padding: 130px 20px 60px;
+    text-align: center;
+    position: relative;
+}
+
+.app-logo {
+    width: 140px;
+    height: 140px;
+    border-radius: var(--r-xl);
+    box-shadow: var(--elev-8);
+    margin: 0 auto 30px;
+    border: 5px solid var(--surface);
+    object-fit: cover;
+}
+
+header h1 {
+    font-size: clamp(1.9rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+    color: var(--accent-color);
+}
+
+header p {
+    font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+    color: var(--text-secondary);
+    max-width: 650px;
+    margin: 0 auto;
+}
+
+/* -------------------------------------------------------------
+   7b. HERO CALL-TO-ACTION (new elements; Material filled accent)
+   ------------------------------------------------------------- */
+.hero-cta {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 32px;
+}
+
+/* PRIMARY hero button — Material filled accent, sized to content */
+.hero-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: var(--accent-color);
+    color: #fff !important;
+    text-decoration: none;
+    padding: 18px 44px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    border-radius: var(--r-md);
+    box-shadow: var(--elev-accent);
+    transition: background var(--dur-medium) var(--ease-standard),
+        box-shadow var(--dur-medium) var(--ease-standard),
+        transform var(--dur-medium) var(--ease-emphasized);
+}
+
+.hero-btn:hover {
+    background: var(--accent-hover);
+    box-shadow: var(--elev-accent-hi);
+    transform: translateY(-3px);
+}
+
+/* Quieter secondary / text-link variant (outlined, restrained) */
+.hero-btn.secondary {
+    background: transparent;
+    color: var(--accent-color) !important;
+    border: 1.5px solid rgba(var(--accent-rgb), 0.5);
+    box-shadow: none;
+    font-size: 1.05rem;
+    padding: 16px 32px;
+}
+
+.hero-btn.secondary:hover {
+    background: rgba(var(--accent-rgb), 0.06);
+    border-color: var(--accent-color);
+    box-shadow: none;
+    transform: translateY(-2px);
+    text-decoration: underline;
+}
+
+/* Small muted benefit line under the hero buttons */
+.hero-micro {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 12px;
+}
+
+/* -------------------------------------------------------------
+   8. LAYOUT CONTAINER
+   ------------------------------------------------------------- */
+.container {
+    width: 100%;
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 20px;
+    flex-grow: 1;
+}
+
+/* -------------------------------------------------------------
+   9. SECTION HEADER
+   ------------------------------------------------------------- */
+.section-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.section-header h2 {
+    font-size: clamp(1.7rem, 4vw, 2.2rem);
+    font-weight: 800;
+    margin-bottom: 10px;
+    color: var(--accent-color);
+}
+
+.section-header p {
+    color: var(--text-secondary);
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+/* -------------------------------------------------------------
+   10. INFO SECTION (#info-section hidden until JS un-hides)
+   ------------------------------------------------------------- */
+#info-section {
+    border-radius: var(--r-xl);
+    padding: 40px;
+    margin-bottom: 40px;
+    display: none;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+/* Material elevated cards (dp1 -> dp8 on hover) */
+.info-card {
+    padding: 30px;
+    border-radius: var(--r-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    text-align: right;
+    background: var(--surface-1);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--elev-1);
+    transition: transform var(--dur-medium) var(--ease-emphasized),
+        box-shadow var(--dur-medium) var(--ease-standard);
+}
+
+.info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--elev-8);
+}
+
+@media (min-width: 600px) {
+    .pricing-card {
+        grid-column: 1 / -1;
+    }
+}
+
+.info-card h4 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.info-card h4 svg {
+    flex: 0 0 auto;
+}
+
+.info-card p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.info-card ul {
+    list-style: none;
+    padding: 0;
+}
+
+.info-card li {
+    position: relative;
+    padding-inline-start: 25px;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+}
+
+.info-card li::before {
+    content: "•";
+    position: absolute;
+    inset-inline-start: 0;
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+/* Keyboard key chips */
+.key-badge {
+    background: var(--key-bg);
+    color: var(--key-text);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-family: ui-monospace, monospace;
+    font-weight: 700;
+    border-bottom: 3px solid var(--key-edge);
+    margin: 0 4px;
+    display: inline-block;
+}
+
+/* -------------------------------------------------------------
+   11. DOWNLOADS — Material Filled / FilledTonal / Outlined buttons
+   ------------------------------------------------------------- */
+.hero-card {
+    border-radius: var(--r-xl);
+    padding: 50px;
+    text-align: center;
+    margin-bottom: 60px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--elev-2);
+    transition: transform var(--dur-long) var(--ease-emphasized),
+        box-shadow var(--dur-long) var(--ease-standard);
+}
+
+.hero-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--elev-8);
+}
+
+.badge-latest {
+    background: var(--badge-bg);
+    color: var(--success-color);
+    padding: 10px 24px;
+    border-radius: var(--r-pill);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 30px;
+    display: inline-block;
+}
+
+.version-title {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-weight: 800;
+    margin-bottom: 25px;
+}
+
+/* Base = Material Filled button (accent) with ripple state-layer */
+.download-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    background: var(--accent-color);
+    color: #fff !important;
+    text-decoration: none;
+    padding: 22px 50px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    border-radius: var(--r-md);
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--elev-accent);
+    transition: background var(--dur-medium) var(--ease-standard),
+        box-shadow var(--dur-medium) var(--ease-standard),
+        transform var(--dur-medium) var(--ease-emphasized);
+}
+
+.download-btn>* {
+    position: relative;
+    z-index: 1;
+}
+
+/* ripple state-layer */
+.download-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.30);
+    opacity: 0;
+    transition: width var(--dur-long) var(--ease-emphasized-decel),
+        height var(--dur-long) var(--ease-emphasized-decel),
+        opacity var(--dur-medium) var(--ease-standard);
+    pointer-events: none;
+}
+
+.download-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-3px);
+    box-shadow: var(--elev-accent-hi);
+}
+
+.download-btn:active::after {
+    width: 250%;
+    height: 600%;
+    opacity: 1;
+    transition-duration: 0s;
+}
+
+/* FilledTonal treatment — softer accent-tinted container */
+.download-btn.secondary {
+    background: var(--surface-tonal);
+    color: var(--surface-tonal-text) !important;
+    box-shadow: var(--elev-1);
+    font-size: 1.1rem;
+    padding: 18px 30px;
+}
+
+.download-btn.secondary::after {
+    background: rgba(var(--accent-rgb), 0.18);
+}
+
+.download-btn.secondary:hover {
+    background: var(--surface-tonal);
+    box-shadow: var(--elev-4);
+    filter: brightness(0.97);
+}
+
+/* Outlined treatment — transparent with accent border */
+.download-btn.tertiary {
+    background: transparent;
+    color: var(--accent-color) !important;
+    border: 1.5px solid rgba(var(--accent-rgb), 0.5);
+    box-shadow: none;
+    font-size: 1rem;
+    padding: 14px 25px;
+}
+
+.download-btn.tertiary::after {
+    background: rgba(var(--accent-rgb), 0.14);
+}
+
+.download-btn.tertiary:hover {
+    background: rgba(var(--accent-rgb), 0.06);
+    border-color: var(--accent-color);
+    box-shadow: none;
+    transform: translateY(-2px);
+}
+
+/* Downloads grid */
+.download-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.download-grid .full-btn {
+    grid-column: span 2;
+}
+
+.download-grid .lite-btn,
+.download-grid .zip-btn {
+    grid-column: span 1;
+    padding: 15px 10px !important;
+    font-size: 0.9rem !important;
+}
+
+.download-grid .lite-btn small,
+.download-grid .zip-btn small {
+    font-size: 0.7rem !important;
+}
+
+@media (min-width: 600px) {
+    .download-grid {
+        gap: 15px;
+    }
+
+    .download-grid .lite-btn,
+    .download-grid .zip-btn {
+        padding: 18px 30px !important;
+        font-size: 1.1rem !important;
+    }
+
+    .download-grid .lite-btn small,
+    .download-grid .zip-btn small {
+        font-size: 0.75rem !important;
+    }
+}
+
+/* -------------------------------------------------------------
+   11b. TRUST BLOCK — static reassurance card near downloads
+        (elevated surface like .info-card / .glass; calm accent edge)
+   ------------------------------------------------------------- */
+.trust-block {
+    max-width: 850px;
+    margin: 40px auto;
+    padding: 28px 32px;
+    text-align: right;
+    background: var(--surface-1);
+    border: 1px solid var(--border-light);
+    border-inline-start: 4px solid var(--accent-color);
+    border-radius: var(--r-lg);
+    box-shadow: var(--elev-1);
+}
+
+.trust-block h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--accent-color);
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.trust-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.trust-list li {
+    position: relative;
+    padding-inline-start: 24px;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.trust-list li::before {
+    content: "✓";
+    position: absolute;
+    inset-inline-start: 0;
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.trust-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    opacity: 0.85;
+    margin-top: 14px;
+}
+
+/* -------------------------------------------------------------
+   12. VERSION HISTORY
+   ------------------------------------------------------------- */
+.history-section h3 {
+    font-size: clamp(1.6rem, 4vw, 2rem);
+    font-weight: 800;
+    margin-bottom: 30px;
+}
+
+.history-item {
+    border-radius: var(--r-lg);
+    padding: 25px 35px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--elev-1);
+    transition: transform var(--dur-medium) var(--ease-emphasized),
+        box-shadow var(--dur-medium) var(--ease-standard);
+}
+
+.history-item:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--elev-4);
+}
+
+.history-notes {
+    width: 100%;
+    background: rgba(var(--accent-rgb), 0.05);
+    padding: 18px 22px;
+    border-radius: var(--r-md);
+    border-inline-start: 4px solid var(--accent-color);
+    font-size: 1rem;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+.history-notes strong {
+    color: var(--text-main);
+}
+
+.history-notes ul,
+.history-notes ol {
+    margin-inline-start: 22px;
+}
+
+.history-notes li {
+    margin-bottom: 8px;
+}
+
+/* -------------------------------------------------------------
+   13. LOADING SPINNER (.loading)
+   ------------------------------------------------------------- */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    text-align: center;
+    padding: 100px 20px;
+    color: var(--text-secondary);
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+    transform-origin: center;
+}
+
+.loading-text {
+    font-weight: 600;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.error {
+    text-align: center;
+    padding: 60px 30px;
+    color: var(--text-secondary);
+    background: var(--surface-1);
+    border: 1px solid var(--border-light);
+    border-radius: var(--r-lg);
+    box-shadow: var(--elev-1);
+    margin-top: 40px;
+}
+
+/* -------------------------------------------------------------
+   14. GALLERY (#gallery-section hidden until JS un-hides)
+   ------------------------------------------------------------- */
+.gallery-section {
+    padding: 60px 0 100px;
+    display: none;
+}
+
+.gallery-title {
+    text-align: center;
+    font-size: clamp(1.6rem, 4vw, 2rem);
+    font-weight: 800;
+    margin-bottom: 40px;
+    color: var(--accent-color);
+}
+
+.gallery-subtitle {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: clamp(0.95rem, 2.4vw, 1.05rem);
+    max-width: 560px;
+    margin: -28px auto 36px;
+    line-height: 1.6;
+}
+
+/* --- Google Play–style horizontal scroll-snap carousel (RTL) --- */
+/* The container is inside dir="rtl": the first shot rests at the RIGHT edge
+   and the rest extend / peek to the LEFT. The trailing edge padding lets the
+   next image peek to signal that the row is scrollable. */
+.gallery-container {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    /* Generous start padding so shots sit clear of the edge; trailing padding
+       leaves room for the peek. (RTL: padding-inline-start = right side.) */
+    padding: 10px clamp(16px, 6vw, 64px) 24px;
+    /* Center the row when there are too few shots to fill the width. */
+    justify-content: safe center;
+    scroll-padding-inline: clamp(16px, 6vw, 64px);
+    /* Subtle fade at the trailing (left) edge to hint "more this way". */
+    -webkit-mask-image: linear-gradient(to left, #000 90%, transparent 100%);
+    mask-image: linear-gradient(to left, #000 90%, transparent 100%);
+    /* Hide the scrollbar (Firefox / IE) — see ::-webkit-scrollbar below. */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.gallery-container::-webkit-scrollbar {
+    height: 0;
+    width: 0;
+    display: none;
+}
+
+/* Each screenshot: a flat, raw, rounded image (NO device chrome) inside a
+   focusable <button>. Fixed height, width follows the portrait aspect ratio. */
+.gallery-card {
+    appearance: none;
+    -webkit-appearance: none;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 0;
+    margin: 0;
+    background: transparent;
+    cursor: zoom-in;
+    scroll-snap-align: center;
+    border-radius: var(--r-md);
+    transition: transform var(--dur-medium) var(--ease-emphasized);
+}
+
+.gallery-img {
+    display: block;
+    height: clamp(320px, 56vh, 460px);
+    width: auto;
+    max-width: none;
+    border-radius: var(--r-md);
+    box-shadow: var(--elev-2);
+    object-fit: cover;
+    background: var(--surface-1);
+    border: 1px solid var(--border-light);
+    transition: box-shadow var(--dur-medium) var(--ease-standard),
+        transform var(--dur-medium) var(--ease-emphasized);
+}
+
+.gallery-card:hover .gallery-img {
+    box-shadow: var(--elev-8);
+    transform: translateY(-4px);
+}
+
+.gallery-card:focus-visible {
+    outline: none;
+}
+
+.gallery-card:focus-visible .gallery-img {
+    outline: 3px solid var(--accent-color);
+    outline-offset: 3px;
+}
+
+/* --- Empty / fallback state (shown instead of the section vanishing) --- */
+.gallery-section.is-empty .gallery-subtitle {
+    display: none;
+}
+
+.gallery-container.is-empty {
+    display: block;
+    overflow: visible;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 0 20px;
+    -webkit-mask-image: none;
+    mask-image: none;
+}
+
+.gallery-empty {
+    text-align: center;
+    background: var(--surface-1);
+    border: 1px solid var(--border-light);
+    border-radius: var(--r-lg);
+    box-shadow: var(--elev-1);
+    padding: 52px 32px;
+}
+
+.gallery-empty-icon {
+    color: var(--accent-color);
+    opacity: 0.85;
+    margin-bottom: 18px;
+}
+
+.gallery-empty-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 10px;
+}
+
+.gallery-empty-text {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* --- Immersive fullscreen viewer (lightbox) with prev/next --- */
+.gallery-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 4000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    background: rgba(15, 23, 42, 0.86);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    pointer-events: none;
+    cursor: zoom-out;
+    transition: opacity var(--dur-medium) var(--ease-standard);
+}
+
+.gallery-lightbox.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.gallery-lightbox-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    max-height: 100%;
+    cursor: default;
+}
+
+.gallery-lightbox-img {
+    max-width: min(92vw, 460px);
+    max-height: 88vh;
+    border-radius: var(--r-md);
+    background: var(--surface-1);
+    box-shadow: var(--elev-16);
+    transform: scale(0.94);
+    transition: transform var(--dur-medium) var(--ease-emphasized-decel);
+}
+
+.gallery-lightbox.active .gallery-lightbox-img {
+    transform: scale(1);
+}
+
+.gallery-lightbox-close {
+    position: absolute;
+    top: 20px;
+    inset-inline-end: 20px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--surface-1);
+    color: var(--text-main);
+    box-shadow: var(--elev-4);
+    cursor: pointer;
+    transition: background var(--dur-short) var(--ease-standard),
+        transform var(--dur-short) var(--ease-standard);
+}
+
+.gallery-lightbox-close:hover {
+    background: var(--surface-tonal);
+    transform: scale(1.06);
+}
+
+/* Position counter at the top — LTR numerals, centered. */
+.gallery-lightbox-counter {
+    position: absolute;
+    top: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
+    pointer-events: none;
+}
+
+/* Prev / next arrows — pinned to the sides, vertically centered. */
+.gallery-lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--surface-1);
+    color: var(--text-main);
+    box-shadow: var(--elev-4);
+    cursor: pointer;
+    transition: background var(--dur-short) var(--ease-standard),
+        transform var(--dur-short) var(--ease-standard),
+        opacity var(--dur-short) var(--ease-standard);
+}
+
+.gallery-lightbox-nav:hover:not(:disabled) {
+    background: var(--surface-tonal);
+    transform: translateY(-50%) scale(1.06);
+}
+
+.gallery-lightbox-nav:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+/* RTL: "prev" (towards the first screenshot) sits on the RIGHT;
+   "next" (towards later screenshots) sits on the LEFT. */
+.gallery-lightbox-prev {
+    inset-inline-end: 16px;
+}
+
+.gallery-lightbox-next {
+    inset-inline-start: 16px;
+}
+
+/* Lock background scroll while the viewer is open. */
+body.gallery-lightbox-open {
+    overflow: hidden;
+}
+
+@media (max-width: 600px) {
+    .gallery-img {
+        height: clamp(280px, 60vh, 420px);
+    }
+
+    .gallery-lightbox-nav {
+        width: 44px;
+        height: 44px;
+    }
+
+    .gallery-lightbox-prev {
+        inset-inline-end: 8px;
+    }
+
+    .gallery-lightbox-next {
+        inset-inline-start: 8px;
+    }
+}
+
+/* -------------------------------------------------------------
+   15. CONTACT SECTION (deep-blues unchanged from old site)
+   ------------------------------------------------------------- */
+.contact-section {
+    padding: 90px 20px 110px;
+    text-align: center;
+}
+
+.contact-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 50px;
+    border-radius: var(--r-xl);
+    background: var(--surface-1);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--elev-4);
+}
+
+.contact-title {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-weight: 800;
+    margin-bottom: 40px;
+    color: var(--contact-blue);
+}
+
+@media (prefers-color-scheme: dark) {
+    .contact-title {
+        color: #93b4ff;
+    }
+}
+
+.contact-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    text-align: right;
+}
+
+.form-group-full {
+    width: 100%;
+}
+
+/* Material text fields (filled, pill) */
+.contact-form input,
+.contact-form textarea {
+    width: 100%;
+    padding: 18px 25px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--input-border);
+    background: var(--input-bg);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 1.05rem;
+    outline: none;
+    transition: border-color var(--dur-medium) var(--ease-standard),
+        box-shadow var(--dur-medium) var(--ease-standard);
+}
+
+.contact-form input::placeholder,
+.contact-form textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.contact-form textarea {
+    border-radius: var(--r-lg);
+    min-height: 130px;
+    resize: vertical;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    border-color: var(--contact-blue);
+    box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.10);
+}
+
+/* Material Filled submit (deep blue from old site) with ripple */
+.submit-btn {
+    background: var(--contact-blue-dark);
+    color: #fff !important;
+    padding: 20px;
+    border-radius: var(--r-pill);
+    font-size: 1.4rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    box-shadow: 0 4px 10px rgba(0, 26, 142, 0.30), 0 2px 4px rgba(0, 26, 142, 0.20);
+    transition: background var(--dur-medium) var(--ease-standard),
+        box-shadow var(--dur-medium) var(--ease-standard),
+        transform var(--dur-medium) var(--ease-emphasized);
+}
+
+.submit-btn>* {
+    position: relative;
+    z-index: 1;
+}
+
+.submit-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.28);
+    opacity: 0;
+    transition: width var(--dur-long) var(--ease-emphasized-decel),
+        height var(--dur-long) var(--ease-emphasized-decel),
+        opacity var(--dur-medium) var(--ease-standard);
+    pointer-events: none;
+}
+
+.submit-btn:hover {
+    transform: translateY(-3px);
+    background: var(--contact-blue-darker);
+    box-shadow: 0 10px 24px rgba(0, 26, 142, 0.40), 0 4px 8px rgba(0, 26, 142, 0.26);
+}
+
+.submit-btn:active::after {
+    width: 250%;
+    height: 600%;
+    opacity: 1;
+    transition-duration: 0s;
+}
+
+.contact-alt {
+    margin-top: 30px;
+    border-top: 1px solid var(--border-light);
+    padding-top: 25px;
+}
+
+/* Outlined/tonal text button */
+.gmail-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    padding: 12px 25px;
+    border-radius: var(--r-pill);
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: 1px solid var(--border-light);
+    transition: background var(--dur-short) var(--ease-standard),
+        color var(--dur-short) var(--ease-standard),
+        border-color var(--dur-short) var(--ease-standard),
+        box-shadow var(--dur-short) var(--ease-standard),
+        transform var(--dur-short) var(--ease-emphasized);
+}
+
+.gmail-btn:hover {
+    background: var(--surface);
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: var(--elev-2);
+}
+
+/* -------------------------------------------------------------
+   16. FOOTER
+   ------------------------------------------------------------- */
+footer {
+    margin-top: auto;
+    padding: 60px 20px;
+    text-align: center;
+    background: var(--surface);
+    border-top: 1px solid var(--border-light);
+    color: var(--text-secondary);
+}
+
+.hits {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.hits-label {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.hits img {
+    height: 20px;
+}
+
+/* -------------------------------------------------------------
+   17. FAB — Material extended FAB (dp6/dp8 elevation)
+   ------------------------------------------------------------- */
+.fab-btn {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    background: var(--accent-color);
+    color: #fff !important;
+    padding: 18px 30px;
+    border-radius: var(--r-md);
+    font-weight: 700;
+    font-size: 1.15rem;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+    box-shadow: var(--elev-accent), var(--elev-8);
+    transition: background var(--dur-medium) var(--ease-standard),
+        box-shadow var(--dur-medium) var(--ease-standard),
+        transform var(--dur-medium) var(--ease-emphasized);
+}
+
+.fab-btn>* {
+    position: relative;
+    z-index: 1;
+}
+
+.fab-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.30);
+    opacity: 0;
+    transition: width var(--dur-long) var(--ease-emphasized-decel),
+        height var(--dur-long) var(--ease-emphasized-decel),
+        opacity var(--dur-medium) var(--ease-standard);
+    pointer-events: none;
+}
+
+.fab-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-4px);
+    box-shadow: var(--elev-accent-hi), var(--elev-16);
+}
+
+.fab-btn:active::after {
+    width: 300%;
+    height: 600%;
+    opacity: 1;
+    transition-duration: 0s;
+}
+
+/* -------------------------------------------------------------
+   18. MODAL — Material elevated dialog (dp16)
+   ------------------------------------------------------------- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    opacity: 0;
+    transition: opacity var(--dur-medium) var(--ease-standard);
+}
+
+.modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-card {
+    width: 90%;
+    max-width: 800px;
+    max-height: 85vh;
+    border-radius: var(--r-xl);
+    padding: 40px;
+    position: relative;
+    overflow-y: auto;
+    direction: ltr;
+    /* scrollbar on the right for RTL content */
+    transform: scale(0.92) translateY(24px);
+    transition: transform var(--dur-long) var(--ease-emphasized-decel);
+    background: var(--surface-1);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--elev-16);
+}
+
+.modal-overlay.active .modal-card {
+    transform: scale(1) translateY(0);
+}
+
+.modal-close {
+    position: sticky;
+    top: 0;
+    float: right;
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    width: 44px;
+    height: 44px;
+    border-radius: var(--r-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    color: var(--text-secondary);
+    box-shadow: var(--elev-1);
+    transition: background var(--dur-short) var(--ease-standard),
+        color var(--dur-short) var(--ease-standard),
+        transform var(--dur-medium) var(--ease-emphasized);
+}
+
+.modal-close:hover {
+    background: #ef4444;
+    color: #fff;
+    transform: rotate(90deg);
+    box-shadow: var(--elev-4);
+}
+
+.modal-content {
+    text-align: right;
+    direction: rtl;
+    padding-top: 20px;
+}
+
+.modal-content h1,
+.modal-content h2,
+.modal-content h3 {
+    margin-top: 30px;
+    margin-bottom: 20px;
+    color: var(--accent-color);
+}
+
+.modal-content hr {
+    border: 0;
+    border-top: 1px solid var(--border-light);
+    margin: 30px 0;
+}
+
+.modal-content ul,
+.modal-content ol {
+    margin-inline-start: 25px;
+    margin-bottom: 20px;
+}
+
+.modal-content li {
+    margin-bottom: 12px;
+}
+
+.modal-content p {
+    margin-bottom: 14px;
+}
+
+/* -------------------------------------------------------------
+   19. REVEAL ANIMATION — Material emphasized entrance
+   ------------------------------------------------------------- */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity var(--dur-long) var(--ease-emphasized-decel),
+        transform var(--dur-long) var(--ease-emphasized-decel);
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* -------------------------------------------------------------
+   20. RESPONSIVE — Material bottom-nav bar on small screens
+   ------------------------------------------------------------- */
+@media (max-width: 768px) {
+    :root {
+        --nav-offset: 20px;
+    }
+
+    header {
+        padding: 70px 16px 40px;
+    }
+
+    .app-logo {
+        width: 100px;
+        height: 100px;
+        border-radius: 24px;
+        margin-bottom: 20px;
+    }
+
+    #info-section {
+        padding: 30px 22px;
+    }
+
+    .contact-container {
+        padding: 30px 22px;
+    }
+
+    .history-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+        padding: 22px 24px;
+    }
+
+    /* Hero CTA stacks vertically; tighter button padding on small screens */
+    .hero-cta {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .hero-btn {
+        padding: 16px 32px;
+    }
+
+    .hero-btn.secondary {
+        padding: 14px 28px;
+    }
+
+    .trust-block {
+        padding: 24px 22px;
+    }
+
+    /* Material navigation-bar docked at the bottom */
+    .navbar {
+        top: auto;
+        bottom: 0;
+        padding: 0 0 12px;
+        background: transparent !important;
+        box-shadow: none !important;
+        pointer-events: none;
+    }
+
+    .nav-links {
+        pointer-events: auto;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        width: 94%;
+        gap: 0;
+        padding: 5px;
+        box-shadow: var(--elev-8);
+    }
+
+    .navbar a {
+        padding: 11px 0;
+        width: 100%;
+        justify-content: center;
+        position: relative;
+    }
+
+    .navbar a svg {
+        width: 20px;
+        height: 20px;
+        opacity: 1;
+    }
+
+    .nav-text {
+        display: none !important;
+    }
+
+    .download-badge {
+        position: absolute;
+        top: 0;
+        inset-inline-end: 2px;
+        padding: 1px 5px;
+        font-size: 0.6rem;
+        margin: 0;
+        min-width: 15px;
+        text-align: center;
+        box-shadow: var(--elev-1);
+    }
+
+    /* FAB above the bottom nav */
+    .fab-btn {
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 76px;
+        width: auto;
+        padding: 14px 26px;
+    }
+
+    .fab-btn:hover {
+        transform: translateX(-50%) translateY(-4px);
+    }
+
+    .modal-card {
+        padding: 28px 22px;
+    }
+}
+
+/* -------------------------------------------------------------
+   21. REDUCED MOTION — disable blobs, ripples, reveals, transforms
+   ------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+
+    .blob {
+        animation: none;
+    }
+
+    .navbar a::after,
+    .download-btn::after,
+    .submit-btn::after,
+    .fab-btn::after {
+        display: none;
+    }
+
+    .reveal {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
+/* -------------------------------------------------------------
+   21. HELP CENTER / GUIDE (inline, sidebar TOC) — Material surface
+   ------------------------------------------------------------- */
+.support-center {
+    background: var(--surface-1);
+    border: 1px solid var(--border-light);
+    border-radius: var(--r-lg);
+    box-shadow: var(--elev-1);
+    padding: 40px;
+    margin-bottom: 40px;
+}
+
+.support-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 32px;
+    text-align: center;
+    letter-spacing: -0.3px;
+    color: var(--accent-color);
+}
+
+.support-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 40px;
+}
+
+.support-sidebar {
+    border-inline-start: 1px solid var(--border-light);
+    padding-inline-start: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 550px;
+    overflow-y: auto;
+}
+
+.support-sidebar a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 10px 16px;
+    border-radius: var(--r-xs);
+    transition: background var(--dur-short) var(--ease-standard),
+        color var(--dur-short) var(--ease-standard);
+    display: block;
+    line-height: 1.4;
+}
+
+.support-sidebar a:hover {
+    background: var(--primary-bg);
+    color: var(--text-main);
+}
+
+.support-sidebar a.active {
+    background: var(--surface-tonal);
+    color: var(--accent-color) !important;
+    font-weight: 600;
+}
+
+.support-nav-link.main-heading {
+    font-weight: 700;
+}
+
+.support-nav-link.sub-heading {
+    padding-inline-start: 30px;
+    font-size: 0.85rem;
+}
+
+.support-content {
+    padding-inline: 12px 24px;
+    max-height: 550px;
+    overflow-y: auto;
+    text-align: right;
+}
+
+.support-content h1,
+.support-content h2,
+.support-content h3 {
+    margin-top: 28px;
+    margin-bottom: 14px;
+    color: var(--text-main);
+    letter-spacing: -0.2px;
+    scroll-margin-top: 12px;
+}
+
+.support-content h1 {
+    font-size: 1.8rem;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 12px;
+}
+
+.support-content h2 {
+    font-size: 1.4rem;
+}
+
+.support-content h3 {
+    font-size: 1.15rem;
+}
+
+.support-content p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.65;
+}
+
+.support-content ul,
+.support-content ol {
+    margin-inline-start: 28px;
+    margin-bottom: 16px;
+}
+
+.support-content li {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.support-content hr {
+    border: 0;
+    border-top: 1px solid var(--border-light);
+    margin: 24px 0;
+}
+
+.support-content a {
+    color: var(--accent-color);
+}
+
+/* Fallback card when the guide markdown can't be loaded */
+.support-fallback-card {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--primary-bg);
+    border: 1px dashed var(--border-light);
+    border-radius: var(--r-md);
+}
+
+.support-fallback-card h3 {
+    margin-bottom: 8px;
+    color: var(--text-main);
+}
+
+.support-fallback-card p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+}
+
+.support-fallback-card svg {
+    margin-bottom: 12px;
+}
+
+.support-fallback-btn {
+    display: inline-flex;
+    width: auto;
+}
+
+.support-sidebar-fallback {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    padding: 10px;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .support-center {
+        padding: 24px 16px;
+    }
+
+    .support-layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .support-sidebar {
+        border-inline-start: none;
+        border-bottom: 1px solid var(--border-light);
+        padding-inline-start: 0;
+        padding-bottom: 16px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        max-height: none;
+        gap: 8px;
+    }
+
+    .support-sidebar a {
+        display: inline-block;
+    }
+
+    .support-content {
+        max-height: none;
+        overflow-y: visible;
+        padding-inline: 0;
+    }
+}
+
+/* -------------------------------------------------------------
+   22. CHANGELOG (click-to-expand version notes — info only)
+   ------------------------------------------------------------- */
+.updates-section {
+    margin-bottom: 48px;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-align: center;
+    color: var(--accent-color);
+    margin-bottom: 6px;
+}
+
+.section-subtitle {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+    font-size: 0.98rem;
+}
+
+.changelog {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.changelog-entry {
+    border-radius: var(--r-md);
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+}
+
+.changelog-entry.is-latest {
+    border: 2px solid var(--accent-color);
+}
+
+.changelog-head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 22px;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: inherit;
+    color: var(--text-main);
+    transition: background var(--dur-short) var(--ease-standard);
+}
+
+.changelog-head:hover {
+    background: rgba(var(--accent-rgb), 0.04);
+}
+
+.changelog-head:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: -2px;
+}
+
+.changelog-head-main {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.changelog-ver {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.changelog-date {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.changelog-head-side {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.changelog-chevron {
+    transition: transform var(--dur-medium) var(--ease-emphasized);
+    color: var(--text-secondary);
+}
+
+.changelog-entry.open .changelog-chevron {
+    transform: rotate(180deg);
+}
+
+.changelog-panel {
+    display: none;
+    padding: 0 22px 20px;
+}
+
+.changelog-entry.open .changelog-panel {
+    display: block;
+}
+
+.changelog-notes {
+    border-top: 1px solid var(--border-light);
+    padding-top: 16px;
+}
+
+.changelog-divider {
+    border: 0;
+    border-top: 1px solid var(--border-light);
+    margin: 14px 0;
+}
+
+@media (max-width: 600px) {
+    .changelog-head {
+        padding: 16px;
+    }
+
+    .changelog-panel {
+        padding: 0 16px 16px;
+    }
+}
