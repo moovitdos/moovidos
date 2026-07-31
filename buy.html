@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>רכישת רישיון מובידוס - סליקה אונליין ב-PayPal</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="רכישת רישיון אונליין לאפליקציית מובידוס - סליקה מאובטחת ב-PayPal ומשלוח מיידי של קוד ההפעלה וברקוד ה-QR למייל.">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Moovitdos">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="רכישת רישיון מובידוס - סליקה אונליין">
+    <meta property="og:description" content="הזינו את מזהה המכשיר ושלמו באופן מאובטח ב-PayPal לקבלת קוד הפעלה מיידי.">
+    <meta property="og:type" content="website">
+
+    <!-- Favicon -->
+    <link rel="icon" href="logo.png" type="image/png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+
+    <!-- Styles + Scripts -->
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://www.paypal.com/sdk/js?client-id=BAAaA821LNmRItrG2Y5QhHIfdHlN9Iy3_ZkhbjasYlReV_0ZEaRs6-ivbK_y6CizGeVsWXXJSJ2gQoQwS0&currency=ILS" defer></script>
+    <script src="js/config.js" defer></script>
+
+    <style>
+        .buy-page-layout {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .buy-card-container {
+            width: 100%;
+            max-width: 520px;
+            margin: 40px auto;
+        }
+
+        .buy-card {
+            background: var(--surface-1);
+            border-radius: var(--r-xl);
+            padding: 36px 30px;
+            box-shadow: var(--elev-16);
+            text-align: center;
+            border: 1px solid var(--border-light);
+        }
+
+        .buy-security-badges {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            text-align: right;
+        }
+
+        .buy-security-badge-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .buy-back-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 8px 16px;
+            border-radius: var(--r-md);
+            background: rgba(var(--accent-rgb), 0.08);
+            transition: all 0.2s ease;
+        }
+
+        .buy-back-nav:hover {
+            background: rgba(var(--accent-rgb), 0.16);
+        }
+
+        #buy-device-id-input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 1.35rem;
+            font-weight: 700;
+            font-family: inherit;
+            direction: rtl;
+            text-align: center;
+            unicode-bidi: bidi-override;
+            letter-spacing: 0.15em;
+            border-radius: var(--r-md);
+            border: 2px solid var(--border-light);
+            background: var(--input-bg);
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        #buy-device-id-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.15);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Animated background blobs -->
+    <div class="bg-blobs" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="buy-page-layout">
+        <!-- Main Card -->
+        <main class="buy-card-container">
+            <div class="buy-card glass">
+                <div class="device-modal-icon" style="margin-bottom: 20px;">
+                    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                    </svg>
+                </div>
+
+                <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">רכישת רישיון מובידוס</h1>
+                <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 24px;">
+                    הקלידו או הדביקו את 9 התווים המופיעים במסך הנעילה של האפליקציה (או מתוך סריקת ה-QR):
+                </p>
+
+                <div class="device-input-wrapper">
+                    <input type="text" id="buy-device-id-input" placeholder="א  ב  ג  ד  ה  ו  ז  ח  ט" autocomplete="off" spellcheck="false" dir="rtl">
+                    <div id="buy-id-feedback" class="id-feedback-msg info">ממתין להזנת מזהה מכשיר...</div>
+                </div>
+
+                <div class="device-modal-actions" style="display: flex; flex-direction: column; align-items: center;">
+                    <div id="paypal-button-container" style="margin-top: 10px; width: 100%; min-height: 50px; transition: all 0.3s ease;"></div>
+                </div>
+
+                <div class="buy-security-badges">
+                    <div class="buy-security-badge-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        <span>סליקה מוצפנת ומאובטחת 100% בתקן SSL ע"י PayPal</span>
+                    </div>
+                    <div class="buy-security-badge-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        <span>משלוח מיידי של קוד ההפעלה וברקוד ה-QR אל הדוא"ל שלך</span>
+                    </div>
+                    <div class="buy-security-badge-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        <span>רישיון חד-פעמי לתמיד — ללא מנוי וללא תשלומים חוזרים</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script logic for buy.html -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const LATIN = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            const DISPLAY = "אבגדהוזחטיכלמנסעפצקרשתךםןף0123456789";
+            const CHECK_ALPHABET = LATIN;
+
+            const input = document.getElementById('buy-device-id-input');
+            const feedback = document.getElementById('buy-id-feedback');
+            const payBtn = document.getElementById('buy-proceed-pay-btn');
+            const paypalContainer = document.getElementById('paypal-button-container');
+
+            let validLatinId = "";
+
+            function latinToDisplay(latChar) {
+                const idx = LATIN.indexOf(latChar);
+                return idx >= 0 ? DISPLAY[idx] : latChar;
+            }
+
+            function normalizeToLatin(s) {
+                let out = "";
+                for (const ch of String(s || '').toUpperCase()) {
+                    if (/[0-9A-Z]/.test(ch)) out += ch;
+                    else { const i = DISPLAY.indexOf(ch); if (i >= 0 && i <= 25) out += LATIN[i]; }
+                }
+                return out;
+            }
+
+            function checkChar(s) {
+                let t = 0;
+                for (let i = 0; i < s.length; i++) t += (i + 1) * CHECK_ALPHABET.indexOf(s[i]);
+                return CHECK_ALPHABET[((t % 36) + 36) % 36];
+            }
+
+            function setFeedback(kind, text) {
+                feedback.className = 'id-feedback-msg ' + kind;
+                feedback.textContent = text;
+            }
+
+            function formatSpacedDisplay(latinStr) {
+                const chars = [];
+                for (let i = 0; i < latinStr.length; i++) {
+                    chars.push(latinToDisplay(latinStr[i]));
+                }
+                return chars.join(" ");
+            }
+
+            function findAllValidIds(text) {
+                const regex = /([0-9A-Za-zא-תךםןף][\s\-]*){8}[0-9A-Za-zא-תךםןף]/gi;
+                const found = [];
+                let match;
+                while ((match = regex.exec(text)) !== null) {
+                    const matchedText = match[0];
+                    const beforeIdx = match.index - 1;
+                    if (beforeIdx >= 0 && /[0-9A-Za-zא-תךםןף]/.test(text[beforeIdx])) continue;
+                    const afterIdx = match.index + matchedText.length;
+                    if (afterIdx < text.length && /[0-9A-Za-zא-תךםןף]/.test(text[afterIdx])) continue;
+
+                    const latin = normalizeToLatin(matchedText);
+                    if (latin.length === 9) {
+                        try {
+                            const expected = checkChar(latin.substring(0, 8));
+                            if (latin[8] === expected && !found.includes(latin)) {
+                                found.push(latin);
+                            }
+                        } catch (e) {}
+                    }
+                }
+                return found;
+            }
+
+            const ID_STRIP_RE = /[\s\u200E\u200F\u202A-\u202E]/;
+
+            function cleanIdChars(raw) {
+                let out = "";
+                for (const ch of raw) {
+                    if (ID_STRIP_RE.test(ch)) continue;
+                    if (DISPLAY.includes(ch) || LATIN.includes(ch.toUpperCase())) out += ch;
+                }
+                return out;
+            }
+
+            let renderedLatinId = "";
+
+            function clearPayPalButton() {
+                if (paypalContainer) {
+                    paypalContainer.innerHTML = '';
+                    renderedLatinId = "";
+                }
+            }
+
+            function renderPayPalButton(latinId) {
+                if (renderedLatinId === latinId) return;
+                if (!window.paypal || !window.paypal.Buttons || !paypalContainer) return;
+
+                clearPayPalButton();
+                renderedLatinId = latinId;
+
+                window.paypal.Buttons({
+                    style: { layout: 'vertical', color: 'gold', shape: 'rect' },
+                    createOrder: function (data, actions) {
+                        return actions.order.create({
+                            application_context: {
+                                shipping_preference: 'NO_SHIPPING',
+                                user_action: 'PAY_NOW'
+                            },
+                            purchase_units: [{
+                                description: 'רישיון מובידוס - מזהה ' + latinId,
+                                custom_id: latinId,
+                                amount: {
+                                    currency_code: 'ILS',
+                                    value: '0.01'
+                                }
+                            }]
+                        });
+                    },
+                    onApprove: function (data, actions) {
+                        return actions.order.capture().then(function (details) {
+                            paypalContainer.innerHTML = `
+                                <div style="background: rgba(16, 185, 129, 0.12); border: 2px solid #10b981; border-radius: var(--r-md); padding: 20px; text-align: center; margin-top: 15px;">
+                                    <div style="font-size: 2.2rem; margin-bottom: 8px;">🎉</div>
+                                    <h3 style="color: #10b981; font-weight: 800; font-size: 1.25rem; margin-bottom: 8px;">התשלום בוצע בהצלחה!</h3>
+                                    <p style="font-size: 0.95rem; color: var(--text-main); line-height: 1.5; margin: 0;">
+                                        קוד ההפעלה וברקוד ה-QR נשלחו ברגע זה אל כתובת הדוא"ל שלך.<br>
+                                        <span style="font-size: 0.85rem; opacity: 0.8;">(אם המייל לא מופיע בתיבת הדואר הנכנס, אנא בדוק/י בתיקיית דואר זבל / ספאם)</span>
+                                    </p>
+                                </div>
+                            `;
+                            setFeedback('ok', '✓ תשלום אושר – קוד הפעלה נשלח למייל!');
+                        });
+                    },
+                    onError: function (err) {
+                        console.error('PayPal checkout error:', err);
+                        setFeedback('err', '❌ אירעה שגיאה בתהליך התשלום של PayPal');
+                    }
+                }).render('#paypal-button-container');
+            }
+
+            function validateCurrentInput() {
+                const latin = normalizeToLatin(input.value);
+
+                if (!latin) {
+                    validLatinId = "";
+                    clearPayPalButton();
+                    setFeedback('info', 'ממתין להזנת מזהה מכשיר...');
+                    return;
+                }
+
+                if (latin.length < 9) {
+                    validLatinId = "";
+                    clearPayPalButton();
+                    setFeedback('info', `הוקלדו ${latin.length} מתוך 9 תווים...`);
+                    return;
+                }
+
+                if (latin.length > 9) {
+                    validLatinId = "";
+                    clearPayPalButton();
+                    setFeedback('err', '⚠️ המזהה ארוך מדי (צפוי 9 תווים בלבד)');
+                    return;
+                }
+
+                try {
+                    const expected = checkChar(latin.substring(0, 8));
+                    if (latin[8] === expected) {
+                        validLatinId = latin;
+                        setFeedback('ok', '✓ מזהה מכשיר תקין – לחץ על לחצן PayPal למטה לתשלום');
+                        renderPayPalButton(latin);
+                    } else {
+                        validLatinId = "";
+                        clearPayPalButton();
+                        setFeedback('err', '❌ ספרת ביקורת שגויה – אנא ודא שהעתקת את המזהה במלואו');
+                    }
+                } catch (err) {
+                    validLatinId = "";
+                    clearPayPalButton();
+                    setFeedback('err', '❌ מזהה מכשיר שגוי');
+                }
+            }
+
+            // Paste handler (QR paste & multi-line string)
+            input.addEventListener('paste', (ev) => {
+                const text = (ev.clipboardData || window.clipboardData).getData('text') || '';
+                const validIds = findAllValidIds(text);
+                if (validIds.length > 0) {
+                    ev.preventDefault();
+                    validLatinId = validIds[0];
+                    input.value = formatSpacedDisplay(validLatinId);
+                    validateCurrentInput();
+                }
+            });
+
+            input.addEventListener('input', () => {
+                const raw = input.value;
+                let clean = cleanIdChars(raw);
+                if (clean.length > 9) clean = clean.substring(0, 9);
+
+                const latin = normalizeToLatin(clean);
+                const formatted = latin.split("").map(latinToDisplay).join(" ");
+
+                if (formatted !== raw) {
+                    input.value = formatted;
+                }
+                validateCurrentInput();
+            });
+
+            // Deep-link auto-fill & pre-validation
+            try {
+                const searchParams = new URLSearchParams(window.location.search);
+                const rawHash = (window.location.hash || '').toLowerCase();
+                let prefillId = searchParams.get('id') || searchParams.get('device_id');
+                if (!prefillId && rawHash.includes('id=')) {
+                    const match = /id=([0-9a-za-zא-תךםןף]+)/i.exec(rawHash);
+                    if (match) prefillId = match[1];
+                }
+
+                if (prefillId) {
+                    const clean = cleanIdChars(prefillId);
+                    if (clean) {
+                        input.value = formatSpacedDisplay(normalizeToLatin(clean));
+                        validateCurrentInput();
+                    }
+                }
+            } catch (e) {
+                console.error('Deep link check error:', e);
+            }
+        });
+    </script>
+</body>
+
+</html>
