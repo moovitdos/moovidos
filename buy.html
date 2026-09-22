@@ -251,6 +251,9 @@
                 return out;
             }
 
+            const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz8j81F1yp-IZc-gm8FpbXZauXmL62-IbgFqMhCEP7Nyp6JEHWOFTD75TB_2i5rPtC5Og/exec";
+            const WEBHOOK_SECRET = "moovitdos_secret_2026";
+
             let renderedLatinId = "";
 
             function clearPayPalButton() {
@@ -258,6 +261,88 @@
                     paypalContainer.innerHTML = '';
                     renderedLatinId = "";
                 }
+            }
+
+            function fulfillActivationAndShowCard(latinId, customerEmail, orderId) {
+                if (!paypalContainer) return;
+
+                paypalContainer.innerHTML = `
+                    <div style="background: rgba(37, 99, 235, 0.08); border: 2px dashed var(--accent-color); border-radius: var(--r-md); padding: 24px; text-align: center; margin-top: 15px;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">🔄</div>
+                        <h3 style="color: var(--text-main); font-weight: 700; font-size: 1.15rem; margin-bottom: 8px;">מאמת את העסקה ומנפיק קוד הפעלה...</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">אנא המתינו מספר שניות להנפקת הרישיון וברקוד ה-QR.</p>
+                    </div>
+                `;
+
+                const fetchUrl = GAS_WEBHOOK_URL + "?secret=" + encodeURIComponent(WEBHOOK_SECRET) +
+                    "&device_id=" + encodeURIComponent(latinId) +
+                    "&email=" + encodeURIComponent(customerEmail || "") +
+                    "&paid_amount=1.00" +
+                    "&order_id=" + encodeURIComponent(orderId || "");
+
+                fetch(fetchUrl)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.status === 'success') {
+                            renderSuccessCard(data);
+                        } else {
+                            throw new Error((data && data.error) || "נכשלה הנפקת הרישיון");
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Activation API error:", err);
+                        renderFallbackSuccessCard(latinId, customerEmail);
+                    });
+            }
+
+            function renderSuccessCard(data) {
+                const displayId = data.displayId || data.latinId;
+                const typedCode = data.typedCode || "";
+                const qrImgUrl = data.qrImgUrl || "";
+                const emailNotice = data.customerEmail ? `📩 קוד ההפעלה וברקוד ה-QR נשלחו גם לכתובת: <strong>${data.customerEmail}</strong>` : '📩 קוד ההפעלה נשלח ברגע זה אל תיבת הדוא"ל שלך.';
+
+                paypalContainer.innerHTML = `
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981; border-radius: var(--r-md); padding: 24px; text-align: center; margin-top: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                        <div style="font-size: 2.5rem; margin-bottom: 6px;">🎉</div>
+                        <h2 style="color: #10b981; font-weight: 800; font-size: 1.45rem; margin-bottom: 6px;">התשלום אושר – הרישיון הונפק!</h2>
+                        <p style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 16px;">
+                            רישיון שימוש עבור מזהה מכשיר: <strong style="color: var(--text-main); font-size: 1.1rem; letter-spacing: 0.1em;">${displayId}</strong>
+                        </p>
+
+                        ${qrImgUrl ? `
+                        <div style="background: #ffffff; padding: 12px; border-radius: 12px; display: inline-block; border: 1px solid var(--border-light); margin-bottom: 16px;">
+                            <img src="${qrImgUrl}" alt="ברקוד QR להפעלה" width="200" height="200" style="display: block; margin: 0 auto; border-radius: 6px;">
+                            <p style="font-size: 0.8rem; color: #4b5563; margin-top: 8px; font-weight: 600;">סרוק/י מתוך האפליקציה או שמור/י במכשיר</p>
+                        </div>
+                        ` : ''}
+
+                        ${typedCode ? `
+                        <div style="background: var(--surface-2, rgba(255,255,255,0.06)); border: 1px dashed var(--accent-color); padding: 14px; border-radius: 8px; margin-bottom: 16px; text-align: center;">
+                            <p style="font-size: 0.85rem; font-weight: 700; color: var(--accent-color); margin-bottom: 6px;">קוד הפעלה ספרתי (להקלדה ידנית במקשים):</p>
+                            <div style="font-family: Consolas, monospace; font-size: 1.1rem; font-weight: 700; color: var(--text-main); letter-spacing: 0.05em; white-space: pre-wrap; word-break: break-all; direction: ltr;" dir="ltr">${typedCode}</div>
+                        </div>
+                        ` : ''}
+
+                        <div style="font-size: 0.88rem; color: var(--text-secondary); border-top: 1px solid rgba(16,185,129,0.2); padding-top: 12px; margin-top: 8px;">
+                            ${emailNotice}
+                        </div>
+                    </div>
+                `;
+                setFeedback('ok', '✓ תשלום אושר – הרישיון מוצג במסך ונשלח למייל!');
+            }
+
+            function renderFallbackSuccessCard(latinId, customerEmail) {
+                paypalContainer.innerHTML = `
+                    <div style="background: rgba(16, 185, 129, 0.12); border: 2px solid #10b981; border-radius: var(--r-md); padding: 20px; text-align: center; margin-top: 15px;">
+                        <div style="font-size: 2.2rem; margin-bottom: 8px;">🎉</div>
+                        <h3 style="color: #10b981; font-weight: 800; font-size: 1.25rem; margin-bottom: 8px;">התשלום בוצע בהצלחה!</h3>
+                        <p style="font-size: 0.95rem; color: var(--text-main); line-height: 1.5; margin: 0;">
+                            קוד ההפעלה וברקוד ה-QR נשלחו ברגע זה אל כתובת הדוא"ל שלך: <strong>${customerEmail || 'שלך'}</strong>.<br>
+                            <span style="font-size: 0.85rem; opacity: 0.8;">(אם המייל לא מופיע בתיבת הדואר הנכנס, אנא בדוק/י בתיקיית דואר זבל / ספאם)</span>
+                        </p>
+                    </div>
+                `;
+                setFeedback('ok', '✓ תשלום אושר – קוד הפעלה נשלח למייל!');
             }
 
             function renderPayPalButton(latinId) {
@@ -270,34 +355,34 @@
                 window.paypal.Buttons({
                     style: { layout: 'vertical', color: 'gold', shape: 'rect' },
                     createOrder: function (data, actions) {
+                        try {
+                            sessionStorage.setItem('moovidos_pending_device_id', latinId);
+                        } catch (e) {}
+
+                        const returnUrl = window.location.origin + window.location.pathname + '?action=success&device_id=' + latinId;
+                        const cancelUrl = window.location.origin + window.location.pathname + '?action=cancel';
+
                         return actions.order.create({
                             application_context: {
                                 shipping_preference: 'NO_SHIPPING',
-                                user_action: 'PAY_NOW'
+                                user_action: 'PAY_NOW',
+                                return_url: returnUrl,
+                                cancel_url: cancelUrl
                             },
                             purchase_units: [{
                                 description: 'רישיון מובידוס - מזהה ' + latinId,
                                 custom_id: latinId,
                                 amount: {
                                     currency_code: 'ILS',
-                                    value: '0.01'
+                                    value: '1.00'
                                 }
                             }]
                         });
                     },
                     onApprove: function (data, actions) {
                         return actions.order.capture().then(function (details) {
-                            paypalContainer.innerHTML = `
-                                <div style="background: rgba(16, 185, 129, 0.12); border: 2px solid #10b981; border-radius: var(--r-md); padding: 20px; text-align: center; margin-top: 15px;">
-                                    <div style="font-size: 2.2rem; margin-bottom: 8px;">🎉</div>
-                                    <h3 style="color: #10b981; font-weight: 800; font-size: 1.25rem; margin-bottom: 8px;">התשלום בוצע בהצלחה!</h3>
-                                    <p style="font-size: 0.95rem; color: var(--text-main); line-height: 1.5; margin: 0;">
-                                        קוד ההפעלה וברקוד ה-QR נשלחו ברגע זה אל כתובת הדוא"ל שלך.<br>
-                                        <span style="font-size: 0.85rem; opacity: 0.8;">(אם המייל לא מופיע בתיבת הדואר הנכנס, אנא בדוק/י בתיקיית דואר זבל / ספאם)</span>
-                                    </p>
-                                </div>
-                            `;
-                            setFeedback('ok', '✓ תשלום אושר – קוד הפעלה נשלח למייל!');
+                            const customerEmail = (details && details.payer && details.payer.email_address) || "";
+                            fulfillActivationAndShowCard(latinId, customerEmail, details.id);
                         });
                     },
                     onError: function (err) {
@@ -375,25 +460,47 @@
                 validateCurrentInput();
             });
 
-            // Deep-link auto-fill & pre-validation
+            // Handle return from redirect & deep-links
             try {
                 const searchParams = new URLSearchParams(window.location.search);
-                const rawHash = (window.location.hash || '').toLowerCase();
-                let prefillId = searchParams.get('id') || searchParams.get('device_id');
-                if (!prefillId && rawHash.includes('id=')) {
-                    const match = /id=([0-9a-za-zא-תךםןף]+)/i.exec(rawHash);
-                    if (match) prefillId = match[1];
-                }
+                const action = searchParams.get('action');
 
-                if (prefillId) {
-                    const clean = cleanIdChars(prefillId);
-                    if (clean) {
-                        input.value = formatSpacedDisplay(normalizeToLatin(clean));
-                        validateCurrentInput();
+                if (action === 'success') {
+                    let returnId = searchParams.get('device_id') || searchParams.get('custom_id');
+                    if (!returnId) {
+                        try { returnId = sessionStorage.getItem('moovidos_pending_device_id'); } catch (e) {}
+                    }
+                    if (returnId) {
+                        const clean = cleanIdChars(returnId);
+                        const latin = normalizeToLatin(clean);
+                        if (latin.length === 9) {
+                            input.value = formatSpacedDisplay(latin);
+                            setFeedback('ok', '✓ התשלום אושר ב-PayPal! מנפיק כעת את הרישיון...');
+                            const orderId = searchParams.get('token') || searchParams.get('PayerID') || "";
+                            fulfillActivationAndShowCard(latin, "", orderId);
+                        }
+                    }
+                } else if (action === 'cancel') {
+                    setFeedback('info', 'ℹ️ התשלום ב-PayPal בוטל לבקשתך.');
+                } else {
+                    // Standard deep-link check
+                    const rawHash = (window.location.hash || '').toLowerCase();
+                    let prefillId = searchParams.get('id') || searchParams.get('device_id');
+                    if (!prefillId && rawHash.includes('id=')) {
+                        const match = /id=([0-9a-za-zא-תךםןף]+)/i.exec(rawHash);
+                        if (match) prefillId = match[1];
+                    }
+
+                    if (prefillId) {
+                        const clean = cleanIdChars(prefillId);
+                        if (clean) {
+                            input.value = formatSpacedDisplay(normalizeToLatin(clean));
+                            validateCurrentInput();
+                        }
                     }
                 }
             } catch (e) {
-                console.error('Deep link check error:', e);
+                console.error('URL parse check error:', e);
             }
         });
     </script>

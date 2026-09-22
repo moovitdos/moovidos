@@ -193,6 +193,7 @@
             <h2 class="contact-title">כתבו לנו</h2>
 
             <form action="https://formspree.io/f/mojpzpqy" method="POST" class="contact-form">
+                <input type="hidden" id="contact-subject" name="_subject" value="פניית תמיכה באתר">
                 <div class="form-group-full">
                     <label class="visually-hidden" for="contact-name">שם (אופציונלי)</label>
                     <input id="contact-name" type="text" name="name" placeholder="שם (אופציונלי)" autocomplete="name">
@@ -228,6 +229,20 @@
                 </a>
             </div>
         </div>
+    </section>
+
+    <!-- ============ SUBSCRIBE TO UPDATES ============ -->
+    <section class="subscribe-section reveal glass" aria-label="הרשמה לעדכונים" style="margin-top: 0; margin-bottom: 60px;">
+        <h3 class="subscribe-title">הירשמו לקבלת עדכונים על גרסאות חדשות</h3>
+        <p class="subscribe-subtitle">קבלו מייל מיידי עם קישורי הורדה ישירים בכל פעם שיוצאת גרסה חדשה של מובידוס.</p>
+        <form action="https://script.google.com/macros/s/AKfycbz2igbEO5B2gkh_6_dMSn8YVZ3uHXl5anl3xx_4sgAwKl8i5K61qvqkGDJrnO8U8Tj5/exec" method="POST" class="subscribe-form">
+            <input type="hidden" name="_subject" value="הרשמה חדשה לעדכוני מובידוס">
+            <input type="hidden" name="subscribe" value="yes">
+            <div class="subscribe-input-group">
+                <input type="email" name="email" placeholder="הזינו את כתובת האימייל שלכם*" required autocomplete="email">
+                <button type="submit" class="subscribe-btn-submit">הרשמה</button>
+            </div>
+        </form>
     </section>
 
     <!-- ============ FOOTER ============ -->

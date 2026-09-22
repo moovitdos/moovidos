@@ -73,18 +73,22 @@
   }
 
   /**
-   * Classify a release's assets into full / lite / zip APK buckets.
+   * Classify a release's assets into full / lite APKs and the two data files (22.9.2026):
+   *   pack — moovidos_pack_*.zip, the current data generation (app versions from the first release
+   *          that carries a pack onwards);
+   *   zip  — moovidos_data_*.zip, the legacy generation kept for older app versions.
    * Falls back to the first .apk as "full" for single-APK releases.
    * @param {Array<object>} assets
-   * @returns {{full: object|null, lite: object|null, zip: object|null}}
+   * @returns {{full: object|null, lite: object|null, zip: object|null, pack: object|null}}
    */
   function findAssets(assets) {
-    const res = { full: null, lite: null, zip: null };
+    const res = { full: null, lite: null, zip: null, pack: null };
     const list = Array.isArray(assets) ? assets : [];
     list.forEach((a) => {
       const name = (a.name || '').toLowerCase();
       if (name.includes('full') && name.endsWith('.apk')) res.full = a;
       else if (name.includes('lite') && name.endsWith('.apk')) res.lite = a;
+      else if (name.startsWith('moovidos_pack_') && name.endsWith('.zip')) res.pack = a;
       else if (name.endsWith('.zip')) res.zip = a;
     });
     // Fallback for single-APK releases.
@@ -182,12 +186,24 @@
                         </a>
                     `;
     }
+    if (res.pack) {
+      downloadsHtml += `
+                        <a href="${res.pack.browser_download_url}" class="download-btn tertiary zip-btn" style="flex-direction: column;">
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                                <span style="font-size: 1rem;">נתונים בלבד</span>
+                                <small style="font-size: 0.75rem;">לגרסה ${res.packSince || 'הנוכחית'} ומעלה · לייבוא ידני (${formatSize(res.pack.size)})</small>
+                            </div>
+                            <svg fill="currentColor" width="26" height="26" viewBox="0 0 24 24" style="margin-top: 10px;"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+                        </a>
+                    `;
+    }
     if (res.zip) {
+      const legacyLabel = res.pack ? `לגרסאות ישנות · לפני ${res.packSince || 'הגרסה הנוכחית'}` : 'לייבוא ידני';
       downloadsHtml += `
                         <a href="${res.zip.browser_download_url}" class="download-btn tertiary zip-btn" style="flex-direction: column;">
                             <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                                <span style="font-size: 1rem;">נתונים בלבד</span>
-                                <small style="font-size: 0.75rem;">לייבוא ידני (${formatSize(res.zip.size)})</small>
+                                <span style="font-size: 1rem;">${res.pack ? 'נתונים לגרסאות ישנות' : 'נתונים בלבד'}</span>
+                                <small style="font-size: 0.75rem;">${legacyLabel} (${formatSize(res.zip.size)})</small>
                             </div>
                             <svg fill="currentColor" width="26" height="26" viewBox="0 0 24 24" style="margin-top: 10px;"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
                         </a>
@@ -251,6 +267,14 @@
       renderPlaceholder(area);
       return;
     }
+    // The first (oldest) release that ships a moovidos_pack_*.zip marks the data-format cutover:
+    // older app versions keep using moovidos_data_*.zip. Shown on the two data buttons.
+    const packSince = (() => {
+      const withPack = valid.filter((r) => (r.assets || []).some((a) => /^moovidos_pack_.*\.zip$/i.test(a.name || '')));
+      if (!withPack.length) return null;
+      const oldest = withPack.reduce((acc, r) => (new Date(r.published_at || r.created_at) < new Date(acc.published_at || acc.created_at) ? r : acc));
+      return cleanTitle(oldest.tag_name || oldest.name || '');
+    })();
 
     // Restore the total-downloads chip in the navbar.
     const total = valid.reduce((sum, r) => sum + sumDownloads(r.assets), 0);
@@ -260,15 +284,107 @@
       chip.style.display = 'inline-block';
     }
 
-    // Release notes ("what changed") with the same cleanup the old site applied.
+    /**
+     * Format change description notes: split lines containing commas or bullets into
+     * bulleted points with line breaks (<br>), adding a dot before change items,
+     * while preserving section headers and numbered lists (like download options).
+     */
+    function formatCommasAndBullets(text) {
+      if (!text) return '';
+      const lines = text.split('\n');
+      const processed = [];
+      let inDownloadSection = false;
+
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (!line) continue;
+
+        // Keep horizontal rule dividers
+        if (line === '---' || line === '___' || line === '***' || line.startsWith('<hr')) {
+          processed.push('<hr style="border:0; border-top:1px solid var(--border-light); margin: 15px 0;">');
+          continue;
+        }
+
+        // Handle "גרסאות להורדה:" header
+        if (
+          line.startsWith('גרסאות להורדה') ||
+          line.startsWith('**גרסאות להורדה') ||
+          line.startsWith('downloads')
+        ) {
+          inDownloadSection = true;
+          const cleanHeader = line.replace(/\*\*/g, '').trim();
+          processed.push('<strong>' + cleanHeader + '</strong>');
+          continue;
+        }
+
+        // Section header: "**מה עודכן?**"
+        if (line.startsWith('**מה עודכן')) {
+          processed.push(line);
+          continue;
+        }
+
+        // Section header: "**תיאור השינויים:**"
+        if (line.startsWith('**תיאור השינויים')) {
+          inDownloadSection = false;
+          const match = line.match(/^(\*\*תיאור השינויים.*?\*\*:?)(.*)/i);
+          if (match) {
+            processed.push(match[1].trim());
+            line = match[2].trim();
+            if (!line) continue;
+          }
+        }
+
+        // Numbered list items (1., 2., 3.) or inside download section
+        if (inDownloadSection || /^\d+[\.\)]/.test(line)) {
+          const cleanLine = line.replace(/^[•\-\*\s]+/, '').trim();
+          if (cleanLine) {
+            processed.push(cleanLine);
+          }
+          continue;
+        }
+
+        // Markdown headers (#)
+        if (line.startsWith('#')) {
+          processed.push(line);
+          continue;
+        }
+
+        // Change items in "תיאור השינויים" -> split by commas or bullet symbols
+        if (/(?<!\d)[,،](?!\d)|•/.test(line)) {
+          const parts = line.split(/(?<!\d)[,،](?!\d)|•/);
+          parts.forEach((part) => {
+            const clean = part.replace(/^[•\-\*\s]+/, '').trim();
+            if (clean) {
+              if (/^\d+[\.\)]/.test(clean)) {
+                processed.push(clean);
+              } else {
+                processed.push('• ' + clean);
+              }
+            }
+          });
+        } else {
+          const clean = line.replace(/^[•\-\*\s]+/, '').trim();
+          if (clean) {
+            if (/^\d+[\.\)]/.test(clean) || (clean.startsWith('**') && clean.endsWith('**'))) {
+              processed.push(line);
+            } else {
+              processed.push('• ' + clean);
+            }
+          }
+        }
+      }
+
+      return processed.filter(Boolean).join('<br>');
+    }
+
+    // Release notes ("what changed") with clean formatting for change lists and download options.
     const cleanupNotes = (body, isLatest) => {
       let raw = (body || 'שיפורי ביצועים ושינויים פנימיים.')
-        .replace(/### (מה התחדש בגרסה זו\?|מה חדש\?)/gi, '');
-      if (!isLatest) raw = raw.replace(/---[\s\S]*?גרסאות להורדה:[\s\S]*$/i, '');
-      raw = raw
-        .replace(/(\d+)\.\s\*\*/g, '<br>$1. **')
-        .replace(/---/g, '<hr style="border:0; border-top:1px solid var(--border-light); margin: 15px 0;">')
+        .replace(/### (מה התחדש בגרסה זו\?|מה חדש\?)/gi, '')
         .trim();
+
+      raw = formatCommasAndBullets(raw);
+
       return parseMarkdown(raw).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     };
 

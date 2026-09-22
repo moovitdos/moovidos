@@ -947,6 +947,12 @@ details.older-versions-toggle[open] summary .chevron {
     font-size: 1rem;
     color: var(--text-secondary);
     text-align: right;
+    line-height: 1.45;
+}
+
+.history-notes p {
+    margin: 3px 0;
+    line-height: 1.45;
 }
 
 .history-notes strong {
@@ -1369,6 +1375,98 @@ body.gallery-lightbox-open {
     border-color: var(--contact-blue);
     box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.10);
 }
+
+.subscribe-section {
+    max-width: 800px;
+    margin: 32px auto 48px;
+    padding: 40px;
+    border-radius: var(--r-lg);
+    text-align: center;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--elev-2);
+}
+
+.subscribe-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: var(--accent-color);
+}
+
+.subscribe-subtitle {
+    font-size: 0.98rem;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.subscribe-form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.subscribe-input-group {
+    display: flex;
+    gap: 12px;
+}
+
+.subscribe-input-group input[type="email"] {
+    flex: 1;
+    padding: 16px 20px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--input-border);
+    background: var(--input-bg);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color var(--dur-medium) var(--ease-standard),
+        box-shadow var(--dur-medium) var(--ease-standard);
+}
+
+.subscribe-input-group input[type="email"]:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.10);
+}
+
+.subscribe-btn-submit {
+    background: var(--accent-color);
+    color: #fff !important;
+    padding: 16px 32px;
+    border-radius: var(--r-pill);
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--elev-accent);
+    transition: background var(--dur-medium) var(--ease-standard),
+        box-shadow var(--dur-medium) var(--ease-standard),
+        transform var(--dur-medium) var(--ease-emphasized);
+}
+
+.subscribe-btn-submit:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--elev-accent-hi);
+}
+
+@media (max-width: 600px) {
+    .subscribe-section {
+        padding: 30px 20px;
+    }
+    
+    .subscribe-input-group {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .subscribe-input-group input[type="email"],
+    .subscribe-btn-submit {
+        width: 100%;
+    }
+}
+
 
 /* Material Filled submit (deep blue from old site) with ripple */
 .submit-btn {

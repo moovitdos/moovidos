@@ -31,6 +31,7 @@
     loadReleases();
 
     installScrollHandler();
+    installFormHandler();
 
     // Run the scroll logic once so above-the-fold content reveals immediately.
     handleScroll();
@@ -100,6 +101,57 @@
   function installScrollHandler() {
     // passive: true — we never preventDefault, so let the browser optimize.
     window.addEventListener('scroll', handleScroll, { passive: true });
+  }
+
+  function installFormHandler() {
+    const subscribeForm = document.querySelector('.subscribe-form');
+    if (subscribeForm) {
+      subscribeForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const emailInput = subscribeForm.querySelector('input[type="email"]');
+        const submitBtn = subscribeForm.querySelector('.subscribe-btn-submit');
+        if (!emailInput || !submitBtn) return;
+        
+        const email = emailInput.value.trim();
+        if (!email) return;
+        
+        submitBtn.disabled = true;
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'שולח...';
+        
+        const actionUrl = subscribeForm.getAttribute('action') || '#';
+        
+        if (actionUrl === '#' || actionUrl === 'YOUR_GOOGLE_SHEETS_WEB_APP_URL') {
+          alert('נא להגדיר את כתובת ה-Web App של גוגל שיטס ב-HTML (בטופס ההרשמה).');
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+          return;
+        }
+        
+        fetch(actionUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({ email: email, action: 'subscribe' })
+        })
+        .then(() => {
+          emailInput.value = '';
+          submitBtn.textContent = 'נרשמת בהצלחה! 🎉';
+          setTimeout(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+          }, 4000);
+        })
+        .catch(err => {
+          console.error(err);
+          alert('אירעה שגיאה ברישום. נא לנסות שוב.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        });
+      });
+    }
   }
 
   /* ------------------------------------------------------------------ *
