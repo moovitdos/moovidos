@@ -761,45 +761,115 @@ header p {
     transform: translateY(-2px);
 }
 
-/* Downloads grid */
+/* Downloads area (latest release): note → Full APK → .download-more (Lite + data files).
+   The note and the Full button always get a row of their own; .download-more-N carries the
+   number of smaller buttons so no button is ever left alone next to an empty cell. */
 .download-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 12px;
     width: 100%;
     margin-top: 10px;
 }
 
+.download-note {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0 0 4px;
+}
+
+.download-grid .download-btn {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+}
+
+.download-grid .dl-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.download-grid .dl-title {
+    font-size: 1.05rem;
+    line-height: 1.3;
+}
+
+.download-grid .dl-sub {
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.4;
+    opacity: 0.9;
+}
+
+.download-grid .dl-icons {
+    display: flex;
+    gap: 12px;
+}
+
 .download-grid .full-btn {
-    grid-column: span 2;
+    padding: 20px 24px;
+}
+
+.download-grid .full-btn .dl-title {
+    font-size: 1.3rem;
+}
+
+.download-grid .full-btn .dl-sub {
+    font-size: 0.8rem;
+}
+
+.download-grid .full-btn .dl-icons svg {
+    width: 28px;
+    height: 28px;
 }
 
 .download-grid .lite-btn,
 .download-grid .zip-btn {
-    grid-column: span 1;
-    padding: 15px 10px !important;
-    font-size: 0.9rem !important;
+    padding: 16px 12px;
 }
 
-.download-grid .lite-btn small,
-.download-grid .zip-btn small {
-    font-size: 0.7rem !important;
+/* Six tracks so 1, 2 and 3 buttons all divide evenly. */
+.download-more {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+}
+
+/* Phones: one per row — side by side at ~140px the titles broke into three lines. */
+.download-more > * {
+    grid-column: span 6;
+}
+
+@media (min-width: 480px) {
+    .download-more-2 > * {
+        grid-column: span 3;
+    }
+
+    /* Three: Lite on its own row, the two data files side by side under it. */
+    .download-more-3 > .zip-btn {
+        grid-column: span 3;
+    }
 }
 
 @media (min-width: 600px) {
-    .download-grid {
+    .download-grid,
+    .download-more {
         gap: 15px;
     }
 
-    .download-grid .lite-btn,
-    .download-grid .zip-btn {
-        padding: 18px 30px !important;
-        font-size: 1.1rem !important;
+    .download-grid .dl-title {
+        font-size: 1.1rem;
     }
+}
 
-    .download-grid .lite-btn small,
-    .download-grid .zip-btn small {
-        font-size: 0.75rem !important;
+/* Wide enough for three across. */
+@media (min-width: 900px) {
+    .download-more-3 > .lite-btn,
+    .download-more-3 > .zip-btn {
+        grid-column: span 2;
     }
 }
 

@@ -153,63 +153,65 @@
    * Releases
    * ------------------------------------------------------------------ */
 
-  /** Build the download buttons HTML for the latest release. */
+  const ICON_ANDROID = '<svg fill="currentColor" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24c-2.86-1.21-6.08-1.21-8.94 0L5.65 5.67c-.19-.28-.54-.37-.83-.22-.3.16-.42.54-.26.85l1.84 3.18C4.8 11.16 3.5 13.84 3.5 16.5h17c0-2.66-1.3-5.34-2.9-7.02zM7 14.5c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm10 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>';
+  const ICON_FOLDER = '<svg fill="currentColor" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>';
+
+  /**
+   * Latin run (file size, version) isolated as LTR inside the Hebrew line — otherwise the
+   * RTL paragraph flips it: "(28.1 MB)" rendered as "(MB 28.1)", and a version next to a size
+   * swapped places.
+   */
+  function ltr(text) {
+    return `<span dir="ltr">${text}</span>`;
+  }
+
+  /** One download button: title, one subtitle line ("what · size"), icons. */
+  function downloadButton(asset, cls, title, sub, icons) {
+    return `
+                        <a href="${asset.browser_download_url}" class="download-btn ${cls}">
+                            <span class="dl-text">
+                                <span class="dl-title">${title}</span>
+                                <small class="dl-sub">${sub} · ${ltr(formatSize(asset.size))}</small>
+                            </span>
+                            <span class="dl-icons">${icons.join('')}</span>
+                        </a>`;
+  }
+
+  /**
+   * Build the download area for the latest release: the purchase note and the Full APK
+   * each on a row of their own, then the smaller buttons (Lite + the data files) in
+   * `.download-more`, whose class carries their count so the CSS lays them out evenly
+   * (3 → Lite on its own row with the two data files side by side, or three across on
+   * wide screens) instead of leaving one alone next to an empty cell.
+   */
   function buildDownloadButtons(res) {
-    let downloadsHtml = '';
+    const since = res.packSince ? ltr(String(res.packSince).replace(/^v/i, '')) : '';
+    const more = [];
 
-    downloadsHtml += `
-                        <p style="text-align:center; font-size:0.85rem; color:var(--text-secondary); margin-bottom:14px;">רכישה חד-פעמית · אנדרואיד 4.4 ומעלה · התקנה ישירה</p>
-                    `;
-
-    if (res.full) {
-      downloadsHtml += `
-                        <a href="${res.full.browser_download_url}" class="download-btn full-btn" style="flex-direction: column;">
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                                <span style="font-size: 1.3rem;">גרסה מלאה</span>
-                                <small style="font-size: 0.8rem; opacity: 0.9;">כולל את כל הנתונים (${formatSize(res.full.size)})</small>
-                            </div>
-                            <div style="display: flex; gap: 12px; margin-top: 12px;">
-                                <svg fill="currentColor" width="28" height="28" viewBox="0 0 24 24"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24c-2.86-1.21-6.08-1.21-8.94 0L5.65 5.67c-.19-.28-.54-.37-.83-.22-.3.16-.42.54-.26.85l1.84 3.18C4.8 11.16 3.5 13.84 3.5 16.5h17c0-2.66-1.3-5.34-2.9-7.02zM7 14.5c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm10 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>
-                                <svg fill="currentColor" width="28" height="28" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
-                            </div>
-                        </a>
-                    `;
-    }
     if (res.lite) {
-      downloadsHtml += `
-                        <a href="${res.lite.browser_download_url}" class="download-btn secondary lite-btn" style="flex-direction: column;">
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                                <span style="font-size: 1.1rem;">גרסה קלה</span>
-                                <small style="font-size: 0.75rem;">אפליקציה בלבד (${formatSize(res.lite.size)})</small>
-                            </div>
-                            <svg fill="currentColor" width="26" height="26" viewBox="0 0 24 24" style="margin-top: 10px;"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24c-2.86-1.21-6.08-1.21-8.94 0L5.65 5.67c-.19-.28-.54-.37-.83-.22-.3.16-.42.54-.26.85l1.84 3.18C4.8 11.16 3.5 13.84 3.5 16.5h17c0-2.66-1.3-5.34-2.9-7.02zM7 14.5c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm10 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>
-                        </a>
-                    `;
+      more.push(downloadButton(res.lite, 'secondary lite-btn', 'גרסה קלה', 'אפליקציה בלבד', [ICON_ANDROID]));
     }
     if (res.pack) {
-      downloadsHtml += `
-                        <a href="${res.pack.browser_download_url}" class="download-btn tertiary zip-btn" style="flex-direction: column;">
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                                <span style="font-size: 1rem;">נתונים בלבד</span>
-                                <small style="font-size: 0.75rem;">לגרסה ${res.packSince || 'הנוכחית'} ומעלה · לייבוא ידני (${formatSize(res.pack.size)})</small>
-                            </div>
-                            <svg fill="currentColor" width="26" height="26" viewBox="0 0 24 24" style="margin-top: 10px;"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
-                        </a>
-                    `;
+      more.push(downloadButton(res.pack, 'tertiary zip-btn', 'נתונים בלבד',
+        since ? `לגרסה ${since} ומעלה` : 'לגרסה הנוכחית ומעלה', [ICON_FOLDER]));
     }
     if (res.zip) {
-      const legacyLabel = res.pack ? `לגרסאות ישנות · לפני ${res.packSince || 'הגרסה הנוכחית'}` : 'לייבוא ידני';
-      downloadsHtml += `
-                        <a href="${res.zip.browser_download_url}" class="download-btn tertiary zip-btn" style="flex-direction: column;">
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                                <span style="font-size: 1rem;">${res.pack ? 'נתונים לגרסאות ישנות' : 'נתונים בלבד'}</span>
-                                <small style="font-size: 0.75rem;">${legacyLabel} (${formatSize(res.zip.size)})</small>
-                            </div>
-                            <svg fill="currentColor" width="26" height="26" viewBox="0 0 24 24" style="margin-top: 10px;"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
-                        </a>
-                    `;
+      more.push(res.pack
+        ? downloadButton(res.zip, 'tertiary zip-btn', 'נתונים לגרסאות ישנות',
+          since ? `לגרסאות שלפני ${since}` : 'לגרסאות קודמות', [ICON_FOLDER])
+        : downloadButton(res.zip, 'tertiary zip-btn', 'נתונים בלבד', 'לייבוא ידני', [ICON_FOLDER]));
     }
 
+    let downloadsHtml = `
+                        <p class="download-note">רכישה חד-פעמית · אנדרואיד 4.4 ומעלה · התקנה ישירה</p>`;
+    if (res.full) {
+      downloadsHtml += downloadButton(res.full, 'full-btn', 'גרסה מלאה', 'כולל את כל הנתונים', [ICON_ANDROID, ICON_FOLDER]);
+    }
+    if (more.length) {
+      downloadsHtml += `
+                        <div class="download-more download-more-${more.length}">${more.join('')}
+                        </div>`;
+    }
     return downloadsHtml;
   }
 
