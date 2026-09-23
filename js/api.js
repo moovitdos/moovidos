@@ -69,6 +69,23 @@
         page++;
       }
 
+      // The list endpoint can lag behind a just-published release and return it with
+      // `assets: []` (v1.0.192, 23.9.2026: the release page and /releases/{id} had all four
+      // files while the list showed none for 10+ minutes). The latest release carries the
+      // download buttons, so re-read it on its own when that happens — one extra request, only then.
+      const latest = all.find((r) => r && !r.draft);
+      if (latest && latest.id && !(Array.isArray(latest.assets) && latest.assets.length)) {
+        try {
+          const response = await fetch(`${cfg.releasesApiUrl}/${latest.id}`);
+          if (response.ok) {
+            const full = await response.json();
+            if (full && Array.isArray(full.assets) && full.assets.length) latest.assets = full.assets;
+          }
+        } catch (err) {
+          // Keep the list version.
+        }
+      }
+
       return all;
     });
   }

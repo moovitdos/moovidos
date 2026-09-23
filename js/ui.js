@@ -397,7 +397,7 @@
       const ver = cleanTitle(latest.name || latest.tag_name);
       const date = formatDate(latest.published_at);
       const notes = cleanupNotes(latest.body, true);
-      const downloadsHtml = buildDownloadButtons(findAssets(latest.assets));
+      const downloadsHtml = buildDownloadButtons(Object.assign(findAssets(latest.assets), { packSince }));
       const dlCount = sumDownloads(latest.assets);
 
       html += `
