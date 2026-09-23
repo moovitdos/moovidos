@@ -245,12 +245,13 @@
   function renderReleasesError(error) {
     const area = byId('content-area');
     if (!area) return;
-    const message = error && error.message ? error.message : '';
     area.innerHTML = `
                     <div class="error">
-                        אירעה שגיאה בטעינת הנתונים.<br>
-                        אנא ודא שאתה מחובר לאינטרנט ונסה לרענן את העמוד.<br>
-                        <small dir="ltr">${message}</small>
+                        <p>לא ניתן לטעון כרגע את רשימת הגרסאות.</p>
+                        <p>אפשר להוריד את הגרסה האחרונה ישירות מדף הגרסאות ב-GitHub:</p>
+                        <a href="${cfg.releasesPageUrl}" target="_blank" rel="noopener" class="support-fallback-btn download-btn secondary">
+                            לדף הגרסאות ב-GitHub
+                        </a>
                     </div>
                 `;
   }

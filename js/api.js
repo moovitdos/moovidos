@@ -2,8 +2,9 @@
  * api.js
  * ------
  * Thin data layer over the GitHub API + raw markdown files.
- * Every function is async, never throws to the caller on network failure
- * (it returns a clean empty result instead) and uses a tiny in-memory cache
+ * Every function is async and returns a clean empty result on network failure — except
+ * fetchAllReleases, which rejects when neither the API nor releases.json answered (so the
+ * page can say so instead of "no releases yet") — and uses a tiny in-memory cache
  * so repeated calls within a single page load do not re-hit the network.
  *
  * Exposes `window.MoovitdosApi`.
@@ -34,82 +35,101 @@
   }
 
   /**
-   * Fetch ALL releases, following pagination (per_page=100) until a short
-   * page signals the end. Returns the raw release objects from GitHub.
-   * On any network/HTTP error returns whatever was gathered so far (possibly []).
+   * GET a JSON document; null on any network / HTTP / parse error.
+   * `no-cache` revalidates with the server, so a static file rewritten by the site sync
+   * (releases.json after a release) is picked up instead of a stale browser copy.
+   * @param {string} url
+   * @returns {Promise<any|null>}
+   */
+  async function fetchJson(url) {
+    try {
+      const response = await fetch(url, { cache: 'no-cache' });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (err) {
+      return null;
+    }
+  }
+
+  /**
+   * All releases from the GitHub API, following pagination (per_page=100) until a short page.
+   * null when the FIRST page could not be read (HTTP 403 once the anonymous 60/hour/IP quota
+   * is used up, network error…); a later page failing returns what was gathered so far.
+   * @returns {Promise<Array<object>|null>}
+   */
+  async function fetchReleasesFromApi() {
+    const all = [];
+    // Hard page cap as a safety net against an unexpected infinite loop.
+    const MAX_PAGES = 50;
+
+    for (let page = 1; page <= MAX_PAGES; page++) {
+      let data = null;
+      try {
+        const response = await fetch(`${cfg.releasesApiUrl}?per_page=100&page=${page}`);
+        if (response.ok) data = await response.json();
+      } catch (err) {
+        data = null;
+      }
+      if (!Array.isArray(data)) return page === 1 ? null : all;
+
+      all.push(...data);
+      if (data.length < 100) break;
+    }
+
+    // The list endpoint can lag behind a just-published release and return it with
+    // `assets: []` (v1.0.192, 23.9.2026: the release page and /releases/{id} had all four
+    // files while the list showed none for 10+ minutes). The latest release carries the
+    // download buttons, so re-read it on its own when that happens — one extra request, only then.
+    const latest = all.find((r) => r && !r.draft);
+    if (latest && latest.id && !(Array.isArray(latest.assets) && latest.assets.length)) {
+      const full = await fetchJson(`${cfg.releasesApiUrl}/${latest.id}`);
+      if (full && Array.isArray(full.assets) && full.assets.length) latest.assets = full.assets;
+    }
+
+    return all;
+  }
+
+  /**
+   * Releases for the site, newest first. The API first (live download counts); when it
+   * refuses — 60 anonymous requests/hour per IP, shared by everyone behind a filtered-internet
+   * or office IP — the static releases.json that the site sync writes next to the page.
+   * Until 23.9.2026 a refused API returned [] and the site said "אין עדיין עדכונים" with no
+   * download buttons. Rejects only when neither source answered, so the caller can show an
+   * error with a link to the GitHub releases page.
    * @returns {Promise<Array<object>>}
    */
   async function fetchAllReleases() {
     return memoize('releases', async () => {
-      const all = [];
-      let page = 1;
-      // Hard page cap as a safety net against an unexpected infinite loop.
-      const MAX_PAGES = 50;
+      const fromApi = await fetchReleasesFromApi();
+      if (fromApi && fromApi.length) return fromApi;
 
-      while (page <= MAX_PAGES) {
-        let response;
-        try {
-          response = await fetch(`${cfg.releasesApiUrl}?per_page=100&page=${page}`);
-        } catch (err) {
-          // Network failure: stop and return what we have.
-          break;
-        }
-        if (!response.ok) break;
+      const fromFile = await fetchJson(cfg.releasesStaticUrl);
+      if (Array.isArray(fromFile) && fromFile.length) return fromFile;
 
-        let data;
-        try {
-          data = await response.json();
-        } catch (err) {
-          break;
-        }
-        if (!Array.isArray(data)) break;
-
-        all.push(...data);
-        if (data.length < 100) break;
-        page++;
-      }
-
-      // The list endpoint can lag behind a just-published release and return it with
-      // `assets: []` (v1.0.192, 23.9.2026: the release page and /releases/{id} had all four
-      // files while the list showed none for 10+ minutes). The latest release carries the
-      // download buttons, so re-read it on its own when that happens — one extra request, only then.
-      const latest = all.find((r) => r && !r.draft);
-      if (latest && latest.id && !(Array.isArray(latest.assets) && latest.assets.length)) {
-        try {
-          const response = await fetch(`${cfg.releasesApiUrl}/${latest.id}`);
-          if (response.ok) {
-            const full = await response.json();
-            if (full && Array.isArray(full.assets) && full.assets.length) latest.assets = full.assets;
-          }
-        } catch (err) {
-          // Keep the list version.
-        }
-      }
-
-      return all;
+      if (fromApi) return fromApi; // the API answered: there are genuinely no releases
+      throw new Error('GitHub releases unavailable (API and releases.json)');
     });
   }
 
   /**
-   * Fetch the contents of the /screenshots directory and return only image
-   * entries, each reduced to `{ name, url }` (url = download_url).
-   * Fails silently (returns []) on any error — matches old-site behavior.
+   * Gallery images as `{ name, url }`. screenshots.json (written by the site sync, served by
+   * Pages with no request quota) first; the API directory listing only when it is missing.
+   * Fails silently (returns []) — matches old-site behavior.
    * @returns {Promise<Array<{name: string, url: string}>>}
    */
   async function fetchScreenshots() {
     return memoize('screenshots', async () => {
-      try {
-        const response = await fetch(cfg.screenshotsApiUrl);
-        if (!response.ok) return [];
-        const files = await response.json();
-        if (!Array.isArray(files)) return [];
-        return files
-          .filter((f) => f && typeof f.name === 'string' && /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name))
-          .map((f) => ({ name: f.name, url: f.download_url }))
-          .filter((img) => !!img.url);
-      } catch (err) {
-        return [];
+      const fromFile = await fetchJson(cfg.screenshotsStaticUrl);
+      if (Array.isArray(fromFile) && fromFile.length) {
+        return fromFile.filter((img) => img && typeof img.url === 'string' && img.url);
       }
+
+      const files = await fetchJson(cfg.screenshotsApiUrl);
+      if (!Array.isArray(files)) return [];
+      return files
+        .filter((f) => f && typeof f.name === 'string' && /\.(jpg|jpeg|png|webp|gif)$/i.test(f.name))
+        .map((f) => ({ name: f.name, url: f.download_url }))
+        .filter((img) => !!img.url);
     });
   }
 

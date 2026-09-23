@@ -21,6 +21,15 @@
   const releasesApiUrl = `https://api.github.com/repos/${username}/${repo}/releases`;
   /** Contents of the /screenshots directory (gallery source). */
   const screenshotsApiUrl = `https://api.github.com/repos/${username}/${repo}/contents/screenshots`;
+  /**
+   * Static copies written next to the site by tools/updates/build_site_data.py (site sync
+   * workflow): the API allows 60 anonymous requests/hour per IP, and a shared IP (filtered
+   * internet) runs out — these are served by GitHub Pages with no such limit.
+   */
+  const releasesStaticUrl = 'releases.json';
+  const screenshotsStaticUrl = 'screenshots.json';
+  /** Human release page — the last-resort link when no release list could be loaded. */
+  const releasesPageUrl = `https://github.com/${username}/${repo}/releases/latest`;
   /** Raw README (kept for parity with the old site; not actively rendered). */
   const readmeRawUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/README.md`;
   /** Raw User Guide markdown shown inside the guide modal. */
@@ -89,6 +98,9 @@
     repo,
     releasesApiUrl,
     screenshotsApiUrl,
+    releasesStaticUrl,
+    screenshotsStaticUrl,
+    releasesPageUrl,
     readmeRawUrl,
     guideRawUrl,
     SITE_INFO_CONTENT
