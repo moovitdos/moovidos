@@ -426,6 +426,20 @@ strong { font-weight: 600; }
 .state h3 { font-size: 22px; }
 .state p { color: var(--sub); }
 
+/* ---------- updates by e-mail (the strip under the downloads) ---------- */
+.notify {
+  margin-top: 28px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px 20px; align-items: center;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px 26px;
+}
+.notify > .ic { width: 46px; height: 46px; padding: 12px; border-radius: 12px; color: var(--accent-text); background: var(--accent-soft); }
+.notify h3 { font-size: 20px; }
+.notify p { margin-top: 4px; color: var(--sub); font-size: 15.5px; }
+.notify .notify__alt { margin-top: 8px; font-size: 14px; }
+@media (max-width: 720px) {
+  .notify { grid-template-columns: auto minmax(0, 1fr); padding: 20px; align-items: start; }
+  .notify .btn { grid-column: 1 / -1; justify-self: start; }
+}
+
 /* ---------- price + activation ---------- */
 .get-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 48px; align-items: start; }
 .steps { list-style: none; margin: 0; padding: 0; counter-reset: s; display: grid; }

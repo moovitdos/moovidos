@@ -96,7 +96,8 @@
    * Release body -> { updated, items[], downloads[] }. Bodies look like
    *   **מה עודכן?** אפליקציה + נתונים / **תיאור השינויים:** / a,comma,separated,list / --- / גרסאות להורדה: 1. **…:** …
    * (older ones: "מה חדש?" + free lines). Every change survives; the repeated download explanation is kept apart.
-   * A line is split into items at commas / "•" that are not next to a digit (same rule as the old site).
+   * A line is split into items at commas / "•"; a comma between two digits (230,000) stays. The release mail
+   * (tools/updates/send_gmail_updates.py) follows the same rules.
    */
   function parseNotes(body) {
     var text = String(body || '').replace(/\\n/g, '\n').replace(/\r\n?/g, '\n');
@@ -134,8 +135,8 @@
     for (var i = 0; i < line.length; i++) {
       var c = line.charAt(i);
       var isComma = c === ',' || c === '،';
-      var nearDigit = /\d/.test(line.charAt(i - 1)) || /\d/.test(line.charAt(i + 1));
-      if ((isComma && !nearDigit) || c === '•') { parts.push(cur); cur = ''; } else { cur += c; }
+      var inNumber = /\d/.test(line.charAt(i - 1)) && /\d/.test(line.charAt(i + 1));
+      if ((isComma && !inNumber) || c === '•') { parts.push(cur); cur = ''; } else { cur += c; }
     }
     parts.push(cur);
     return parts.map(function (p) { return p.replace(/^[•\-*\s]+/, '').trim(); }).filter(Boolean);
