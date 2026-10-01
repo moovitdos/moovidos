@@ -2,300 +2,409 @@
 <html lang="he" dir="rtl">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מובידוס - אפליקציית התחבורה הציבורית לבעלי סים כשר</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>מובידוס - אפליקציית התחבורה הציבורית לבעלי סים כשר</title>
 
-    <!-- SEO Meta Tags -->
-    <meta name="description"
-        content="מובידוס - אפליקציית התחבורה הציבורית המובילה והמותאמת לבעלי סים כשר ולציבור החרדי. הורדה ישירה, זמני אוטובוסים ומידע בזמן אמת.">
-    <meta name="keywords"
-        content="מובידוס, תחבורה ציבורית, סים כשר, אפליקציה כשרה, זמני אוטובוסים, קווים, חרדים, Moovitdos">
-    <meta name="robots" content="index, follow">
-    <meta name="author" content="Moovitdos">
+  <meta name="description" content="מובידוס - אפליקציית התחבורה הציבורית המובילה והמותאמת לבעלי סים כשר ולציבור החרדי. הורדה ישירה, זמני אוטובוסים ומידע בזמן אמת.">
+  <meta name="keywords" content="מובידוס, תחבורה ציבורית, סים כשר, אפליקציה כשרה, זמני אוטובוסים, קווים, חרדים, Moovitdos">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Moovitdos">
+  <link rel="canonical" href="https://moovitdos.github.io/moovidos/">
 
-    <!-- Open Graph / Social Media -->
-    <meta property="og:title" content="מובידוס - אפליקציית התחבורה הציבורית לבעלי סים כשר">
-    <meta property="og:description"
-        content="הורידו את מובידוס - האפליקציה המובילה לתחבורה ציבורית, מותאמת אישית לציבור החרדי ולמכשירי סים כשר.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://moovitdos.github.io/moovidos/">
-    <meta property="og:site_name" content="מובידוס">
-    <meta property="og:locale" content="he_IL">
-    <!-- TODO (owner): supply a 1200×630 share image at og-image.png — we cannot generate it here. The logo.png is square and crops badly in WhatsApp/social previews. -->
-    <meta property="og:image" content="https://moovitdos.github.io/moovidos/og-image.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
+  <meta property="og:title" content="מובידוס - אפליקציית התחבורה הציבורית לבעלי סים כשר">
+  <meta property="og:description" content="הורידו את מובידוס - האפליקציה המובילה לתחבורה ציבורית, מותאמת אישית לציבור החרדי ולמכשירי סים כשר.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://moovitdos.github.io/moovidos/">
+  <meta property="og:site_name" content="מובידוס">
+  <meta property="og:locale" content="he_IL">
+  <meta property="og:image" content="https://moovitdos.github.io/moovidos/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
 
-    <!-- Favicon and Search Engine Icons -->
-    <link rel="icon" href="logo.png" type="image/png">
-    <link rel="shortcut icon" href="logo.png" type="image/png">
-    <link rel="apple-touch-icon" href="logo.png">
+  <link rel="icon" href="logo.png" type="image/png">
+  <link rel="shortcut icon" href="logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="logo.png">
 
-    <!-- Structured Data for Google Search Logo -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "url": "https://moovitdos.github.io/moovidos/",
-      "logo": "https://moovitdos.github.io/moovidos/logo.png"
-    }
-    </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "מובידוס",
+    "url": "https://moovitdos.github.io/moovidos/",
+    "logo": "https://moovitdos.github.io/moovidos/logo.png"
+  }
+  </script>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-
-    <!-- Styles + scripts (JS written by another agent) -->
-    <link rel="stylesheet" href="css/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="js/config.js" defer></script>
-    <script src="js/api.js" defer></script>
-    <script src="js/ui.js" defer></script>
-    <script src="js/main.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="assets/site.css">
+  <script src="assets/site.js" defer></script>
 </head>
 
 <body>
+  <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M21 16.4v2.9a1.9 1.9 0 0 1-2.1 1.9 18.9 18.9 0 0 1-8.2-2.9 18.6 18.6 0 0 1-5.7-5.7A18.9 18.9 0 0 1 2.1 4.3 1.9 1.9 0 0 1 4 2.2h2.9a1.9 1.9 0 0 1 1.9 1.6c.12.9.34 1.8.66 2.7a1.9 1.9 0 0 1-.43 2L7.8 9.7a15.2 15.2 0 0 0 5.7 5.7l1.2-1.2a1.9 1.9 0 0 1 2-.43c.87.32 1.77.54 2.7.66a1.9 1.9 0 0 1 1.6 1.93z"/></symbol>
+    <symbol id="i-android" viewBox="0 0 24 24"><path d="M5 17.5a7 7 0 0 1 14 0z"/><path d="M8 7.5L6.6 5M16 7.5l1.4-2.5"/><path d="M9.4 13.4h.01M14.6 13.4h.01"/></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4.5" rx="1"/><path d="M5 8.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8.5M10 12.5h4"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7l8.5 6 8.5-6"/></symbol>
+    <symbol id="i-chev-d" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+    <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
+    <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4L3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.5 6 .9-4.35 4.25 1.03 6L12 16.8l-5.38 2.85 1.03-6L3.3 9.4l6-.9z"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M9.5 8h.01M12 8h.01M14.5 8h.01M9.5 11h.01M12 11h.01M14.5 11h.01M9.5 14h.01M12 14h.01M14.5 14h.01M12 17.5h.01"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v2.5M14 10.8v2.4M14 15.5V18"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.2-4.4L4 8.5M4 4v4.5h4.5M4 13a8 8 0 0 0 14.2 4.4l1.8-1.9M20 20v-4.5h-4.5"/></symbol>
+  </svg>
 
-    <!-- Decorative animated background blobs (aria-hidden, disabled on reduced-motion) -->
-    <div class="bg-blobs" aria-hidden="true">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
+  <a href="#content-area" class="skip-link">דלג לאזור ההורדה</a>
+
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#home"><img src="logo.png" alt="" width="32" height="32"><span>מובידוס</span></a>
+      <nav class="nav" aria-label="ניווט ראשי">
+        <a href="#info-section">מידע</a>
+        <a href="#features">תכונות</a>
+        <a href="#guide">מדריך</a>
+        <a href="#contact-section">צור קשר</a>
+      </nav>
+      <a class="btn btn-primary" href="#downloads">
+        <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>הורדה
+      </a>
     </div>
+  </header>
 
-    <!-- Skip link for keyboard users -->
-    <a href="#content-area" class="skip-link">דלג לאזור ההורדה</a>
-
-    <!-- ============ NAVBAR ============ -->
-    <nav class="navbar glass" aria-label="ניווט ראשי">
-        <div class="nav-links">
-            <a href="#home" aria-label="בית">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
-                <span class="nav-text">בית</span>
+  <main>
+    <!-- hero -->
+    <section class="hero" id="home">
+      <div class="wrap">
+        <div>
+          <div class="eyebrow"><span>סים כשר</span><span>מכשירי מקשים</span><span>אנדרואיד 4.4 ומעלה</span></div>
+          <h1>אפליקציית התחבורה הציבורית <em>ללא צורך ברשת!</em></h1>
+          <p class="lede">האפליקציה מאפשרת קבלת מידע חכם ומהיר על תחבורה ציבורית, ומותאמת במיוחד לבעלי מכשירים עם סים כשר ומכשירי מקשים [אנדרואיד 4.4 ומעלה].</p>
+          <div class="types" aria-label="עיקרי האפליקציה"><span>זמן אמת בחיוג אוטומטי</span><span>תכנון מסלול חכם</span><span>לוחות זמנים אופליין</span><span>מפה בלי אינטרנט</span></div>
+          <div class="cta">
+            <a class="btn btn-primary" data-hero-download href="#downloads">
+              <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>הורידו עכשיו
             </a>
-            <a href="#info-section" aria-label="מידע">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-                <span class="nav-text">מידע</span>
-            </a>
-            <a href="#content-area" aria-label="הורדה">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                <span class="nav-text">הורדה</span>
-                <span id="nav-total-chip" class="download-badge">...</span>
-            </a>
-            <a href="#gallery-section" aria-label="גלריה">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                    <polyline points="21 15 16 10 5 21"></polyline>
-                </svg>
-                <span class="nav-text">גלריה</span>
-            </a>
-            <a href="#guide" aria-label="מדריך למשתמש">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                </svg>
-                <span class="nav-text">מדריך</span>
-            </a>
-            <a href="#contact-section" aria-label="צור קשר">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                    <polyline points="22,6 12,13 2,6"></polyline>
-                </svg>
-                <span class="nav-text">צור קשר</span>
-            </a>
+            <a class="btn btn-quiet" href="#info-section">איך זה עובד?</a>
+          </div>
+          <div class="meta">
+            <span data-hero-version hidden></span>
+            <span>רכישה חד-פעמית · אנדרואיד 4.4 ומעלה</span>
+            <span data-total-downloads hidden></span>
+          </div>
         </div>
-    </nav>
 
-    <!-- ============ HERO ============ -->
-    <header id="home">
-        <img src="logo.png" alt="לוגו אפליקציית מובידוס" class="app-logo" width="140" height="140">
-        <h1 class="reveal">אפליקציית התחבורה הציבורית<br>ללא צורך ברשת!</h1>
-        <p class="reveal">זמן אמת בחיוג אוטומטי · תכנון מסלול חכם · לוחות זמנים אופליין</p>
-        <div class="hero-cta reveal">
-            <a href="#content-area" class="hero-btn">הורידו עכשיו</a>
-            <a href="#info-section" class="hero-btn secondary">איך זה עובד?</a>
+        <div class="moment" aria-label="דוגמה: נגיעה באייקון החיוג ליד תחנה שמורה מחייגת לקו המידע">
+          <div class="phone">
+            <img src="assets/shots/dial.png" width="480" height="854" alt="מסך החיוג המהיר במובידוס: לכל תחנה שמורה מספר מק&quot;ט, הקווים שלה ואייקון חיוג">
+            <span class="ring" aria-hidden="true"></span><span class="ring r2" aria-hidden="true"></span>
+            <span class="hint" aria-hidden="true"><svg viewBox="0 0 46 26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c14-2 30 2 38 13M40 19l-1.2-7M40 19l-7-1.4"/></svg>חיוג אוטומטי</span>
+          </div>
         </div>
-        <p class="hero-micro reveal">רכישה חד-פעמית · אנדרואיד 4.4 ומעלה</p>
-    </header>
-
-    <!-- ============ MAIN CONTENT ============ -->
-    <main class="container">
-        <!-- Info / feature cards (JS injects innerHTML, then un-hides) -->
-        <section id="info-section" class="readme-section glass reveal" aria-label="מידע על האפליקציה">
-            <!-- Content injected by JS -->
-        </section>
-
-        <!-- Updates / changelog (JS replaces the spinner placeholder) -->
-        <section class="updates-section reveal" aria-label="עדכונים והורדות">
-            <h2 class="section-title">מרכז העדכונים וההורדות</h2>
-            <p class="section-subtitle">הורדת הגרסה האחרונה, ופירוט מה התחדש בכל הגרסאות.</p>
-            <div id="content-area">
-                <div class="loading" role="status" aria-live="polite">
-                    <svg width="50" height="50" viewBox="0 0 50 50" class="spinner" aria-hidden="true">
-                        <circle cx="25" cy="25" r="20" fill="none" stroke="var(--accent-color)" stroke-width="5"
-                            stroke-linecap="round" stroke-dasharray="90 150" />
-                    </svg>
-                    <span class="loading-text">טוען נתונים…</span>
-                </div>
-            </div>
-        </section>
-    </main>
-
-
-
-    <!-- ============ GALLERY (starts hidden; JS appends imgs + un-hides) ============ -->
-    <section class="gallery-section reveal" id="gallery-section" aria-label="גלריית תמונות">
-        <h2 class="gallery-title">הצצה לאפליקציה</h2>
-        <p class="gallery-subtitle">ככה זה נראה. החליקו לצדדים, ולחצו על תמונה להגדלה.</p>
-        <div class="gallery-container" id="gallery-container"></div>
+      </div>
     </section>
 
-    <!-- ============ GUIDE / HELP CENTER (inline, sidebar TOC) ============ -->
-    <section class="support-center reveal" id="guide" aria-label="מדריך למשתמש">
-        <h2 class="support-title">מרכז העזרה — מדריך למשתמש</h2>
-        <div class="support-layout">
-            <aside class="support-sidebar" id="docs-sidebar" aria-label="ניווט בתוכן המדריך"></aside>
-            <article class="support-content" id="docs-content">
-                <div class="loading" aria-live="polite">
-                    <svg width="40" height="40" viewBox="0 0 50 50" style="animation: spin 1s linear infinite;"
-                        aria-hidden="true">
-                        <circle cx="25" cy="25" r="20" fill="none" stroke="var(--accent-color)" stroke-width="5"
-                            stroke-dasharray="31.4" />
-                    </svg>
-                </div>
-            </article>
+    <!-- real-time: a real sequence -->
+    <section class="section" id="info-section">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>מידע בזמן אמת</h2>
+          <p>קבלת המידע בזמן אמת נעשית באמצעות חיוג אוטומטי מתוך האפליקציה לקווי מידע קוליים (כמו 'קל קו'). האפליקציה חוסכת לכם את ההאזנה לתפריטים – היא שולחת באופן אוטומטי את מספר התחנה והקו המבוקשים מיד עם תחילת השיחה, כך שהמידע מתקבל באופן מיידי.</p>
         </div>
+        <ol class="flow">
+          <li><b>בוחרים תחנה או קו</b><span>לאחר בחירת תחנה או קו, תראו אייקון "חיוג".</span></li>
+          <li><b>נוגעים בחיוג</b><span>נגיעה בכפתור או לחיצה על מקש שמאל תתחיל שיחה למרכזיית המידע.</span></li>
+          <li><b>האפליקציה מקישה</b><span>האפליקציה תשלח אוטומטית את הקודים הנדרשים (בצלילי <span class="ltr">DTMF</span>).</span></li>
+          <li><b>שומעים את הזמנים</b><span>תוכלו לשמוע מיד את זמני ההגעה המדויקים בשירות הקולי.</span></li>
+        </ol>
+      </div>
     </section>
 
-    <!-- ============ CONTACT (static formspree form) ============ -->
-    <section class="contact-section reveal" id="contact-section" aria-label="צור קשר">
-        <div class="contact-container glass">
-            <h2 class="contact-title">כתבו לנו</h2>
-
-            <form action="https://formspree.io/f/mojpzpqy" method="POST" class="contact-form">
-                <input type="hidden" id="contact-subject" name="_subject" value="פניית תמיכה באתר">
-                <div class="form-group-full">
-                    <label class="visually-hidden" for="contact-name">שם (אופציונלי)</label>
-                    <input id="contact-name" type="text" name="name" placeholder="שם (אופציונלי)" autocomplete="name">
-                </div>
-
-                <div class="form-group-full">
-                    <label class="visually-hidden" for="contact-email">אימייל</label>
-                    <input id="contact-email" type="email" name="email" placeholder="אימייל*" autocomplete="email"
-                        required>
-                </div>
-
-                <div class="form-group-full">
-                    <label class="visually-hidden" for="contact-message">הודעה</label>
-                    <textarea id="contact-message" name="message" placeholder="הודעה*" required></textarea>
-                </div>
-
-                <button type="submit" class="submit-btn" id="submit-btn">
-                    <span>שלח</span>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                        stroke-linecap="round" stroke-linejoin="round" class="arrow-icon" aria-hidden="true">
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                    </svg>
-                </button>
-            </form>
-
-            <div class="contact-alt">
-                <a href="mailto:moovitdos@gmail.com" class="gmail-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path
-                            d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                    </svg>
-                    moovitdos@gmail.com
-                </a>
-            </div>
+    <!-- features: each one beside real screenshots of the app (assets/shots/, taken on a 480x854 phone) -->
+    <section class="section" id="features">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>מובידוס — התחבורה הציבורית, מותאמת למכשיר הכשר שלך</h2>
         </div>
+
+        <div class="showcase">
+          <article class="show">
+            <div class="show__text">
+              <h3>תכנון מסלול</h3>
+              <p>רוצים להגיע ליעד? הזינו מאיפה לאן, ומובידוס תציג את מסלולי הנסיעה הטובים ביותר. האפליקציה כוללת חיפוש מתקדם המאפשר הגדרת כמות החלפות, הליכות ובחירת שעת יציאה או הגעה.</p>
+              <ul class="show__facts">
+                <li>מחיר הנסיעה</li>
+                <li>קווים שנוסעים באותו מסלול מוצגים יחד</li>
+                <li>יציאה או הגעה בשעה שבוחרים</li>
+              </ul>
+            </div>
+            <figure class="show__visual">
+              <div class="shots shots--pair">
+                <button type="button" class="shot" aria-label="הגדלת הצילום: תוצאות תכנון מסלול"><img src="assets/shots/routes.png" width="480" height="854" loading="lazy" decoding="async" alt="תוצאות תכנון מסלול מבני ברק לירושלים: שעות היציאה וההגעה, מחיר הנסיעה, והקווים 404 ו-422 יחד"></button>
+                <button type="button" class="shot" aria-label="הגדלת הצילום: פירוט המסלול"><img src="assets/shots/journey.png" width="480" height="854" loading="lazy" decoding="async" alt="פירוט המסלול: הליכה של 4 דקות לתחנה, ואז נסיעה בקו 404 או 422 עד קניון רמות"></button>
+              </div>
+              <figcaption>מבני ברק לירושלים: המסלולים המומלצים עם מחיר הנסיעה, ופירוט המסלול שנבחר — הליכה לתחנה ואז נסיעה בקו 404 או 422.</figcaption>
+            </figure>
+          </article>
+
+          <article class="show">
+            <div class="show__text">
+              <h3>מפה שעובדת בלי אינטרנט</h3>
+              <p>באפליקציה מפת רחובות מובנית שעובדת בלי אינטרנט. היא מראה איפה התחנה, איפה הולכים ובאיזה צד של הכביש, ואפשר להציג עליה מסלול של קו או מסלול שלם שתכננתם, ולעבור בו שלב אחר שלב.</p>
+              <ul class="show__facts">
+                <li>רחובות, תחנות ומקומות</li>
+                <li>מסלול של קו ומסלול שלם</li>
+                <li>במגע וגם במקשים</li>
+              </ul>
+            </div>
+            <figure class="show__visual">
+              <div class="shots shots--pair">
+                <button type="button" class="shot" aria-label="הגדלת הצילום: מסלול שלם על המפה"><img src="assets/shots/map-journey.png" width="480" height="854" loading="lazy" decoding="async" alt="המסלול מבני ברק לירושלים על המפה של האפליקציה, ומתחתיו כרטיס המסלול"></button>
+                <button type="button" class="shot" aria-label="הגדלת הצילום: המפה ברמת הרחוב"><img src="assets/shots/map-street.png" width="480" height="854" loading="lazy" decoding="async" alt="המפה ברמת הרחוב: תחנות קו 71 בגילה, שמות הרחובות וכיוון הנסיעה"></button>
+              </div>
+              <figcaption>המסלול מבני ברק לירושלים על המפה, ותחנות קו 71 בגילה ברמת הרחוב.</figcaption>
+            </figure>
+          </article>
+
+          <article class="show">
+            <div class="show__text">
+              <h3>מעקב אחר הנסיעה</h3>
+              <p>האפליקציה מאפשרת מעקב רציף אחר התקדמות הנסיעה — אחרי קו שבחרתם, או אחרי מסלול שלם שתכננתם: ההליכה לתחנה, ההמתנה, הנסיעה וההחלפות. היא מראה כמה תחנות נשארו ואיפה לרדת, מקריאה את התחנות לאורך המסלול, ומתריעה (בצליל או ברטט) לקראת ההגעה לתחנת היעד.</p>
+              <ul class="show__facts">
+                <li>מעקב אחר מסלול קו</li>
+                <li>מעקב אחר מסלול שלם</li>
+                <li>תזכורת לפני תחנת היעד</li>
+              </ul>
+            </div>
+            <figure class="show__visual">
+              <div class="shots shots--pair">
+                <button type="button" class="shot" aria-label="הגדלת הצילום: מעקב אחר מסלול שלם"><img src="assets/shots/track-journey.png" width="480" height="854" loading="lazy" decoding="async" alt="מעקב אחר מסלול שלם על המפה: נשארו 5 תחנות עד הירידה בקניון רמות, והתחנה הבאה גבעת זאב"></button>
+                <button type="button" class="shot" aria-label="הגדלת הצילום: מעקב אחר מסלול קו"><img src="assets/shots/track-line.png" width="480" height="854" loading="lazy" decoding="async" alt="מעקב אחר קו 71 ברשימת התחנות: האוטובוס בין שתי תחנות, והתחנה הבאה עם הזמנים והקווים שלה"></button>
+              </div>
+              <figcaption>מעקב אחר מסלול שלם: נשארו 5 תחנות עד הירידה. ולצדו מעקב אחר קו 71 ברשימת התחנות.</figcaption>
+            </figure>
+          </article>
+
+          <article class="show">
+            <div class="show__text">
+              <h3>לוחות זמנים אופליין</h3>
+              <p>לוחות הזמנים המלאים והרשמיים של כל קו שמורים אצלכם במכשיר וזמינים בכל מקום — גם כשאין חיבור לאינטרנט וגם כשאין קליטה. תמיד תדעו מתי האוטובוס הבא.</p>
+              <ul class="show__facts">
+                <li>כל הקווים בארץ</li>
+                <li>גם בלי קליטה</li>
+                <li>מה שכבר עבר מסומן</li>
+              </ul>
+            </div>
+            <figure class="show__visual">
+              <div class="shots">
+                <button type="button" class="shot" aria-label="הגדלת הצילום: לוח זמנים"><img src="assets/shots/schedule.png" width="480" height="854" loading="lazy" decoding="async" alt="לוח הזמנים של קו 71 לרמות: שעות היציאה של היום, והשעות שכבר עברו באפור"></button>
+              </div>
+              <figcaption>קו 71 של סופרבוס לרמות: כל היציאות של היום, ומה שכבר עבר מסומן באפור.</figcaption>
+            </figure>
+          </article>
+
+          <article class="show">
+            <div class="show__text">
+              <h3>חיפוש חכם</h3>
+              <p>איתור מהיר לפי מספר קו, מספר תחנה (מק"ט), שם תחנה, מיקום נוכחי או כתובת. אפשר לחפש גם קו לפי חברה או עיר, כתובת עם מספר בית, ומקום לפי סוג או שכונה. במסך התחנה רואים את כל הקווים שעוברים בה, ומתי כל אחד מגיע לפי לוח הזמנים.</p>
+              <ul class="show__facts">
+                <li>קווים, תחנות, כתובות ומקומות</li>
+                <li>הקווים בצבעי החברות</li>
+                <li>תחנות קרובות עם מרחק הליכה</li>
+              </ul>
+            </div>
+            <figure class="show__visual">
+              <div class="shots shots--pair">
+                <button type="button" class="shot" aria-label="הגדלת הצילום: תוצאות חיפוש"><img src="assets/shots/search.png" width="480" height="854" loading="lazy" decoding="async" alt="תוצאות חיפוש של 71: קווים של אגד, אלקטרה אפיקים, אקסטרה ודן בדרום, כל אחד בצבע החברה"></button>
+                <button type="button" class="shot" aria-label="הגדלת הצילום: מסך תחנה"><img src="assets/shots/stop.png" width="480" height="854" loading="lazy" decoding="async" alt="מסך התחנה צומת רמות/גולדה: הקווים שעוברים בה והזמנים הקרובים של כל קו"></button>
+              </div>
+              <figcaption>חיפוש "71": הקווים של כל החברות. ומסך תחנה: הקווים שעוברים בה והזמנים הקרובים.</figcaption>
+            </figure>
+          </article>
+
+          <article class="show">
+            <div class="show__text">
+              <h3>דיווח ותלונה על נסיעה</h3>
+              <p>האוטובוס לא הגיע, איחר או לא עצר? לחיצה ארוכה על השעה בלוח הזמנים פותחת דיווח קצר, והאפליקציה מכינה ממנו תלונה מסודרת לחברה המפעילה ולמשרד התחבורה — לשליחה במייל מהמכשיר, או מהמחשב.</p>
+              <ul class="show__facts">
+                <li>דיווח בכמה לחיצות</li>
+                <li>תלונה מוכנה לשליחה</li>
+                <li>הדיווחים נשמרים במכשיר</li>
+              </ul>
+            </div>
+            <figure class="show__visual">
+              <div class="shots">
+                <button type="button" class="shot" aria-label="הגדלת הצילום: דיווח על נסיעה"><img src="assets/shots/report.png" width="480" height="854" loading="lazy" decoding="async" alt="דיווח על נסיעה של קו 71: לא הגיע, איחר, לא עצר או התנהגות נהג"></button>
+              </div>
+              <figcaption>דיווח על נסיעה של קו 71 שלא הגיעה.</figcaption>
+            </figure>
+          </article>
+        </div>
+
+        <div class="more-grid">
+          <div class="feat">
+            <svg class="ic" aria-hidden="true"><use href="#i-ticket"/></svg>
+            <h3>מחיר הנסיעה</h3>
+            <p>בתוצאות המסלול מוצג מחיר הנסיעה, ואפשר לראות לצדו גם את מחירי החופשי היומי והחודשי. ניתן להגדיר פרופיל הנחה וחופשי שכבר יש לכם, ולעיין בטבלת התעריפים.</p>
+          </div>
+          <div class="feat">
+            <svg class="ic" aria-hidden="true"><use href="#i-star"/></svg>
+            <h3>מועדפים</h3>
+            <p>שמירה של תחנות, קווים, מיקומים ואנשי קשר לחיוג מהיר, לגישה נוחה ביומיום.</p>
+          </div>
+          <div class="feat">
+            <svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>
+            <h3>חברות התחבורה</h3>
+            <p>רשימת חברות התחבורה עם הקווים של כל אחת, וחיוג ישיר למוקד החברה.</p>
+          </div>
+          <div class="feat">
+            <svg class="ic" aria-hidden="true"><use href="#i-map"/></svg>
+            <h3>שילוב עם אפליקציות מפות</h3>
+            <p>האפליקציה משתלבת עם אפליקציית מפות המותקנת על מכשירכם. ניתן לשתף מיקום מכל אפליקציית מפות אל "מובידוס" ולראות מיד את כל התחנות שבאזור. כמו כן ניתן לשתף מיקום של תחנה, כתובת או נקודת עניין לאפליקציית המפות שלכם ולראות אותה על המפה.</p>
+          </div>
+          <div class="feat">
+            <svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>
+            <h3>התאמה אישית</h3>
+            <p>מצב בהיר או כהה, עברית או אנגלית, ובחירה מה יוצג בכל כרטיס — מורחב או מצומצם, לכל מסך בנפרד.</p>
+          </div>
+          <div class="feat">
+            <svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>
+            <h3>עדכוני נתונים</h3>
+            <p>לוחות הזמנים מתעדכנים באופן שוטף. אפשר לעדכן את הנתונים מתוך האפליקציה או מקובץ, בלי להתקין אותה מחדש, ולגבות את המועדפים וההגדרות.</p>
+          </div>
+          <div class="feat feat--wide">
+            <svg class="ic" aria-hidden="true"><use href="#i-key"/></svg>
+            <h3>התאמה למכשירי מקשים</h3>
+            <p>האפליקציה פותחה ועוצבה במיוחד עבור מכשירים בעלי מקשים פיזיים, ומאפשרת ניווט מלא ומהיר באמצעות מקשים ללא צורך במסך מגע. המערכת מזהה אוטומטית את סוג המכשיר ומספקת חוויית שימוש חלקה ומהירה, הכוללת הדגשה ברורה של פריטים נבחרים וקיצורי דרך יעילים.</p>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- ============ SUBSCRIBE TO UPDATES ============ -->
-    <!-- מוסתר לפי החלטת משתמש (23.9.2026). להחזרה: להסיר את hidden ואת display:none. -->
-    <!-- לתשומת לב לפני החזרה: שלב המיילים ב-CI (tools/updates/send_gmail_updates.py) לא שולח כרגע —
-         GOOGLE_SHEET_WEB_APP_URL אינו מוגדר ב-workflow. -->    <section class="subscribe-section reveal glass" aria-label="הרשמה לעדכונים" hidden style="display: none; margin-top: 0; margin-bottom: 60px;">
-        <h3 class="subscribe-title">הירשמו לקבלת עדכונים על גרסאות חדשות</h3>
-        <p class="subscribe-subtitle">קבלו מייל מיידי עם קישורי הורדה ישירים בכל פעם שיוצאת גרסה חדשה של מובידוס.</p>
-        <form action="https://script.google.com/macros/s/AKfycbz2igbEO5B2gkh_6_dMSn8YVZ3uHXl5anl3xx_4sgAwKl8i5K61qvqkGDJrnO8U8Tj5/exec" method="POST" class="subscribe-form">
-            <input type="hidden" name="_subject" value="הרשמה חדשה לעדכוני מובידוס">
-            <input type="hidden" name="subscribe" value="yes">
-            <div class="subscribe-input-group">
-                <input type="email" name="email" placeholder="הזינו את כתובת האימייל שלכם*" required autocomplete="email">
-                <button type="submit" class="subscribe-btn-submit">הרשמה</button>
+    <!-- downloads -->
+    <section class="section" id="downloads">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>מרכז העדכונים וההורדות</h2>
+          <p>הורדת הגרסה האחרונה, ופירוט מה התחדש בכל הגרסאות.</p>
+        </div>
+        <div id="content-area" data-state="loading" aria-live="polite">
+          <div class="loading">
+            <p>טוען נתונים…</p>
+            <a href="https://github.com/moovitdos/moovidos/releases/latest" target="_blank" rel="noopener">לדף הגרסאות ב-GitHub</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- cost + activation -->
+    <section class="section" id="price">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>עלות ורכישה</h2>
+          <p>השימוש באפליקציה כרוך ב<strong>רכישה חד-פעמית בלבד</strong> — בלי מנוי ובלי תשלומים חוזרים. מעת לעת נפתחות תקופות ניסיון שמאפשרות להתנסות באפליקציה בחינם:</p>
+        </div>
+        <div class="get-grid">
+          <ol class="steps">
+            <li>
+              <h3>המזהה מופיע במסך הנעילה</h3>
+              <p>במסך הנעילה של האפליקציה מופיע מזהה המכשיר שלכם. אפשר להעתיק אותו, או להציג אותו <span class="nw">כקוד QR</span>.</p>
+            </li>
+            <li>
+              <h3>שולחים אותו במייל</h3>
+              <p>שלחו את המזהה (או את <span class="nw">קוד ה-QR</span>) לכתובת <a href="mailto:moovitdos@gmail.com"><span class="ltr">moovitdos@gmail.com</span></a>, ותקבלו בחזרה קובץ הפעלה.</p>
+            </li>
+            <li>
+              <h3>שומרים את הקובץ בטלפון</h3>
+              <p>שמרו את קובץ ההפעלה בתיקיית ההורדות (<span class="ltr">Download</span>), <span class="ltr">Bluetooth</span> או <span class="ltr">Documents</span>, והאפליקציה תמצא אותו לבד ותיפתח. אפשר גם לבחור את הקובץ, או לסרוק את <span class="nw">קוד ה-QR</span>, ממסך הנעילה.</p>
+            </li>
+          </ol>
+          <aside class="card price" aria-label="מחיר">
+            <p class="price__amount"><span class="num">15</span> ש"ח</p>
+            <p class="price__line"><strong>רכישה חד-פעמית של 15 ש"ח — בלי מנוי, בלי תשלום חוזר, לתמיד.</strong></p>
+            <small>לרכישת רישיון שימוש, יש לפנות לכתובת המייל המופיעה בתחתית הדף.</small>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- guide -->
+    <section class="section" id="guide" data-state="loading">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>מרכז העזרה — מדריך למשתמש</h2>
+        </div>
+        <div class="reader">
+          <nav class="reader__toc" data-toc aria-label="ניווט בתוכן המדריך"></nav>
+          <article class="reader__body prose" id="guide-content">
+            <div class="loading">
+              <p>טוען נתונים…</p>
+              <a href="https://github.com/moovitdos/moovidos/blob/main/User_Guide.md" target="_blank" rel="noopener">קריאת המדריך ישירות ב-GitHub</a>
             </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- contact -->
+    <section class="section" id="contact-section">
+      <div class="wrap contact">
+        <div>
+          <div class="section-head section-head--stack">
+            <h2>כתבו לנו</h2>
+          </div>
+          <h3>משוב והערות</h3>
+          <p class="sub">האפליקציה פותחה במטרה לעזור ולייעל את הנסיעה שלכם. אשמח מאוד לשמוע מכם הערות, הארות והצעות לשיפור. אני קורא הכל ואולי אף אשפר את האפליקציה בהתאם.</p>
+          <a class="btn btn-quiet mail" href="mailto:moovitdos@gmail.com">
+            <svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg><span class="ltr">moovitdos@gmail.com</span>
+          </a>
+        </div>
+
+        <form class="card form" action="https://formspree.io/f/mojpzpqy" method="POST">
+          <input type="hidden" name="_subject" value="פניית תמיכה באתר">
+          <div class="field">
+            <label for="contact-name">שם (אופציונלי)</label>
+            <input id="contact-name" type="text" name="name" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="contact-email">אימייל*</label>
+            <input id="contact-email" type="email" name="email" autocomplete="email" dir="ltr" required>
+          </div>
+          <div class="field">
+            <label for="contact-message">הודעה*</label>
+            <textarea id="contact-message" name="message" rows="6" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">שלח<svg class="ic" aria-hidden="true"><use href="#i-send"/></svg></button>
         </form>
+      </div>
     </section>
+  </main>
 
-    <!-- ============ FOOTER ============ -->
-    <footer>
-        <p>כל הזכויות שמורות</p>
-    </footer>
-
-    <!-- ============ FAB ============ -->
-    <a href="#content-area" class="fab-btn" aria-label="הורד עכשיו">
-        <span>הורד עכשיו</span>
-        <svg fill="currentColor" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
-        </svg>
-    </a>
-
-    <!-- ============ GALLERY IMMERSIVE VIEWER (JS toggles .active) ============ -->
-    <div class="gallery-lightbox" id="gallery-lightbox" role="dialog" aria-modal="true"
-        aria-label="תצוגה מוגדלת של צילום מסך" aria-hidden="true">
-        <button type="button" class="gallery-lightbox-close" id="gallery-lightbox-close" data-lightbox-close
-            aria-label="סגירה">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-            </svg>
-        </button>
-
-        <span class="gallery-lightbox-counter" id="gallery-lightbox-counter" dir="ltr" aria-hidden="true"></span>
-
-        <div class="gallery-lightbox-stage">
-            <img class="gallery-lightbox-img" id="gallery-lightbox-img" alt="">
-        </div>
-
-        <!-- RTL: "prev" (towards the first shot) points RIGHT; "next" points LEFT. -->
-        <button type="button" class="gallery-lightbox-nav gallery-lightbox-prev" id="gallery-lightbox-prev"
-            aria-label="הצילום הקודם">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-        </button>
-        <button type="button" class="gallery-lightbox-nav gallery-lightbox-next" id="gallery-lightbox-next"
-            aria-label="הצילום הבא">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-        </button>
+  <footer>
+    <div class="wrap">
+      <a class="brand" href="#home"><img src="logo.png" alt="" width="24" height="24"><span>מובידוס</span></a>
+      <a href="mailto:moovitdos@gmail.com" class="ltr">moovitdos@gmail.com</a>
+      <p>כל הזכויות שמורות</p>
     </div>
+  </footer>
 
-
+  <div class="lightbox" data-lightbox role="dialog" aria-modal="true" aria-label="תצוגה מוגדלת של צילום מסך" aria-hidden="true">
+    <button type="button" class="lb-btn lb-close" data-lightbox-close aria-label="סגירה"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+    <span class="lb-counter" data-lightbox-counter dir="ltr"></span>
+    <div class="lb-stage"><img class="lb-img" alt=""></div>
+    <button type="button" class="lb-btn lb-prev" data-lightbox-prev aria-label="הצילום הקודם"><svg class="ic" aria-hidden="true"><use href="#i-chev-r"/></svg></button>
+    <button type="button" class="lb-btn lb-next" data-lightbox-next aria-label="הצילום הבא"><svg class="ic" aria-hidden="true"><use href="#i-chev-l"/></svg></button>
+  </div>
 </body>
 
 </html>
