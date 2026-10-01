@@ -3,11 +3,19 @@
    On top of it, the transit lines of the logo (owner's choice, "clean + lines"): a line map behind
    the hero phone, the four real-time steps as stations on one line, the version history down a line. */
 
-/* the line map behind the hero phone: the logo's blue and orange lines with stations;
-   one drawing per theme, because an SVG in a data URI cannot read the tokens */
+/* The line map behind the hero phone: the logo's blue and orange lines, and a thin third one, with stations.
+   .phone::before places it, tied to the phone, so the picture is the same at every window size. In the drawing
+   the phone covers x 287-587, y 69-492. The rules it keeps:
+   - a line either runs off an edge of the hero (2400 to the left, 150 below the phone) or ends at a station;
+   - nothing goes above the phone (on a narrow screen the text is there), and the two ends on the right, the
+     only part that needs room beside the phone, are cropped away on a narrow screen;
+   - left of the phone, y 125-265 stays empty: the "auto-dial" label and its arrow sit there in every layout;
+   - a station is never half hidden: none below the phone's bottom edge, none closer than 20 to the phone, and
+     none further than 150 to its left (at a window about 1100 wide only 175 are in view there).
+   One drawing per theme, because an SVG in a data URI cannot read the tokens. */
 :root {
-  --map-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 560' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M110 0v120l140 140h170l140 140v160' stroke='%23C9D6E6' stroke-width='9'/%3E%3Cpath d='M640 110H430L300 240v320' stroke='%231463C4' stroke-width='13'/%3E%3Cpath d='M0 330h170l130-130h340' stroke='%23F07F13' stroke-width='13'/%3E%3Cg fill='%23fff' stroke='%230E1C2F' stroke-width='4'%3E%3Ccircle cx='560' cy='110' r='9'/%3E%3Ccircle cx='300' cy='420' r='9'/%3E%3Ccircle cx='80' cy='330' r='9'/%3E%3Ccircle cx='520' cy='200' r='9'/%3E%3Ccircle cx='110' cy='60' r='8'/%3E%3Ccircle cx='560' cy='480' r='8'/%3E%3Crect x='322' y='185' width='36' height='30' rx='15'/%3E%3Crect x='285' y='245' width='30' height='30' rx='15'/%3E%3C/g%3E%3C/svg%3E");
-  --map-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 560' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M110 0v120l140 140h170l140 140v160' stroke='%23243853' stroke-width='9'/%3E%3Cpath d='M640 110H430L300 240v320' stroke='%235AA2F0' stroke-width='13'/%3E%3Cpath d='M0 330h170l130-130h340' stroke='%23FF9A3C' stroke-width='13'/%3E%3Cg fill='%230B1422' stroke='%23E8EEF6' stroke-width='4'%3E%3Ccircle cx='560' cy='110' r='9'/%3E%3Ccircle cx='300' cy='420' r='9'/%3E%3Ccircle cx='80' cy='330' r='9'/%3E%3Ccircle cx='520' cy='200' r='9'/%3E%3Ccircle cx='110' cy='60' r='8'/%3E%3Ccircle cx='560' cy='480' r='8'/%3E%3Crect x='322' y='185' width='36' height='30' rx='15'/%3E%3Crect x='285' y='245' width='30' height='30' rx='15'/%3E%3C/g%3E%3C/svg%3E");
+  --map-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-2400 70 3040 570' preserveAspectRatio='none' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M560 640V250H447L57 640' stroke='%23C9D6E6' stroke-width='9'/%3E%3Cpath d='M-2400 96H614' stroke='%231463C4' stroke-width='13'/%3E%3Cpath d='M-2400 370H195l170-170h249' stroke='%23F07F13' stroke-width='13'/%3E%3Cg fill='%23fff' stroke='%230E1C2F' stroke-width='4'%3E%3Ccircle cx='205' cy='96' r='9'/%3E%3Ccircle cx='614' cy='96' r='9'/%3E%3Ccircle cx='150' cy='370' r='9'/%3E%3Ccircle cx='614' cy='200' r='9'/%3E%3Ccircle cx='236' cy='461' r='8'/%3E%3C/g%3E%3C/svg%3E");
+  --map-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-2400 70 3040 570' preserveAspectRatio='none' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M560 640V250H447L57 640' stroke='%23243853' stroke-width='9'/%3E%3Cpath d='M-2400 96H614' stroke='%235AA2F0' stroke-width='13'/%3E%3Cpath d='M-2400 370H195l170-170h249' stroke='%23FF9A3C' stroke-width='13'/%3E%3Cg fill='%230B1422' stroke='%23E8EEF6' stroke-width='4'%3E%3Ccircle cx='205' cy='96' r='9'/%3E%3Ccircle cx='614' cy='96' r='9'/%3E%3Ccircle cx='150' cy='370' r='9'/%3E%3Ccircle cx='614' cy='200' r='9'/%3E%3Ccircle cx='236' cy='461' r='8'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 :root {
@@ -23,6 +31,9 @@
   --accent-text: #1565C0;
   --glow: #2F86E0;
   --orange: #F07F13;
+  --soon-ink: #944600;
+  --soon-bg: #FFF1E0;
+  --soon-line: #F3C693;
   --map: var(--map-light);
   --ok: #1B7A47;
   --ok-soft: #E1F2E8;
@@ -50,6 +61,9 @@
     --accent-text: #6FB0F2;
     --glow: #5AA8F5;
     --orange: #FF9A3C;
+    --soon-ink: #FFB870;
+    --soon-bg: #2E1F10;
+    --soon-line: #6A4521;
     --map: var(--map-dark);
     --ok: #6FD39C;
     --ok-soft: #13301F;
@@ -73,6 +87,9 @@
   --accent-text: #6FB0F2;
   --glow: #5AA8F5;
   --orange: #FF9A3C;
+  --soon-ink: #FFB870;
+  --soon-bg: #2E1F10;
+  --soon-line: #6A4521;
   --map: var(--map-dark);
   --ok: #6FD39C;
   --ok-soft: #13301F;
@@ -156,7 +173,7 @@ strong { font-weight: 600; }
 @media (max-width: 720px) { .nav { display: none; } .top .btn { margin-inline-start: auto; } }
 
 /* ---------- hero ---------- */
-.hero { padding-block: 72px 64px; background: var(--map) no-repeat left -40px center / 640px auto; }
+.hero { padding-block: 72px 64px; overflow: hidden; } /* hidden: the line map runs past the hero's edges */
 .hero .wrap { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 56px; align-items: center; }
 .eyebrow { font-size: 14px; font-weight: 500; letter-spacing: .02em; color: var(--accent-text); display: flex; flex-wrap: wrap; gap: 6px 20px; margin-bottom: 18px; }
 .eyebrow span { display: inline-flex; align-items: center; gap: 8px; }
@@ -166,6 +183,18 @@ strong { font-weight: 600; }
 .lede { margin-top: 22px; font-size: 19px; color: var(--sub); max-width: 34em; }
 .types { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
 .types span { font: 500 14.5px/1 var(--body); padding: 8px 11px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+
+/* "soon" tag: on what the next app release brings and the public one does not have yet (the offline map and
+   whole-journey tracking). Remove the tags, and rebuild og-image.png, once that release is out. In the markup a
+   space comes before the tag (so it is read and copied as a separate word); the margin adds to that space. */
+.soon {
+  display: inline-block; vertical-align: middle; margin-inline-start: 4px; white-space: nowrap;
+  font: 600 13px/1 var(--body); font-style: normal; letter-spacing: 0;
+  padding: 5px 9px; border-radius: 999px;
+  color: var(--soon-ink); background: var(--soon-bg); border: 1px solid var(--soon-line);
+}
+/* inside a chip the tag must not make the chip taller than its neighbours */
+.types .soon, .show__facts .soon { font-size: 11.5px; padding: 3px 7px; margin-block: -4px; margin-inline-start: 3px; }
 .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; margin-top: 32px; }
 .cta .btn { padding: 16px 24px; font-size: 18px; }
 .cta .btn-primary { box-shadow: 0 10px 24px -10px rgba(21, 101, 192, .7); }
@@ -173,23 +202,32 @@ strong { font-weight: 600; }
 .meta { margin-top: 14px; font-size: 14px; color: var(--sub); display: flex; flex-wrap: wrap; gap: 4px 20px; }
 
 /* the dialing moment */
-.moment { display: flex; justify-content: center; }
+.moment { display: flex; justify-content: center; position: relative; z-index: 0; } /* z-index: keeps the map inside */
 .phone {
   position: relative; width: min(300px, calc(100% - 150px)); margin-inline-end: 150px;
   border-radius: 22px; border: 1px solid var(--line); background: var(--surface);
   box-shadow: var(--shadow); overflow: visible;
 }
-.phone > img { display: block; width: 100%; height: auto; aspect-ratio: 480 / 640; object-fit: cover; object-position: top; border-radius: 21px; }
-/* the ring sits on the dial icon of the first saved stop in assets/shots/dial.png (60, 298 of 480 x 640) */
+/* the line map (see --map-light), behind the phone and tied to it. The percentages are of the phone's inner box
+   (298 x 420.3 where the phone is 300 wide): the drawing is 3040 x 570, starts 2688 left of that box and at its
+   top edge. .hero cuts whatever runs past its edges. */
+.phone::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  left: -902%; width: 1020.1%; top: 0; height: 135.6%;
+  background: var(--map) no-repeat 0 0 / 100% 100%;
+}
+/* the screenshot is cut at 677 of its 854 rows: exactly below the third saved stop, so no row is cut in half */
+.phone > img { display: block; width: 100%; height: auto; aspect-ratio: 480 / 677; object-fit: cover; object-position: top; border-radius: 21px; }
+/* the ring sits on the dial icon of the first saved stop in assets/shots/dial.png (60, 298 of 480 x 677) */
 .ring {
-  position: absolute; left: 12.5%; top: 46.6%; width: 26px; height: 26px; margin: -13px 0 0 -13px;
+  position: absolute; left: 12.5%; top: 43.9%; width: 26px; height: 26px; margin: -13px 0 0 -13px;
   border: 2px solid var(--glow); border-radius: 50%; opacity: 0;
 }
 .hint {
-  position: absolute; top: 46.6%; right: 100%; margin: -46px 6px 0 0;
+  position: absolute; top: 43.9%; right: 100%; margin: -46px 6px 0 0;
   font: 500 15px/1.2 var(--display); color: var(--accent-text);
   display: flex; align-items: center; gap: 6px; white-space: nowrap;
-  /* a halo in the ground colour keeps the label readable where it crosses the map lines */
+  /* a halo in the ground colour: the map leaves this spot empty, the halo is for a line that comes close to it */
   text-shadow: 0 0 3px var(--ground), 0 0 3px var(--ground), 0 0 6px var(--ground), 0 0 10px var(--ground);
 }
 .hint svg { width: 46px; height: 26px; margin-top: 18px; filter: drop-shadow(0 0 2px var(--ground)) drop-shadow(0 0 2px var(--ground)); }
@@ -204,14 +242,44 @@ strong { font-weight: 600; }
 }
 @media (prefers-reduced-motion: reduce) { .ring { opacity: .6; transform: scale(1.4); } .ring.r2 { transform: scale(2.1); opacity: .3; } }
 
+/* Two columns: the whole hero fits the first screen (owner: "the window adapts to the screen, nothing cut off",
+   "the text and the picture must not get too small"). --hv is 1% of the window height, kept between 5.2px and
+   9px: from 900px up it is the full-size design, below that the spacing gives way first and the sizes only a
+   little (headline 64 -> 55px, lede 19 -> 17px, phone 300px down to 278px at 520px). What frees most of the
+   room is the headline taking two lines (50px) instead of three in a short window. Measured with the real
+   content: it fits from 520px of height at 1100px of width and more (the owner's window is 1259 x 543), and
+   from 580px at 901-1099px. Browsers without clamp() keep the fixed sizes above. */
+@supports (width: clamp(1px, 1vh, 2px)) {
+  @media (min-width: 901px) {
+    .hero { --hv: clamp(5.2px, 1vh, 9px); padding-block: calc(var(--hv) * 10.6 - 24px) calc(var(--hv) * 9.5 - 22px); }
+    .eyebrow { margin-bottom: calc(var(--hv) * 2.2 - 2px); }
+    .hero h1 { font-size: min(5.4vw, calc(var(--hv) * 3.5 + 32.5px)); }
+    .lede { margin-top: calc(var(--hv) * 2.8 - 3px); font-size: clamp(17px, calc(var(--hv) * 2.1), 19px); }
+    .types { margin-top: calc(var(--hv) * 2.8 - 3px); }
+    .cta { margin-top: calc(var(--hv) * 3.9 - 3px); }
+    .cta .btn { padding-block: clamp(12px, calc(var(--hv) * .85 + 8.4px), 16px); }
+    .meta { margin-top: calc(var(--hv) * 1.7 - 1.2px); }
+    /* the height left under the top bar (65px) and the hero's own padding, times a little under 480 / 677 */
+    .phone { width: min(300px, calc(100% - 150px), max(250px, calc((100vh - 19px - var(--hv) * 20.1) * .7))); }
+  }
+  /* two lines in a text column of 55% of the width. The second condition: under 1100px the lede takes three
+     lines, so the three-line headline needs a taller window */
+  @media (min-width: 901px) and (max-height: 640px), (min-width: 901px) and (max-width: 1099px) and (max-height: 719px) {
+    .hero h1 { font-size: min(50px, calc(4.9vw - 6px)); }
+  }
+}
+
 @media (max-width: 900px) {
-  .hero { padding-block: 44px 40px; background-position: left -250px bottom -110px; background-size: 560px auto; }
+  .hero { padding-block: 44px 40px; }
   .hero .wrap { grid-template-columns: minmax(0, 1fr); gap: 44px; }
   .moment { justify-content: flex-start; }
   .phone { width: min(250px, 62%); margin-inline-end: 0; }
+  /* the phone is at the edge of the screen: the map stops behind the middle of the phone (x 437 of the drawing),
+     so the two line ends on its right are not drawn half outside the screen */
+  .phone::before { width: 952%; background-size: 107.16% 100%; }
 }
 @media (max-width: 440px) {
-  .hero { background-position: left -250px bottom -210px; } /* the map's lines pass below the "auto-dial" label */
+  .hero h1 { font-size: min(40px, 10.4vw); } /* under 385px: still three lines, not four */
   .phone { width: 58%; }
   .hint { flex-direction: column-reverse; align-items: flex-start; gap: 2px; margin-top: -70px; font-size: 14px; }
   .hint svg { margin-top: 0; }
@@ -446,8 +514,15 @@ footer p { margin-inline-start: auto; }
 /* ---------- lightbox ---------- */
 .lightbox { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 50; display: none; background: rgba(6, 10, 16, .88); }
 .lightbox.is-open { display: block; }
-.lb-stage { position: absolute; top: 68px; right: 76px; bottom: 40px; left: 76px; display: grid; place-items: center; }
-.lb-img { max-width: 100%; max-height: 100%; width: auto; height: auto; border-radius: 12px; box-shadow: 0 30px 80px rgba(0, 0, 0, .5); }
+/* the stage is what is left of the window around the buttons; the picture is positioned inside it, so its
+   max-height is measured against the stage and it always fits the screen (as a grid item it kept its natural
+   854px and ran off the bottom of a shorter window) */
+.lb-stage { position: absolute; top: 68px; right: 76px; bottom: 40px; left: 76px; }
+.lb-img {
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0; margin: auto;
+  max-width: 100%; max-height: 100%; width: auto; height: auto;
+  border-radius: 12px; box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+}
 .lb-btn {
   position: absolute; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
   border: 0; cursor: pointer; background: rgba(255, 255, 255, .14); color: #fff;
