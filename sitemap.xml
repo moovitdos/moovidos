@@ -6,4 +6,10 @@
       <changefreq>weekly</changefreq>
       <priority>1.0</priority>
    </url>
+   <url>
+      <loc>https://moovitdos.github.io/moovidos/forum.html</loc>
+      <lastmod>2026-10-04</lastmod>
+      <changefreq>daily</changefreq>
+      <priority>0.8</priority>
+   </url>
 </urlset>

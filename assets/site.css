@@ -170,7 +170,28 @@ strong { font-weight: 600; }
 .nav a { color: var(--sub); text-decoration: none; }
 .nav a:hover, .nav a[aria-current="true"] { color: var(--ink); }
 .top .btn { padding: 9px 14px; font-size: 15px; }
-@media (max-width: 720px) { .nav { display: none; } .top .btn { margin-inline-start: auto; } }
+/* the forum's account, in the top bar of every page, on the right beside the logo (the owner, 4.10.2026; the menu
+   and the download button stay on the left): a visitor's "כניסה / הרשמה" is the page's own markup; for a member
+   board.js draws the bell and the account's menu (board.css), and until it knows him the button is not shown */
+.top__user { display: flex; align-items: center; gap: 4px; }
+.top__user[data-pending] { visibility: hidden; }
+/* a visitor's "כניסה / הרשמה" (one button, the person icon; board.js opens it on the tab the browser most likely
+   wants). On a phone the icon alone - the name of the site stays (the owner chose this, 4.10.2026) */
+.account-btn { gap: 8px; }
+.account-btn .ic { width: 18px; height: 18px; color: var(--accent-text); }
+/* what only a visitor is offered ("הרשמה"): <html data-member> is set for a signed-in member */
+[data-member] .for-visitors { display: none; }
+/* measured with the account in the bar (4.10.2026): beside a visitor's "כניסה / הרשמה" (156px) the whole menu fits
+   down to 870px; beside a member's bell and picture its links wrap at 800px. With its words the visitor's button fits
+   a phone down to 450px, as an icon alone down to 280px. A member's bar overflowed at 320px by a few pixels: at 360px
+   and less the logo stands without the name of the site. */
+@media (max-width: 890px) { .nav { display: none; } .top .wrap > .btn { margin-inline-start: auto; } }
+@media (max-width: 470px) {
+  .account-btn span { display: none; }
+  .top .account-btn { padding: 9px 10px; }
+  .top .wrap { gap: 14px; }        /* a member's bell and picture squeezed the name of the site at 375px with 24px gaps */
+}
+@media (max-width: 360px) { .top .brand span { display: none; } }
 
 /* ---------- hero ---------- */
 .hero { padding-block: 72px 64px; overflow: hidden; } /* hidden: the line map runs past the hero's edges */
@@ -426,7 +447,32 @@ strong { font-weight: 600; }
 .state h3 { font-size: 22px; }
 .state p { color: var(--sub); }
 
-/* ---------- updates by e-mail (the strip under the downloads) ---------- */
+/* ---------- a one-time message: what is new on the site (site.js wireNews) ----------
+   A card in the bottom corner, over the page and under the forum's dialogs; on a phone along the bottom. It comes
+   a moment after the page, so the first look at the top of the page stays as it is. */
+.news {
+  position: fixed; z-index: 30; left: 20px; bottom: 20px; width: min(380px, calc(100vw - 40px));
+  padding: 18px 20px 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: 0 14px 36px -10px rgba(18, 26, 38, .32);
+}
+.news[hidden] { display: none; }
+.news__eyebrow { font-size: 13.5px; font-weight: 600; color: var(--accent-text); }
+.news h2 { margin-top: 4px; padding-inline-end: 28px; font-size: 19px; line-height: 1.3; }
+.news p:not(.news__eyebrow) { margin-top: 6px; font-size: 15px; line-height: 1.55; color: var(--sub); }
+.news__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.news__actions .btn { padding: 10px 16px; font-size: 15px; }
+.news__close {
+  position: absolute; top: 10px; left: 10px; display: grid; place-items: center; width: 34px; height: 34px;
+  border: 0; border-radius: 50%; background: none; color: var(--sub); cursor: pointer;
+}
+.news__close:hover { background: var(--accent-soft); color: var(--ink); }
+@media (prefers-reduced-motion: no-preference) {
+  .news { animation: news-in .35s cubic-bezier(.05, .7, .1, 1); }
+  @keyframes news-in { from { opacity: 0; transform: translateY(16px); } }
+}
+@media (max-width: 520px) { .news { left: 12px; right: 12px; bottom: 12px; width: auto; } }
+
+/* ---------- a strip: updates by e-mail (under the downloads), the forum (under the guide) ---------- */
 .notify {
   margin-top: 28px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px 20px; align-items: center;
   background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px 26px;
@@ -435,9 +481,10 @@ strong { font-weight: 600; }
 .notify h3 { font-size: 20px; }
 .notify p { margin-top: 4px; color: var(--sub); font-size: 15.5px; }
 .notify .notify__alt { margin-top: 8px; font-size: 14px; }
+.notify__actions { display: flex; flex-wrap: wrap; gap: 10px; }
 @media (max-width: 720px) {
   .notify { grid-template-columns: auto minmax(0, 1fr); padding: 20px; align-items: start; }
-  .notify .btn { grid-column: 1 / -1; justify-self: start; }
+  .notify .btn, .notify__actions { grid-column: 1 / -1; justify-self: start; }
 }
 
 /* ---------- price + activation ---------- */

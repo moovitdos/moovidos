@@ -642,10 +642,99 @@
     update();
   }
 
+  /* ------------------------------------------------------------------ *
+   * Header: the forum's account (signing in, the bell, the account's menu)
+   * The forum's script draws it (assets/board.js, with board-text.js, board.css and Google Sans). It is loaded
+   * here only for a member - a browser that keeps a session of the forum - or when "כניסה" is pressed, so a
+   * visitor of the site pays nothing for it: no file, no request to the forum. forum.html loads it by itself.
+   * ------------------------------------------------------------------ */
+
+  var BOARD_SESSION = 'mv-board-token';      // where board.js keeps the session (TOKEN there)
+  var BOARD_FILES = {
+    styles: ['https://fonts.googleapis.com/css2?family=Google+Sans:wght@400..700&display=swap', 'assets/board.css'],
+    scripts: ['assets/board-text.js', 'assets/board.js']      // in this order: board.js reads board-text.js
+  };
+  function loadBoard() {
+    return once('board', function () {
+      var loads = BOARD_FILES.styles.map(function (href) {
+        return new Promise(function (resolve) {
+          var link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = href;
+          link.onload = link.onerror = resolve;          // a font that does not come is not a reason to wait
+          document.head.appendChild(link);
+        });
+      });
+      loads.push(new Promise(function (resolve, reject) {
+        BOARD_FILES.scripts.forEach(function (src, i) {
+          var script = document.createElement('script');
+          script.src = src;
+          script.async = false;                          // run in the order they were added
+          if (i === BOARD_FILES.scripts.length - 1) { script.onload = resolve; script.onerror = reject; }
+          document.head.appendChild(script);
+        });
+      }));
+      return Promise.all(loads);
+    });
+  }
+  function wireAccount() {
+    var box = byId('user');
+    if (!box) return;
+    var member = false;
+    try { member = !!localStorage.getItem(BOARD_SESSION); } catch (e) { /* storage blocked: a visitor */ }
+    if (member) {
+      box.setAttribute('data-pending', '');            // not "כניסה" for a moment: board.js draws his bell and menu
+      document.documentElement.setAttribute('data-member', '');      // nor what only a visitor is offered (board.js corrects both)
+      loadBoard().catch(function () { box.removeAttribute('data-pending'); });
+    }
+    // "כניסה / הרשמה" in the top bar, "הרשמה" in the forum's strip: the forum's dialog, its script loaded first.
+    // The button is left as it is while that loads (board.js keeps a copy of the top bar's markup as it finds it -
+    // a disabled one came back disabled after signing out); a second press waits for the same load.
+    var opening = null;
+    document.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-act="auth"]');
+      if (!button || window.MoovidosBoard) return;     // once the forum's script is here, it answers by itself
+      if (opening) return;
+      opening = button.getAttribute('data-tab');
+      loadBoard().then(function () {
+        window.MoovidosBoard.auth(opening);
+        opening = null;
+      }, function () { opening = null; });
+    });
+  }
+
+  /* ------------------------------------------------------------------ *
+   * A one-time message: what is new on the site (#news in index.html)
+   * Shown once per browser, a moment after the page: once it has appeared it is not shown again (its id is kept).
+   * A browser that keeps nothing is not shown it at all - it could not stay "once" there.
+   * ------------------------------------------------------------------ */
+
+  var NEWS_SEEN = 'mv-site-news';
+  function wireNews() {
+    var card = byId('news');
+    if (!card) return;
+    var id = card.getAttribute('data-news');
+    try { if (localStorage.getItem(NEWS_SEEN) === id) return; } catch (e) { return; }
+    function close() { card.hidden = true; document.removeEventListener('keydown', onKey); }
+    function onKey(event) {          // Escape closes it - unless a dialog or the screenshot viewer is the one in front
+      if (event.key === 'Escape' && !document.querySelector('#modal .dialog, [data-lightbox].is-open')) close();
+    }
+    card.addEventListener('click', function (event) {
+      if (event.target.closest('[data-news-close], [data-news-done]')) close();
+    });
+    setTimeout(function () {
+      card.hidden = false;
+      try { localStorage.setItem(NEWS_SEEN, id); } catch (e) { /* shown once in this visit anyway */ }
+      document.addEventListener('keydown', onKey);
+    }, 1800);
+  }
+
   /* ------------------------------------------------------------------ */
 
   function boot() {
     wireNav();
+    wireAccount();
+    wireNews();
     wireViewer();
     wireShots();
     loadReleases();

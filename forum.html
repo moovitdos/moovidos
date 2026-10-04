@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<!-- The discussion board. The page is static like the rest of the site; the messages live behind the API whose
+     address is the "board-api" meta below (cloud/board in the code repository, a Cloudflare Worker; the copy that
+     Worker serves itself says "/", cloud/board/scripts/stage.mjs). Served from localhost it talks to
+     http://localhost:8787 (assets/board.js).
+     The look is Material 3 (assets/board.css) in the colours of the site; the icons are Material Symbols. -->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>מובידוס - רעיונות ודיונים</title>
+  <meta name="description" content="הפורום של מובידוס: רעיונות לאפליקציה, שאלות ותקלות.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://moovitdos.github.io/moovidos/forum.html">
+  <meta property="og:title" content="הפורום של מובידוס">
+  <meta property="og:description" content="רעיונות לאפליקציה, שאלות ותקלות - כותבים, מצביעים ועוקבים.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://moovitdos.github.io/moovidos/forum.html">
+  <meta property="og:site_name" content="מובידוס">
+  <meta property="og:locale" content="he_IL">
+  <meta property="og:image" content="https://moovitdos.github.io/moovidos/og-image.png">
+  <meta name="board-api" content="https://moovidos-board.moovitdos.workers.dev">
+  <!-- Only this site's own files run here; the board's API and Google's sign-in are the only other addresses. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style; font-src https://fonts.gstatic.com; img-src 'self' data: blob: http://localhost:8787 https://moovidos-board.moovitdos.workers.dev; connect-src 'self' http://localhost:8787 https://moovidos-board.moovitdos.workers.dev https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; worker-src 'self'; base-uri 'self'; form-action 'self'">
+
+  <link rel="icon" href="logo.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Rubik: the site's typeface - the top bar and the footer are the site's own. Google Sans (on Google Fonts with
+       Hebrew): the forum itself, its menus and its dialogs (board.css). On the site's other pages site.js loads
+       Google Sans with the forum's script, only when the forum is used there. -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400..700&family=Rubik:wght@300;400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="assets/site.css">
+  <link rel="stylesheet" href="assets/board.css">
+  <script src="assets/board-text.js" defer></script>
+  <script src="assets/board.js" defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+  <!-- the site's own download icon (the sprite of index.html), for the top bar; the forum's icons are in
+       assets/board-icons.svg -->
+  <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20c1.3-3.6 4.2-5.6 7.5-5.6s6.2 2 7.5 5.6"/></symbol>
+  </svg>
+
+  <a href="#view" class="skip-link">דלג לדיונים</a>
+
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="./"><img src="logo.png" alt="" width="32" height="32"><span>מובידוס</span></a>
+      <!-- the forum's account, on the right beside the logo (the owner, 4.10.2026): "כניסה / הרשמה" for a visitor (it opens on the tab this browser most likely wants); for a member
+           board.js draws the bell and the account's menu -->
+      <div class="top__user" id="user"><button type="button" class="btn btn-quiet account-btn" data-act="auth" data-tab="auto" aria-label="כניסה / הרשמה"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg><span>כניסה / הרשמה</span></button></div>
+      <nav class="nav" aria-label="ניווט ראשי">
+        <a href="./#info-section">מידע</a>
+        <a href="./#features">תכונות</a>
+        <a href="./#updates">עדכונים במייל</a>
+        <a href="./#guide">מדריך</a>
+        <a href="forum.html" aria-current="true">פורום</a>
+        <a href="./#contact-section">צור קשר</a>
+      </nav>
+      <a class="btn btn-primary" href="./#downloads">
+        <svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>הורדה
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="board" id="board" data-view="loading">
+      <div class="progress" id="progress" hidden><span></span></div>
+      <div class="wrap">
+        <div id="view" tabindex="-1"><p class="bstate">טוען…</p></div>
+        <noscript><p class="banner banner--warn">הפורום צריך JavaScript פעיל בדפדפן.</p></noscript>
+      </div>
+    </section>
+  </main>
+
+  <!-- the privacy notice (the owner asked for it before the forum opens to everybody, 4.10.2026): what the forum keeps
+       and why. Shown at forum.html#privacy (board.js, view "privacy"); linked from both footers and the sign-up dialog.
+       Every sentence here is a fact of the code - cloud/board/README.md "Information security". Change both together. -->
+  <template id="privacy-text">
+    <p>מה נשמר כשאתם משתמשים בפורום של מובידוס, ולמה. בקצרה: רק מה שצריך כדי שהפורום יעבוד. שום דבר לא נמכר, ואין כאן פרסומות.</p>
+    <h3>מה גלוי לכולם</h3>
+    <ul>
+      <li>שם המשתמש, תמונת הפרופיל ומה שכתבתם בפרופיל.</li>
+      <li>הנושאים וההודעות שכתבתם, התמונות שצירפתם, הלייקים, ההצבעות והסימנים.</li>
+      <li>כשאתם קוראים נושא או כותבים בו, מי שקורא אותו באותו רגע רואה את זה. אפשר לבטל את זה בהגדרות החשבון.</li>
+    </ul>
+    <h3>מה נשמר ולא מוצג לאיש</h3>
+    <ul>
+      <li><strong>כתובת המייל</strong>: לקוד האימות בהרשמה, לאיפוס סיסמה ולמיילים שבחרתם לקבל. היא נשמרת מוצפנת.</li>
+      <li><strong>בכניסה עם Google</strong> לא נשמר אצלנו דבר מהחשבון, מלבד סימן מוצפן שמזהה אותו. הכתובת עצמה נשמרת רק אם בחרתם לקבל מיילים.</li>
+      <li>ההגדרות שלכם: אילו מיילים לקבל, התראות בדפדפן, אחרי אילו נושאים ומשתמשים אתם עוקבים, ועד איפה קראתם בכל נושא.</li>
+    </ul>
+    <h3>מה לא נשמר בכלל</h3>
+    <ul>
+      <li><strong>הסיסמה</strong> לא יוצאת מהדפדפן שלכם. נשלח אלינו רק מפתח שנגזר ממנה, ואצלנו נשמר רק סימן מוצפן שלו.</li>
+      <li><strong>כתובת הרשת (IP)</strong> לא נשמרת. כדי לעצור הצפות סופרים פעולות לפי סימן מוצפן שלה, והוא נמחק אחרי יומיים.</li>
+      <li>אין עוגיות ואין כלי מעקב או סטטיסטיקה. הדפדפן שלכם שומר אצלו את החיבור לפורום, כדי שלא תצטרכו להתחבר בכל ביקור.</li>
+    </ul>
+    <h3>איפה זה שמור</h3>
+    <p>הפורום רץ ב-Cloudflare, והמידע שמור במסד נתונים באירופה. מיילים יוצאים מחשבון ה-Gmail של מובידוס.</p>
+    <h3>מחיקה</h3>
+    <p>בהגדרות החשבון אפשר למחוק את החשבון. אז נמחקים כתובת המייל, התמונה, החיבורים, ההגדרות וההתראות. ההודעות שכתבתם נשארות בפורום בשם "משתמש שנמחק". הודעה שאתם מוחקים נמחקת באמת, עם התמונה והגרסאות הקודמות שלה.</p>
+    <h3>מיילים</h3>
+    <p>יוצא אליכם רק מה שבחרתם. בהגדרות החשבון יש מתג לכל סוג מייל, ובכל מייל יש קישור להפסקה.</p>
+    <h3>שאר האתר</h3>
+    <p>האתר מתארח ב-GitHub Pages, והגופנים נטענים מ-Google Fonts. טופס "כתבו לנו" נשלח דרך Formspree, וההרשמה לעדכונים במייל היא טופס של Google.</p>
+    <h3>שאלות</h3>
+    <p>כתבו אלינו: <a href="mailto:moovitdos@gmail.com" class="ltr">moovitdos@gmail.com</a></p>
+    <p class="muted small">עודכן ב-4.10.2026</p>
+  </template>
+
+  <footer>
+    <div class="wrap">
+      <a class="brand" href="./"><img src="logo.png" alt="" width="24" height="24"><span>מובידוס</span></a>
+      <a href="mailto:moovitdos@gmail.com" class="ltr">moovitdos@gmail.com</a>
+      <a href="#privacy">פרטיות</a>
+      <p>כל הזכויות שמורות</p>
+    </div>
+  </footer>
+
+  <div id="float"></div>
+  <div id="modal"></div>
+  <div class="snack" id="toast" role="status" aria-live="polite"></div>
+</body>
+
+</html>

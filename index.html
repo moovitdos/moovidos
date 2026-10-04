@@ -10,6 +10,12 @@
   <meta name="keywords" content="מובידוס, תחבורה ציבורית, סים כשר, אפליקציה כשרה, זמני אוטובוסים, קווים, חרדים, Moovitdos">
   <meta name="robots" content="index, follow">
   <meta name="author" content="Moovitdos">
+  <!-- the forum's API (cloud/board): signing in and the bell in the top bar (assets/board.js; forum.html has the same) -->
+  <meta name="board-api" content="https://moovidos-board.moovitdos.workers.dev">
+  <!-- What this page may load and talk to. The forum's script runs here too (the account in the top bar), so a new
+       address the page talks to is added here as well: GitHub (the releases, the guide), the forum's API, Google's
+       sign-in, the contact form. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style; font-src https://fonts.gstatic.com; img-src 'self' data: blob: http://localhost:8787 https://moovidos-board.moovitdos.workers.dev; connect-src 'self' https://api.github.com https://raw.githubusercontent.com http://localhost:8787 https://moovidos-board.moovitdos.workers.dev https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; worker-src 'self'; base-uri 'self'; form-action https://formspree.io">
   <link rel="canonical" href="https://moovitdos.github.io/moovidos/">
 
   <meta property="og:title" content="מובידוס - אפליקציית התחבורה הציבורית לבעלי סים כשר">
@@ -47,6 +53,7 @@
 <body>
   <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20c1.3-3.6 4.2-5.6 7.5-5.6s6.2 2 7.5 5.6"/></symbol>
     <symbol id="i-phone" viewBox="0 0 24 24"><path d="M21 16.4v2.9a1.9 1.9 0 0 1-2.1 1.9 18.9 18.9 0 0 1-8.2-2.9 18.6 18.6 0 0 1-5.7-5.7A18.9 18.9 0 0 1 2.1 4.3 1.9 1.9 0 0 1 4 2.2h2.9a1.9 1.9 0 0 1 1.9 1.6c.12.9.34 1.8.66 2.7a1.9 1.9 0 0 1-.43 2L7.8 9.7a15.2 15.2 0 0 0 5.7 5.7l1.2-1.2a1.9 1.9 0 0 1 2-.43c.87.32 1.77.54 2.7.66a1.9 1.9 0 0 1 1.6 1.93z"/></symbol>
     <symbol id="i-android" viewBox="0 0 24 24"><path d="M5 17.5a7 7 0 0 1 14 0z"/><path d="M8 7.5L6.6 5M16 7.5l1.4-2.5"/><path d="M9.4 13.4h.01M14.6 13.4h.01"/></symbol>
     <symbol id="i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4.5" rx="1"/><path d="M5 8.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8.5M10 12.5h4"/></symbol>
@@ -62,6 +69,7 @@
     <symbol id="i-key" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M9.5 8h.01M12 8h.01M14.5 8h.01M9.5 11h.01M12 11h.01M14.5 11h.01M9.5 14h.01M12 14h.01M14.5 14h.01M12 17.5h.01"/></symbol>
     <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M14 6v2.5M14 10.8v2.4M14 15.5V18"/></symbol>
     <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M5.5 4h9A2.5 2.5 0 0 1 17 6.5v5a2.5 2.5 0 0 1-2.5 2.5H10l-4 3.5V14h-.5A2.5 2.5 0 0 1 3 11.5v-5A2.5 2.5 0 0 1 5.5 4z"/><path d="M17 9h1.5A2.5 2.5 0 0 1 21 11.5v4a2.5 2.5 0 0 1-2.5 2.5H18v2.5L14.5 18H12a2.5 2.5 0 0 1-2.2-1.3"/></symbol>
     <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.2-4.4L4 8.5M4 4v4.5h4.5M4 13a8 8 0 0 0 14.2 4.4l1.8-1.9M20 20v-4.5h-4.5"/></symbol>
   </svg>
 
@@ -70,11 +78,16 @@
   <header class="top">
     <div class="wrap">
       <a class="brand" href="#home"><img src="logo.png" alt="" width="32" height="32"><span>מובידוס</span></a>
+      <!-- the forum's account, on the right beside the logo (the owner, 4.10.2026): "כניסה / הרשמה" for a visitor (it opens on the tab this browser most likely wants); for a member
+           board.js draws the bell and the account's menu.
+           site.js loads the forum's script only for a member, or when "כניסה" is pressed (wireAccount). -->
+      <div class="top__user" id="user"><button type="button" class="btn btn-quiet account-btn" data-act="auth" data-tab="auto" aria-label="כניסה / הרשמה"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg><span>כניסה / הרשמה</span></button></div>
       <nav class="nav" aria-label="ניווט ראשי">
         <a href="#info-section">מידע</a>
         <a href="#features">תכונות</a>
         <a href="#updates">עדכונים במייל</a>
         <a href="#guide">מדריך</a>
+        <a href="forum.html">פורום</a>
         <a href="#contact-section">צור קשר</a>
       </nav>
       <a class="btn btn-primary" href="#downloads">
@@ -366,6 +379,20 @@
             </div>
           </article>
         </div>
+
+        <!-- the forum is a page of its own (forum.html); this strip is a plain link, the home page never calls the forum's API -->
+        <aside class="notify" id="forum-invite" aria-labelledby="forum-invite-title">
+          <svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>
+          <div>
+            <h3 id="forum-invite-title">יש לכם רעיון, שאלה או תקלה?</h3>
+            <p>בפורום של מובידוס מציעים רעיונות לאפליקציה, שואלים ומדווחים על תקלות, ותומכים ברעיונות של אחרים.</p>
+          </div>
+          <div class="notify__actions">
+            <a class="btn btn-primary" href="forum.html">לפורום</a>
+            <!-- a visitor only ([data-member] on <html>: site.js / board.js) -->
+            <button type="button" class="btn btn-quiet for-visitors" data-act="auth" data-tab="register">הרשמה</button>
+          </div>
+        </aside>
       </div>
     </section>
 
@@ -407,6 +434,7 @@
     <div class="wrap">
       <a class="brand" href="#home"><img src="logo.png" alt="" width="24" height="24"><span>מובידוס</span></a>
       <a href="mailto:moovitdos@gmail.com" class="ltr">moovitdos@gmail.com</a>
+      <a href="forum.html#privacy">פרטיות</a>
       <p>כל הזכויות שמורות</p>
     </div>
   </footer>
@@ -418,6 +446,24 @@
     <button type="button" class="lb-btn lb-prev" data-lightbox-prev aria-label="הצילום הקודם"><svg class="ic" aria-hidden="true"><use href="#i-chev-r"/></svg></button>
     <button type="button" class="lb-btn lb-next" data-lightbox-next aria-label="הצילום הבא"><svg class="ic" aria-hidden="true"><use href="#i-chev-l"/></svg></button>
   </div>
+
+  <!-- a one-time message (the owner, 4.10.2026): what is new on the site. site.js wireNews shows it once per browser,
+       by its data-news id - a new message gets a new id. Hidden until then, and for good once it has been seen. -->
+  <aside class="news" id="news" data-news="forum-mail-2026-10" aria-labelledby="news-title" hidden>
+    <button type="button" class="news__close" data-news-close aria-label="סגירה"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+    <p class="news__eyebrow">חדש באתר</p>
+    <h2 id="news-title">פורום מובידוס ועדכונים במייל</h2>
+    <p>בפורום מציעים רעיונות לאפליקציה, שואלים ומדווחים על תקלות. ומי שרוצה, מקבל מייל קצר על כל גרסה חדשה.</p>
+    <div class="news__actions">
+      <a class="btn btn-primary" href="forum.html" data-news-done>לפורום</a>
+      <a class="btn btn-quiet" href="#updates" data-news-done>לעדכונים במייל</a>
+    </div>
+  </aside>
+
+  <!-- the forum's menus, dialogs and messages, when it is used from this page (assets/board.js) -->
+  <div id="float"></div>
+  <div id="modal"></div>
+  <div class="snack" id="toast" role="status" aria-live="polite"></div>
 </body>
 
 </html>
