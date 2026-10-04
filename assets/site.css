@@ -205,9 +205,10 @@ strong { font-weight: 600; }
 .types { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
 .types span { font: 500 14.5px/1 var(--body); padding: 8px 11px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
 
-/* "soon" tag: on what the next app release brings and the public one does not have yet (the offline map and
-   whole-journey tracking). Remove the tags, and rebuild og-image.png, once that release is out. In the markup a
-   space comes before the tag (so it is read and copied as a separate word); the margin adds to that space. */
+/* "soon" tag: for something the page shows before the public release has it. None in the page since release 2.0
+   (the offline map and whole-journey tracking carried it until then); when one is added, the share image
+   (website/og-image.html) gets it too. In the markup a space comes before the tag (so it is read and copied as a
+   separate word); the margin adds to that space. */
 .soon {
   display: inline-block; vertical-align: middle; margin-inline-start: 4px; white-space: nowrap;
   font: 600 13px/1 var(--body); font-style: normal; letter-spacing: 0;

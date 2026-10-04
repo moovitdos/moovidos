@@ -42,16 +42,20 @@
   }
 
   /**
-   * full / lite APKs and the two data files: pack = moovidos_pack_*.zip (current data generation),
-   * zip = any other .zip (moovidos_data_*.zip, the legacy generation). Single-APK releases: first .apk = full.
+   * full / lite APKs and the data files, one name per data generation (every app version downloads by name):
+   *   pack2 = moovidos_pack2_*.zip — version 2 and up (the data with the map and the walk graph);
+   *   pack  = moovidos_pack_*.zip  — release 1.0.192 only, read by app version 1.0.192 alone;
+   *   zip   = any other .zip (moovidos_data_*.zip, the legacy generation, versions before 1.0.192).
+   * Single-APK releases: first .apk = full.
    */
   function findAssets(assets) {
-    var res = { full: null, lite: null, zip: null, pack: null };
+    var res = { full: null, lite: null, zip: null, pack: null, pack2: null };
     var list = Array.isArray(assets) ? assets : [];
     list.forEach(function (a) {
       var name = (a.name || '').toLowerCase();
       if (name.indexOf('full') >= 0 && endsWith(name, '.apk')) res.full = a;
       else if (name.indexOf('lite') >= 0 && endsWith(name, '.apk')) res.lite = a;
+      else if (name.indexOf('moovidos_pack2_') === 0 && endsWith(name, '.zip')) res.pack2 = a;
       else if (name.indexOf('moovidos_pack_') === 0 && endsWith(name, '.zip')) res.pack = a;
       else if (endsWith(name, '.zip')) res.zip = a;
     });
@@ -66,7 +70,10 @@
     return assets.reduce(function (sum, a) { return sum + (a.download_count || 0); }, 0);
   }
 
-  /** The oldest release that ships a moovidos_pack_*.zip = the data-format cutover, as "1.0.192". */
+  /**
+   * The oldest release that ships a moovidos_pack_*.zip = the cutover away from the legacy data, as "1.0.192":
+   * the legacy file is for the versions before it. (moovidos_pack2_ does not match — the "2" is not a "_".)
+   */
   function packSince(releases) {
     var valid = (Array.isArray(releases) ? releases : []).filter(function (r) { return r && !r.draft; });
     var withPack = valid.filter(function (r) {
@@ -250,9 +257,10 @@
     var sinceHtml = since ? ltr(since) : '';
     var rows = [];
     if (res.lite) rows.push(dlRow(res.lite, 'lite', 'גרסה קלה', 'אפליקציה בלבד', 'i-android'));
-    if (res.pack) rows.push(dlRow(res.pack, 'pack', 'נתונים בלבד', since ? 'לגרסה ' + sinceHtml + ' ומעלה' : 'לגרסה הנוכחית ומעלה', 'i-archive'));
+    if (res.pack2) rows.push(dlRow(res.pack2, 'pack', 'נתונים בלבד', 'לגרסה 2 ומעלה', 'i-archive'));
+    if (res.pack) rows.push(dlRow(res.pack, 'pack', 'נתונים בלבד', since ? 'לגרסה ' + sinceHtml : 'לגרסה הנוכחית', 'i-archive'));
     if (res.zip) {
-      rows.push(res.pack
+      rows.push(res.pack2 || res.pack
         ? dlRow(res.zip, 'zip', 'נתונים לגרסאות ישנות', since ? 'לגרסאות שלפני ' + sinceHtml : 'לגרסאות קודמות', 'i-archive')
         : dlRow(res.zip, 'zip', 'נתונים בלבד', 'לייבוא ידני', 'i-archive'));
     }
