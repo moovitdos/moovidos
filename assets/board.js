@@ -11,7 +11,8 @@
      #modal  one dialog at a time (renderModal)
    The address after the # says where one is:  (nothing) the list · k=idea a kind · f=unread a filter ·
    tag=NAME · q=WORDS a search · t=ID a topic (t=ID&p=POST a message in it) · u=ID a user · me the account ·
-   saved the kept messages · admin the moderators' page · join / login the sign-up dialog.
+   saved the kept messages · drafts what was begun and not sent · admin the moderators' page · join / login the
+   sign-up dialog.
 
    The text of a message becomes markup only in board-text.js; everything else a visitor wrote goes through esc().
    ES2017 only, like site.js. */
@@ -38,6 +39,8 @@
   var OWNER = /[?&]owner=1/.test(location.search);        // the owner's own sign-up: shows the owner-code field
   var TOKEN = "mv-board-token", MEMORY = "mv-board-memory";
   var KNOWN = "mv-board-known";       // this browser had a signed-in member once: "כניסה / הרשמה" opens on "כניסה" (kept after signing out)
+  var DRAFTS = "mv-board-drafts";     // what the member began to write and did not send (see "drafts" below)
+  var HOME = location.origin + location.pathname;      // this page's own address: a link to it in a message stays in the page
   var TITLE = document.title;
   var MIN = 60000, HOUR = 60 * MIN, DAY = 24 * HOUR;
   var KINDS = { idea: "רעיון", question: "שאלה", bug: "תקלה" };
@@ -156,6 +159,79 @@
   })();
   function remember() { memory.active = Date.now(); store.set(MEMORY, JSON.stringify(memory)); }
   if (FORUM) { remember(); }       // a visit of the forum; the site's other pages are not one
+
+  /* ---------- drafts: what was begun and not sent waits in this browser ---------- */
+  // { user, compose: { kind, title, body, tags, poll, at } | null, replies: { TOPIC: { text, title, at, quote } } }
+  // Kept in this browser only (nothing of a draft reaches the board), for one member at a time: another member who
+  // signs in here sees none, and the first thing he leaves unsent takes their place. Signing out erases them; a
+  // session that ran out does not. A picture is not kept - it is too large for what a browser lets a page keep.
+  var MAX_REPLY_DRAFTS = 20;
+  function readDrafts() {
+    var saved = null;
+    try { saved = JSON.parse(store.get(DRAFTS) || "null"); } catch (e) { saved = null; }
+    if (!state.me || !saved || typeof saved !== "object" || saved.user !== state.me.id) { return { compose: null, replies: {} }; }
+    return {
+      compose: saved.compose && typeof saved.compose === "object" ? saved.compose : null,
+      replies: saved.replies && typeof saved.replies === "object" ? saved.replies : {}
+    };
+  }
+  function writeDrafts(kept) {
+    var ids = Object.keys(kept.replies);
+    ids.sort(function (a, b) { return kept.replies[b].at - kept.replies[a].at; }).slice(MAX_REPLY_DRAFTS).forEach(function (id) { delete kept.replies[id]; });
+    store.set(DRAFTS, !kept.compose && !ids.length ? null : JSON.stringify({ user: state.me.id, compose: kept.compose, replies: kept.replies }));
+  }
+  function composeFilled(draft) { return !!(draft.title.trim() || draft.body.trim() || draft.tags.length || draft.poll); }
+  function draftCount() { var kept = readDrafts(); return (kept.compose ? 1 : 0) + Object.keys(kept.replies).length; }
+  /** A draft as it is compared: all of it but the time it was kept. */
+  function draftWords(draft) { var copy = {}; Object.keys(draft || {}).forEach(function (key) { if (key !== "at") { copy[key] = draft[key]; } }); return JSON.stringify(copy); }
+  /** What is being written right now - the new topic, the reply of the open topic - is kept, and what was sent
+   *  or emptied is forgotten. Nothing is written when nothing changed. */
+  var draftTimer = 0;
+  function flushDrafts() {
+    clearTimeout(draftTimer);
+    if (!state.me) { return; }
+    var kept = readDrafts(), before = JSON.stringify(kept), now = Date.now();
+    if (ui.modal === "compose") { keepDraft(); }                       // the dialog's fields, as they are now
+    var draft = ui.draft, topic = composeFilled(draft) ? { kind: draft.kind, title: draft.title, body: draft.body, tags: draft.tags, poll: draft.poll, at: now } : null;
+    if (topic && kept.compose && draftWords(topic) === draftWords(kept.compose)) { topic.at = kept.compose.at; }
+    kept.compose = topic;
+    draft.at = topic ? topic.at : 0;
+    if (ui.reply) {
+      var id = ui.reply.id, quote = ui.quote && ui.quote.topic === id ? { post: ui.quote.post, name: ui.quote.name, text: ui.quote.text, marked: ui.quote.marked } : null;
+      var reply = ui.reply.text.trim() ? { text: ui.reply.text, title: ui.reply.title || (kept.replies[id] || {}).title || "", at: now, quote: quote } : null;
+      if (reply && kept.replies[id] && draftWords(reply) === draftWords(kept.replies[id])) { reply.at = kept.replies[id].at; }
+      if (reply) { kept.replies[id] = reply; } else { delete kept.replies[id]; }
+    }
+    if (JSON.stringify(kept) !== before) { writeDrafts(kept); }
+  }
+  function draftSoon() { clearTimeout(draftTimer); draftTimer = setTimeout(flushDrafts, 800); }
+  /** One draft is thrown away: "compose", or the reply of a topic by its id. */
+  function dropDraft(what) {
+    clearTimeout(draftTimer);
+    if (!state.me) { return; }
+    var kept = readDrafts(), before = JSON.stringify(kept);
+    if (what === "compose") { kept.compose = null; ui.draft = blankDraft(); ui.shots.compose = null; }
+    else {
+      delete kept.replies[what];
+      if (ui.reply && ui.reply.id === Number(what)) { ui.reply = null; ui.quote = null; }
+    }
+    if (JSON.stringify(kept) !== before) { writeDrafts(kept); }
+  }
+  /** A member became known here: the new topic he left unsent is his draft again. */
+  function resumeDrafts() {
+    var kept = readDrafts().compose;
+    if (!kept) { return; }
+    ui.draft = { kind: KINDS[kept.kind] ? kept.kind : "idea", title: String(kept.title || ""), body: String(kept.body || ""),
+      tags: Array.isArray(kept.tags) ? kept.tags.map(String) : [], poll: kept.poll && Array.isArray(kept.poll.options) ? kept.poll : null, at: Number(kept.at) || 0 };
+  }
+  /** A topic opens: the reply that was left unsent in it is in its reply bar again, with what it quoted. */
+  function resumeReply(id, title) {
+    if (ui.reply && ui.reply.id === id) { ui.reply.title = title; return; }      // being written right now
+    if (ui.reply) { flushDrafts(); }                                              // the reply of the topic one came from is kept first
+    var kept = state.me ? readDrafts().replies[id] : null;
+    ui.reply = kept ? { id: id, text: String(kept.text || ""), title: title } : null;
+    if (kept && kept.quote) { ui.quote = { topic: id, post: Number(kept.quote.post), name: String(kept.quote.name || ""), text: String(kept.quote.text || ""), marked: String(kept.quote.marked || "") }; }
+  }
   // the top bar's own "כניסה" (the page's markup): what a visitor sees there. A member's is hidden until he is known.
   var GUEST = document.getElementById("user").innerHTML;
   if (store.get(TOKEN)) { document.getElementById("user").setAttribute("data-pending", ""); }
@@ -385,6 +461,7 @@
     if ("q" in params) { return { view: "search", q: params.q }; }
     if ("me" in params) { return { view: "account" }; }
     if ("saved" in params) { return { view: "saved" }; }
+    if ("drafts" in params) { return { view: "drafts" }; }
     if ("admin" in params) { return { view: "admin" }; }
     if ("privacy" in params) { return { view: "privacy" }; }
     return {
@@ -398,7 +475,7 @@
   }
   function listKey(route) { return [route.kind, route.filter, route.tag, ui.sort].join("|"); }
   function listPath(route, offset) {
-    var parts = ["sort=" + ui.sort];
+    var parts = ["sort=" + ui.sort, "last=1"];      // last: each topic with its latest message (who, and its opening words)
     if (route.kind) { parts.push("kind=" + route.kind); }
     if (route.filter) { parts.push("filter=" + route.filter); }
     if (route.tag) { parts.push("tag=" + encodeURIComponent(route.tag)); }
@@ -434,7 +511,7 @@
   /** Loads what the address asks for and draws the page. `quiet`: without the loading line (a refresh in place). */
   function show(quiet) {
     if (!FORUM) { renderUser(); return Promise.resolve(); }      // another page of the site: only its top bar
-    var route = parseRoute(), work, needsUser = route.view === "account" || route.view === "saved" || route.view === "admin" || !!route.filter;
+    var route = parseRoute(), work, needsUser = route.view === "account" || route.view === "saved" || route.view === "drafts" || route.view === "admin" || !!route.filter;
     closeFloat();
     if (needsUser && !state.me) {                 // a place of signed-in users: the list, and the sign-in dialog over it
       ui.after = location.hash;
@@ -451,6 +528,7 @@
         ui.read = { topic: route.id, post: 0, at: Math.max(data.since, ui.read.topic === route.id ? ui.read.at : 0), dirty: false, timer: 0 };
         if (!state.current || state.current.topic.id !== route.id) { state.here = []; state.typing = []; setTimeout(pulse, 800); }      // who else is here: asked at once
         state.current = data;
+        resumeReply(route.id, data.topic.title);
         ui.fresh = "";
         state.notes.forEach(function (note) { if (note.topic === route.id) { note.seen = true; } });     // opening a topic silences its bell
         state.unseen = state.notes.filter(function (note) { return !note.seen; }).length;
@@ -470,8 +548,8 @@
       work = Promise.all([api("GET", "/me/account"), api("GET", "/me/avatar")]).then(function (got) { state.account = got[0]; ui.ownAvatar = got[1]; return pushState(); });
     } else if (route.view === "admin") {
       work = api("GET", "/admin/queue").then(function (data) { state.queue = data; });
-    } else if (route.view === "privacy") {
-      work = Promise.resolve();                 // the page's own text (#privacy-text in forum.html): nothing to ask
+    } else if (route.view === "privacy" || route.view === "drafts") {
+      work = Promise.resolve();                 // the page's own text (#privacy-text in forum.html), what this browser keeps: nothing to ask
     } else {
       work = loadList(route).then(function () { ui.listHash = listHash(route); });
     }
@@ -499,7 +577,9 @@
 
   /* ---------- who is signed in ---------- */
   function took(data) {
+    var before = state.me ? state.me.id : 0;
     state.me = data.user;
+    if (before !== data.user.id) { resumeDrafts(); }
     store.set(KNOWN, "1");
     state.notes = data.notes || [];
     state.unseen = data.unseen || 0;
@@ -625,6 +705,7 @@
       menuLink(FORUM_PAGE + "#u=" + Number(me.id), "person", "הדף שלי") +
       menuLink(FORUM_PAGE + "#me", "settings", "הגדרות החשבון", me.pendingAvatar ? '<span class="lbl lbl--wait">תמונה ממתינה</span>' : "") +
       menuLink(FORUM_PAGE + "#saved", "bookmarks", "הודעות ששמרתי") +
+      menuLink(FORUM_PAGE + "#drafts", "edit", "טיוטות", draftCount() ? '<span class="counter">' + draftCount() + "</span>" : "") +
       (isMod() ? menuLink(FORUM_PAGE + "#admin", "admin-panel-settings", "ניהול", state.waiting ? '<span class="counter">' + state.waiting + "</span>" : "") : "") +
       '<hr class="hr">' + menuItem("logout", "logout", "יציאה");
   }
@@ -771,7 +852,10 @@
   }
   function composeModal() {
     var draft = ui.draft, limits = state.config.limits;
-    return '<h2 id="dialog-title">נושא חדש</h2><form data-form="topic" novalidate><div class="fields">' +
+    // a draft that waited here: said, with the way to start afresh
+    var resumed = draft.at && composeFilled(draft) ? '<p class="banner draftnote">' + icon("edit") + "<span>ממשיכים טיוטה שנשמרה " + ago(draft.at) + ".</span>" +
+      '<button type="button" class="mb mb--text mb--small" data-act="draft-clear">התחלה מחדש</button></p>' : "";
+    return '<h2 id="dialog-title">נושא חדש</h2><form data-form="topic" novalidate><div class="fields">' + resumed +
       '<div class="seg seg--block" role="group" aria-label="סוג הנושא">' + ["idea", "question", "bug"].map(function (kind) {
         return '<button type="button" class="seg__b" data-act="kind" data-value="' + kind + '" aria-pressed="' + (draft.kind === kind) + '">' + icon(KIND_ICON[kind]) + KINDS[kind] + "</button>";
       }).join("") + "</div>" +
@@ -779,7 +863,8 @@
       writerBox("compose", "new-text", "פירוט", draft.body, HINTS[draft.kind][1]) +
       '<div id="tags-box">' + tagsBox() + '</div><div id="poll-box">' + pollBox() + "</div>" +
       '<p class="form-error" role="alert"></p></div>' +
-      '<div class="dialog__acts"><button type="button" class="mb mb--text" data-act="close">ביטול</button>' +
+      // closing the dialog keeps what was typed as a draft, whichever way it is closed; the button says so
+      '<div class="dialog__acts"><button type="button" class="mb mb--text" data-act="close">' + icon("edit") + "שמירה כטיוטה</button>" +
       '<button class="mb mb--filled">' + icon("send", "mi--flip") + "פרסום</button></div></form>";
   }
   /** A small dialog that asks one thing and then does it:
@@ -871,11 +956,17 @@
   }
   function closeModal() {
     if (!ui.modal || ui.modal === "recovery") { return; }       // the recovery code is closed only by "I saved the code"
-    if (ui.modal === "compose") { keepDraft(); }                // what was typed waits for the next time
+    var writing = ui.modal === "compose";
+    if (writing) { keepDraft(); }                               // what was typed waits for the next time
     ui.modal = "";
     ui.ask = null;
     ui.googleFor = "";
     renderModal();
+    if (writing) {                                              // ... as a draft, in this browser
+      flushDrafts();
+      if (composeFilled(ui.draft)) { toast("מה שכתבתם נשמר בטיוטות.", ["new", "המשך כתיבה"]); }
+      if (ui.view === "list" || ui.view === "drafts") { render(); }      // where the drafts are counted and listed
+    }
   }
   function openAuth(tab, note) {
     if (state.me) { return; }
@@ -998,21 +1089,47 @@
     if (state.me) { return topic.unread > 0 && topic.watch !== -1; }
     return topic.lastAt > (memory.read[topic.id] || memory.seen[topic.id] || memory.last);
   }
-  function topicRow(topic, plain) {
+  /** "לפני שעה", or "ב-3.10.2026" for what is older than a week: a time as it stands after a name. */
+  function agoIn(ts) { var time = ago(ts); return /^\d/.test(time) ? "ב-" + time : time; }
+  /** "תגובה אחרונה מאת … לפני …": who wrote last in a topic and when - what tells a reader whether he saw it. */
+  function lastLine(topic) {
+    if (!topic.replies || !topic.lastName) { return ago(topic.lastAt); }
+    return "תגובה אחרונה מאת " + name(topic.lastName) + " " + agoIn(topic.lastAt);
+  }
+  /** The latest message of a topic as a small bubble, like the ones of the conversation itself: who replied last
+   *  and when, and the opening words of what he wrote. A topic nobody replied to yet shows the opening words of its
+   *  first message. "" where the list did not bring it (a search; a topic that waits).
+   *  The bubble says who and when without the words "תגובה אחרונה מאת" (the owner: no need for them) - a screen
+   *  reader, which does not see a bubble, still hears them. */
+  function teaser(topic) {
+    var last = topic.last;
+    if (!last || last.text == null) { return ""; }
+    var words = state.ignores[last.user.id] ? "הודעה של משתמש שבחרתם להתעלם ממנו."       // his words are folded in the topic, and not shown here either
+      : last.text ? esc(last.text) : icon("image") + "תמונה";
+    if (!topic.replies) { return '<div class="tease tease--first"><span class="tease__text">' + words + "</span></div>"; }
+    // the name at the beginning of the first line and the time at its end, as in a list of chats; under them, the words
+    return '<div class="tease"><span class="tease__by"><span class="sr-only">תגובה אחרונה מאת </span>' + face(last.user, "xs") + name(last.user.name) +
+      '<span class="tease__when">' + agoIn(topic.lastAt) + '</span></span><span class="tease__text">' + words + "</span></div>";
+  }
+  function topicRow(topic, plain, kept) {
     var fresh = isNew(topic), n = state.me ? topic.unread : 0;
     var news = n && topic.watch !== -1 ? '<span class="lbl lbl--new">' + (n === 1 ? "הודעה חדשה" : n + " חדשות") + "</span>"
       : !state.me && fresh ? '<span class="lbl lbl--new">חדש</span>' : "";
     var voted = !!(state.list && state.list.voted[topic.id]);
+    var tease = plain ? "" : teaser(topic);
     var vote = plain || topic.kind === "question" || topic.state !== "ok" ? "" :
       '<button type="button" class="chip" data-act="vote" data-id="' + topic.id + '" aria-pressed="' + voted + '" title="' + voteLabel(topic) +
         '" aria-label="' + voteLabel(topic) + ": " + topic.votes + '">' + icon("arrow-upward") + '<span class="chip__n">' + topic.votes + "</span></button>";
-    return '<li class="item trow' + (fresh ? " trow--unread" : "") + (topic.watch === -1 ? " trow--muted" : "") + '">' + kindCircle(topic.kind) + "<div>" +
+    return '<li class="item trow' + (fresh ? " trow--unread" : "") + (topic.watch === -1 ? " trow--muted" : "") + (tease ? " trow--tease" : "") + '">' + kindCircle(topic.kind) + "<div>" +
       '<a class="trow__title" href="#t=' + topic.id + '">' +
         (topic.pinned ? icon("push-pin-fill") + '<span class="sr-only">נעוץ: </span>' : "") + (topic.locked ? icon("lock") + '<span class="sr-only">נעול: </span>' : "") +
-        '<span class="sr-only">' + (KINDS[topic.kind] || "") + ": </span>" + name(topic.title) + "</a>" +
-      '<div class="trow__meta">' + stateLabels(topic) + news + (topic.poll ? '<span class="lbl">' + icon("ballot") + "סקר</span>" : "") + byline(topic.author) + DOT +
-        "<span>" + (topic.replies ? "תגובה אחרונה " : "") + ago(topic.lastAt) + "</span>" +
-        (topic.tags || []).map(function (tag) { return '<a class="tagchip" href="#tag=' + encodeURIComponent(tag) + '">#' + name(tag) + "</a>"; }).join("") + "</div></div>" +
+        // the words of the title stand above the row's own link: the pointer resting on them shows the first message (openPeek)
+        '<span class="sr-only">' + (KINDS[topic.kind] || "") + ': </span><span class="trow__words" data-peek="' + topic.id + '">' + name(topic.title) + "</span></a>" +
+      '<div class="trow__meta">' + stateLabels(topic) + news + (kept && kept[topic.id] ? '<span class="lbl">' + icon("edit") + "טיוטה</span>" : "") +
+        (topic.poll ? '<span class="lbl">' + icon("ballot") + "סקר</span>" : "") + byline(topic.author) + DOT +
+        // with the bubble of the latest message beside it, this line says when the topic was opened; without it, who wrote last
+        (tease ? "<span>" + ago(topic.created) + "</span>" : '<span class="trow__last">' + lastLine(topic) + "</span>") +
+        (topic.tags || []).map(function (tag) { return '<a class="tagchip" href="#tag=' + encodeURIComponent(tag) + '">#' + name(tag) + "</a>"; }).join("") + "</div></div>" + tease +
       '<div class="trow__end">' + vote + '<span class="count" title="תגובות">' + icon("chat-bubble") + "<span>" + topic.replies +
         '</span><span class="sr-only"> תגובות</span></span></div></li>';
   }
@@ -1037,7 +1154,8 @@
     var mine = !state.me ? "" : '<hr class="hr">' + MINE.map(function (item) {
       return '<a class="navitem" href="#f=' + item[0] + '"' + (route.filter === item[0] ? ' aria-current="true"' : "") + ">" + icon(item[2]) + "<span>" + item[1] + "</span>" +
         (item[0] === "unread" && list.waiting ? '<span class="counter">' + list.waiting + "</span>" : "<span></span>") + "</a>";
-    }).join("") + '<a class="navitem" href="#saved">' + icon("bookmarks") + "<span>הודעות ששמרתי</span><span></span></a>";
+    }).join("") + '<a class="navitem" href="#saved">' + icon("bookmarks") + "<span>הודעות ששמרתי</span><span></span></a>" +
+      '<a class="navitem" href="#drafts">' + icon("edit") + "<span>טיוטות</span>" + (draftCount() ? '<span class="counter">' + draftCount() + "</span>" : "<span></span>") + "</a>";
     var tags = (list.tags || []).length ? '<hr class="hr"><p class="navlabel">תגיות</p><div class="chips">' + list.tags.map(function (item) {
       return '<a class="chip' + (route.tag && sameTag(route.tag, item.tag) ? " chip--on" : "") + '" href="#tag=' + encodeURIComponent(item.tag) + '">' + name(item.tag) +
         '<span class="chip__n">' + item.n + "</span></a>";
@@ -1066,7 +1184,8 @@
       }).join("") + "</div></div>";
     var body;
     if (topics.length) {
-      body = '<ul class="group">' + topics.map(function (topic) { return topicRow(topic); }).join("") + "</ul>" +
+      var kept = state.me ? readDrafts().replies : null;      // the topics in which a reply was left unsent
+      body = '<ul class="group">' + topics.map(function (topic) { return topicRow(topic, false, kept); }).join("") + "</ul>" +
         (list.more ? '<div class="more"><button type="button" class="mb mb--tonal" data-act="more">הצגת נושאים נוספים</button></div>' : "");
     } else if (!counts.all && !route.filter && !route.tag) {
       body = '<div class="empty"><span class="empty__icon">' + icon("forum") + "</span><h2>עוד לא נפתח כאן אף נושא</h2><p>היו הראשונים. מה תרצו לכתוב?</p>" +
@@ -1139,7 +1258,8 @@
     var labels = (post.state === "held" ? '<span class="lbl lbl--wait">' + icon("hourglass-empty") + "ממתינה לאישור" + (WAIT_WHY[post.why] ? ": " + WAIT_WHY[post.why] : "") + "</span>" : "") +
       (post.state === "hidden" ? '<span class="lbl lbl--wait">' + icon("visibility-off") + "מוסתרת</span>" : "") +
       (answer ? '<span class="lbl lbl--answer">' + icon("check-circle-fill") + "התשובה</span>" : "") +
-      (post.author.banned ? '<span class="lbl lbl--wait">חסום</span>' : "");
+      (post.author.banned ? '<span class="lbl lbl--wait">חסום</span>' : "") +
+      (post.fresh ? '<span class="lbl lbl--new">חדש</span>' : "");               // not read yet (topicView marks it)
     var edited = !post.edited ? "" : post.edits && (own || mod)
       ? '<button type="button" class="mb mb--text mb--small" data-act="history" data-id="' + post.id + '" title="מה נכתב לפני העריכה">נערך</button>' : "<span>(נערך)</span>";
     var head = '<div class="post__head">' + faceLink(post.author, "s") + '<a class="who post__name ' + hue(post.author) + '" href="#u=' + Number(post.author.id) + '">' + name(post.author.name) + "</a>" + marks(post.author) +
@@ -1149,7 +1269,7 @@
     if (ui.editing === post.id) {
       body = editForm(post);
     } else {
-      body = cite(post.quote) + (post.body ? '<div class="rt">' + window.BoardText.render(post.body, { mentions: post.mentions }) + "</div>" : "") + picture(post.image) +
+      body = cite(post.quote) + (post.body ? '<div class="rt">' + window.BoardText.render(post.body, { mentions: post.mentions, home: HOME }) + "</div>" : "") + picture(post.image) +
         (post.first && data.poll ? pollView(data.poll) : "") + (post.sig ? '<p class="post__sig">' + name(post.sig) + "</p>" : "");
     }
     // the signs a message got, each with its count - the like among them; and the small tools of a message
@@ -1290,7 +1410,8 @@
     var divides = !!first && (first.created <= data.since || (!!me && me.id === first.author.id));      // a topic never opened has no "new from here"
     var posts = data.posts.map(function (post) {
       var line = "";
-      if (divides && !marked && post.created > data.since && !(me && me.id === post.author.id)) {
+      post.fresh = divides && post.created > data.since && !(me && me.id === post.author.id);      // what he did not read yet
+      if (post.fresh && !marked) {
         marked = true;
         line = '<li class="newline"><span>הודעות חדשות</span></li>';
       }
@@ -1351,6 +1472,31 @@
     return '<div class="narrow">' + pageHead("הודעות ששמרתי") +
       (posts.length ? '<ul class="group">' + posts.map(function (post) { return hitRow(post, []); }).join("") + "</ul>"
         : '<div class="empty"><span class="empty__icon">' + icon("bookmarks") + "</span><h2>עוד לא שמרתם הודעות</h2><p>בכל הודעה יש סימנייה. הודעה שסימנתם נשמרת כאן, ורק אתם רואים אותה.</p></div>") + "</div>";
+  }
+
+  /** What was begun and not sent: the new topic, and the replies - each leads back to where it is written. */
+  function draftsView() {
+    var kept = readDrafts(), rows = [];
+    function drop(what, label) {
+      return '<button type="button" class="ib" data-act="draft-drop" data-what="' + what + '" title="מחיקת הטיוטה" aria-label="מחיקת הטיוטה: ' + esc(label) + '">' + icon("delete") + "</button>";
+    }
+    function words(text) { var chars = Array.from(window.BoardText.plain(text).replace(/\s+/g, " ").trim()); return chars.length > 160 ? chars.slice(0, 160).join("") + "…" : chars.join(""); }
+    if (kept.compose) {
+      var topic = kept.compose, title = String(topic.title || "").trim();
+      rows.push('<li class="item srow">' + kindCircle(topic.kind) + '<div class="srow__text"><b>' + (title ? name(title) : "נושא חדש, עוד בלי כותרת") + "</b>" +
+        (String(topic.body || "").trim() ? "<span>" + esc(words(topic.body)) + "</span>" : "") + "<span>" + (KINDS[topic.kind] || "נושא") + " שעוד לא פורסם · נשמר " + ago(topic.at) + "</span></div>" +
+        '<button type="button" class="mb mb--tonal mb--small" data-act="new">המשך כתיבה</button>' + drop("compose", title || "נושא חדש") + "</li>");
+    }
+    Object.keys(kept.replies).sort(function (a, b) { return kept.replies[b].at - kept.replies[a].at; }).forEach(function (id) {
+      var reply = kept.replies[id];
+      rows.push('<li class="item srow"><span class="kc">' + icon("chat-bubble") + '</span><div class="srow__text"><b>תגובה בנושא ״' + name(reply.title || "נושא " + Number(id)) + "״</b>" +
+        "<span>" + esc(words(reply.text)) + "</span><span>נשמר " + ago(reply.at) + "</span></div>" +
+        '<a class="mb mb--tonal mb--small" href="#t=' + Number(id) + '">המשך כתיבה</a>' + drop(Number(id), reply.title || "") + "</li>");
+    });
+    return '<div class="narrow">' + pageHead("טיוטות") +
+      (rows.length ? '<ul class="group">' + rows.join("") + "</ul>"
+        : '<div class="empty"><span class="empty__icon">' + icon("edit") + "</span><h2>אין טיוטות</h2><p>נושא חדש או תגובה שהתחלתם לכתוב ולא שלחתם נשמרים כאן מעצמם, וממשיכים אותם מתי שרוצים.</p></div>") +
+      '<p class="muted small" style="margin-top:16px;padding-inline:16px">טיוטות נשמרות בדפדפן הזה בלבד: הן לא נשלחות לפורום, לא מופיעות במכשיר אחר, ונמחקות כשיוצאים מהחשבון. תמונה שצורפה לא נשמרת בטיוטה.</p></div>';
   }
 
   /* ---------- a user as others see him ---------- */
@@ -1545,6 +1691,7 @@
 
   function render() {
     var view = document.getElementById("view");
+    closePeek();
     var place = ui.view + (ui.view === "topic" ? state.current.topic.id : "");
     var arrived = place !== ui.place;            // a new place slides in; a redraw of the place one is at does not
     ui.place = place;
@@ -1558,6 +1705,7 @@
     else if (ui.view === "topic") { view.innerHTML = topicView(); setTimeout(reached, 300); }
     else if (ui.view === "search") { view.innerHTML = searchView(); }
     else if (ui.view === "saved") { view.innerHTML = savedView(); }
+    else if (ui.view === "drafts") { view.innerHTML = draftsView(); }
     else if (ui.view === "user") { view.innerHTML = userView(); }
     else if (ui.view === "account") { view.innerHTML = accountView(); }
     else if (ui.view === "admin") { view.innerHTML = adminView(); }
@@ -1645,33 +1793,120 @@
     var lower = String(text).toLowerCase();
     return known().filter(function (user) { return lower.indexOf("@" + user.name.toLowerCase()) !== -1; }).map(function (user) { return user.id; }).slice(0, state.config.limits.mentions);
   }
-  var suggestTimer = 0;
-  function drawSuggest(slot, id, users) {
-    slot.innerHTML = users.map(function (user) {
-      return '<button type="button" class="chip" data-act="mention-pick" data-for="' + id + '" data-id="' + Number(user.id) + '" data-name="' + esc(user.name) + '">' + face(user, "xs") + name(user.name) + "</button>";
-    }).join("");
+  // The names offered after an "@": a list under the field, from the "@" itself (whoever writes in the open topic)
+  // and from its first letter (the board is asked). The arrows walk it, Enter or Tab takes the marked name.
+  var mention = { input: null, users: [], active: 0, timer: 0, asked: {} };      // asked: what the board answered, by what was typed
+  function closeSuggest() {
+    clearTimeout(mention.timer);
+    if (mention.input) { var slot = document.getElementById(mention.input.id + "-suggest"); if (slot) { slot.innerHTML = ""; } }
+    mention.input = null;
+    mention.users = [];
   }
-  /** While an "@" and the beginning of a name stand before the cursor: the names it may be, as chips under the field. */
-  function suggest(input) {
+  function drawSuggest(input, users, hint) {
     var slot = document.getElementById(input.id + "-suggest");
-    if (!slot) { return; }
+    mention.input = input;
+    mention.users = users;
+    mention.active = Math.max(0, Math.min(mention.active, users.length - 1));
+    slot.innerHTML = users.length ? '<div class="suggest__list" role="listbox" aria-label="אזכור משתמש">' + users.map(function (user, index) {
+      return '<button type="button" class="suggest__item" role="option" tabindex="-1" aria-selected="' + (index === mention.active) + '" data-act="mention-pick" data-index="' + index + '">' +
+        face(user, "xs") + name(user.name) + (user.admin ? '<span class="lbl lbl--dev">יוצר מובידוס</span>' : "") + "</button>";
+    }).join("") + "</div>" : hint ? '<p class="suggest__hint">' + hint + "</p>" : "";
+    if (!slot.innerHTML) { mention.input = null; }       // nothing is offered: the keys are the field's own
+  }
+  /** What stands between an "@" and the cursor, in lower case - or null when the cursor is not after one. */
+  function typedName(input) {
     var match = state.me ? /(^|[\s(])@([^\s@]{0,24})$/.exec(input.value.slice(0, input.selectionStart)) : null;
-    clearTimeout(suggestTimer);
-    if (!match) { slot.innerHTML = ""; return; }
-    var typed = match[2].toLowerCase();
-    var local = known().filter(function (user) { return user.id !== state.me.id && user.name.toLowerCase().indexOf(typed) === 0; }).slice(0, 6);
-    drawSuggest(slot, input.id, local);
-    if (typed.length < 2) { return; }
-    suggestTimer = setTimeout(function () {
+    return match ? match[2].toLowerCase() : null;
+  }
+  /** While an "@" and the beginning of a name stand before the cursor: the names it may be. */
+  function suggest(input) {
+    if (!document.getElementById(input.id + "-suggest")) { return; }
+    var typed = typedName(input);
+    clearTimeout(mention.timer);
+    if (typed == null) { if (mention.input === input) { closeSuggest(); } return; }
+    // a name is compared as the board compares it: without its spaces, dots and hyphens
+    function flat(text) { return String(text).toLowerCase().replace(/[ ._'"-]/g, ""); }
+    function begins(user) { return user.id !== state.me.id && flat(user.name).indexOf(flat(typed)) === 0; }
+    function merged(more) {
+      var seen = {};
+      return known().filter(begins).concat(more).filter(function (user) { if (seen[user.id]) { return false; } seen[user.id] = true; return true; }).slice(0, 6);
+    }
+    mention.active = 0;
+    if (!typed) { drawSuggest(input, merged([]), "כותבים את תחילת השם, ובוחרים מהרשימה."); return; }
+    // what the board already answered for these letters - or for fewer of them, when that answer was the whole of it
+    var answered = null;
+    for (var cut = typed.length; cut > 0 && !answered; cut--) {
+      var earlier = mention.asked[typed.slice(0, cut)];
+      if (earlier && (cut === typed.length || earlier.length < 8)) { answered = earlier.filter(begins); }
+    }
+    if (answered) { drawSuggest(input, merged(answered), "אין משתמש שהשם שלו מתחיל כך."); return; }
+    drawSuggest(input, merged([]), "");
+    mention.timer = setTimeout(function () {
       api("GET", "/users?q=" + encodeURIComponent(typed)).then(function (out) {
-        var seen = {};
-        drawSuggest(slot, input.id, local.concat(out.users).filter(function (user) {
-          if (user.id === state.me.id || seen[user.id]) { return false; }
-          seen[user.id] = true;
-          return true;
-        }).slice(0, 8));
-      }, function () { /* the local names stay */ });
-    }, 280);
+        mention.asked[typed] = out.users;
+        if (document.activeElement === input && typedName(input) === typed) { drawSuggest(input, merged(out.users.filter(begins)), "אין משתמש שהשם שלו מתחיל כך."); }
+      }, function () { /* the names of the topic stay */ });
+    }, 180);
+  }
+  /** The name that was chosen takes the place of what was typed after the "@". */
+  function pickMention(user) {
+    var input = mention.input;
+    if (!input || !user) { return; }
+    var before = input.value.slice(0, input.selectionStart), at = before.lastIndexOf("@");
+    if (at === -1) { return; }
+    ui.picked[user.name.toLowerCase()] = { id: user.id, name: user.name, av: user.av };
+    typedInto(input, "@" + user.name + " ", at, input.selectionStart, at + user.name.length + 2, at + user.name.length + 2);
+  }
+
+  /* ---------- a look at a topic's first message, while the pointer rests on its title ---------- */
+  // Only where there is a pointer to rest (a mouse). The board is asked once per topic, without the session - what
+  // it answers is what everybody may read - and only after the pointer stayed a moment.
+  var HOVERS = !!window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  var peeks = {}, peek = { id: 0, timer: 0, el: null };
+  function peekOf(id) {
+    var kept = peeks[id];
+    if (kept && Date.now() - kept.at < 5 * MIN) { return Promise.resolve(kept); }
+    return fetch(API + "/topics/" + id + "/peek").then(function (response) {
+      if (!response.ok) { throw failure("server"); }
+      return response.json();
+    }).then(function (data) { data.at = Date.now(); peeks[id] = data; return data; });
+  }
+  function closePeek() {
+    clearTimeout(peek.timer);
+    peek.id = 0;
+    if (peek.el && peek.el.parentNode) { peek.el.parentNode.removeChild(peek.el); }
+    peek.el = null;
+  }
+  function openPeek(words) {
+    var id = Number(words.getAttribute("data-peek"));
+    closePeek();
+    peek.id = id;
+    peek.timer = setTimeout(function () {
+      peekOf(id).then(function (data) {
+        if (peek.id !== id || peek.el || !document.body.contains(words) || (!data.text && !data.image)) { return; }
+        var el = document.createElement("div");
+        el.className = "peek";
+        el.setAttribute("role", "tooltip");
+        el.innerHTML = (data.text ? "<p>" + esc(data.text) + "</p>" : "") + (data.image ? '<span class="peek__more">' + icon("image") + "מצורפת תמונה</span>" : "");
+        document.getElementById("board").appendChild(el);
+        // under the title, its right edge with the title's; above it when there is no room below
+        var rect = words.getBoundingClientRect(), left = rect.right - el.offsetWidth, top = rect.bottom + 8;
+        if (top + el.offsetHeight > window.innerHeight - 8) { top = Math.max(8, rect.top - el.offsetHeight - 8); }
+        el.style.left = Math.max(8, Math.min(left, window.innerWidth - el.offsetWidth - 8)) + "px";
+        el.style.top = top + "px";
+        peek.el = el;
+      }, function () { /* no look this time */ });
+    }, 400);
+  }
+  if (FORUM && HOVERS) {
+    document.addEventListener("mouseover", function (event) {
+      var words = event.target.closest ? event.target.closest("[data-peek]") : null;
+      if (words && peek.id !== Number(words.getAttribute("data-peek"))) { openPeek(words); }
+    });
+    document.addEventListener("mouseout", function (event) {
+      var words = event.target.closest ? event.target.closest("[data-peek]") : null;
+      if (words && !(event.relatedTarget && words.contains(event.relatedTarget))) { closePeek(); }
+    });
   }
 
   /* ---------- browser notifications ---------- */
@@ -1794,7 +2029,9 @@
     topic: function (form) {
       keepDraft();
       var draft = ui.draft, typedTag = value("tag-input").trim();
-      var body = withShot({ kind: draft.kind, title: draft.title, body: draft.body, tags: draft.tags.concat(typedTag ? [typedTag] : []), mentions: mentionIds(draft.body) }, "compose");
+      // support: whoever proposes an idea or reports a bug is its first supporter (he can take it back in the topic)
+      var body = withShot({ kind: draft.kind, title: draft.title, body: draft.body, tags: draft.tags.concat(typedTag ? [typedTag] : []), mentions: mentionIds(draft.body),
+        support: draft.kind !== "question" }, "compose");
       if (draft.poll) { body.poll = draft.poll; }
       busy(form, function () {
         return api("POST", "/topics", body).then(function (made) {
@@ -1802,7 +2039,9 @@
           ui.shots.compose = null;
           ui.modal = "";
           renderModal();
-          toast(made.state === "held" ? "הנושא נשלח וממתין לאישור." : "הנושא פורסם.");
+          flushDrafts();                           // what was sent is no draft any more
+          toast(made.state === "held" ? "הנושא נשלח וממתין לאישור." : !made.voted ? "הנושא פורסם."
+            : body.kind === "bug" ? "הנושא פורסם, וסומן שהתקלה קורית גם אצלכם." : "הנושא פורסם, וסומנתם כתומכים ברעיון.");
           if (location.hash === "#t=" + made.id) { return show(); }
           location.hash = "t=" + made.id;
         });
@@ -1815,6 +2054,7 @@
       if (ui.quote) { body.quote = { post: ui.quote.post, text: ui.quote.marked }; }
       busy(form, function () {
         return api("POST", "/topics/" + idOf(form) + "/posts", body).then(function (made) {
+          dropDraft(idOf(form));                   // what was sent is no draft any more (the reply and what it quoted)
           ui.reply = null;
           ui.quote = null;
           ui.shots.reply = null;
@@ -1932,6 +2172,8 @@
     logout: function () {
       closeFloat();
       pushOff().then(function () { return api("POST", "/auth/logout"); }).catch(function () { /* the session is dropped here anyway */ }).then(function () {
+        clearTimeout(draftTimer);
+        if (draftCount()) { store.set(DRAFTS, null); }      // whoever signs out leaves nothing of his at this computer
         signedOut();
         if (FORUM && ui.view !== "list" && ui.view !== "topic" && ui.view !== "user" && ui.view !== "search") { location.hash = ""; return null; }
         return show();
@@ -2258,12 +2500,16 @@
       closeFloat();
       if (input) { typedInto(input, emoji, input.selectionStart, input.selectionEnd, input.selectionStart + emoji.length, input.selectionStart + emoji.length); }
     },
-    "mention-pick": function (el) {
-      var input = document.getElementById(el.getAttribute("data-for")), who = el.getAttribute("data-name");
-      var before = input.value.slice(0, input.selectionStart), at = before.lastIndexOf("@");
-      if (at === -1) { return; }
-      ui.picked[who.toLowerCase()] = { id: idOf(el), name: who };
-      typedInto(input, "@" + who + " ", at, input.selectionStart, at + who.length + 2, at + who.length + 2);
+    "mention-pick": function (el) { pickMention(mention.users[Number(el.getAttribute("data-index"))]); },
+    "draft-drop": function (el) {
+      dropDraft(el.getAttribute("data-what"));
+      toast("הטיוטה נמחקה.");
+      render();
+    },
+    "draft-clear": function () {                    // the new-topic dialog starts afresh
+      dropDraft("compose");
+      renderModal();
+      if (ui.view === "list" || ui.view === "drafts") { render(); }
     },
     preview: function (el) {
       var id = el.getAttribute("data-for"), input = document.getElementById(id), box = document.getElementById(id + "-preview");
@@ -2272,7 +2518,7 @@
       el.innerHTML = icon(on ? "edit" : "visibility") + (on ? "חזרה לכתיבה" : "תצוגה מקדימה");      // the button says what a press will do
       box.hidden = !on;
       input.closest(".writer__field").hidden = on;    // the field itself steps aside for what it will look like
-      if (on) { box.innerHTML = window.BoardText.render(input.value, { mentions: known() }); } else { fit(input); input.focus(); }
+      if (on) { box.innerHTML = window.BoardText.render(input.value, { mentions: known(), home: HOME }); } else { fit(input); input.focus(); }
     },
     "mail-remove": function () {
       ask({
@@ -2378,6 +2624,8 @@
     ui.editing = 0;
     ui.fresh = "";
     closeFloat();
+    closeSuggest();
+    flushDrafts();                                            // what was being written waits as a draft
     closeModal();                                             // the recovery code stays until it is acknowledged
     return saveRead().then(function () { return show(); }).then(function () {    // the list that comes next already counts what was read
       if (ui.view === "topic") { land(); } else { jump(ui.view === "list" && !wasList ? ui.listScroll : 0); }
@@ -2386,7 +2634,10 @@
   document.addEventListener("click", function (event) {
     var el = event.target.closest("[data-act]");
     var act = el && el.getAttribute("data-act");
+    if (ui.modal === "compose" && state.me) { draftSoon(); }      // a tag, a poll, the kind: what a press changed in the new topic is kept too
     if (ui.float && !event.target.closest(".float") && !(el && ui.float.anchor === el)) { closeFloat(); }      // a click elsewhere closes the menu
+    closePeek();
+    if (mention.input && event.target !== mention.input && !event.target.closest(".suggest")) { closeSuggest(); }
     if (act && acts[act]) { acts[act](el, event); return; }
     var link = event.target.closest("a[href^='#']");
     if (link) {
@@ -2400,7 +2651,8 @@
   });
   document.addEventListener("input", function (event) {
     var input = event.target;
-    if (input.id === "reply-text" && state.current) { ui.reply = { id: state.current.topic.id, text: input.value }; }      // a reply being written survives a redraw of the topic
+    if (input.id === "reply-text" && state.current) { ui.reply = { id: state.current.topic.id, text: input.value, title: state.current.topic.title }; }      // a reply being written survives a redraw of the topic
+    if (state.me && (input.id === "reply-text" || (ui.modal === "compose" && input.closest && input.closest('[data-form="topic"]')))) { draftSoon(); }      // ... and waits as a draft
     if (input.id === "reply-text") {
       dockReady();
       var began = Date.now() - ui.typedAt > 8000;       // the first key after a rest: the others are told at once
@@ -2416,12 +2668,21 @@
     var where = { "reply-text": "reply", "new-text": "compose", "new-title": "compose", "edit-text": "edit" }[event.target.id];
     var files = (event.clipboardData && event.clipboardData.files) || [];
     var file = where && Array.prototype.filter.call(files, function (item) { return /^image\//.test(item.type); })[0];
-    if (file) { event.preventDefault(); attach(where, file); }
+    if (file) { event.preventDefault(); attach(where, file); return; }
+    // an address pasted where the link tool left "https://" ready takes its place - otherwise the link says the scheme twice and leads nowhere
+    var field = event.target, pasted = event.clipboardData ? String(event.clipboardData.getData("text") || "").trim() : "";
+    var ready = field.tagName === "TEXTAREA" && /^https?:\/\/\S+$/i.test(pasted) ? /\]\((https?:\/\/)$/i.exec(field.value.slice(0, field.selectionStart)) : null;
+    if (ready) {
+      event.preventDefault();
+      var from = field.selectionStart - ready[1].length;
+      typedInto(field, pasted, from, field.selectionEnd, from + pasted.length, from + pasted.length);
+    }
   });
   var scrolling = 0;
   window.addEventListener("scroll", function () {            // reading on: the point reached moves with the screen
     ui.active = Date.now();
     closeFloat();
+    closePeek();
     clearTimeout(scrolling);
     scrolling = setTimeout(reached, 150);
   }, { passive: true });
@@ -2435,6 +2696,17 @@
   document.addEventListener("keydown", function (event) {
     ui.active = Date.now();
     var target = event.target;
+    closePeek();
+    if (mention.input && target === mention.input && (mention.users.length || event.key === "Escape")) {      // the list of names after an "@"
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        mention.active = (mention.active + (event.key === "ArrowDown" ? 1 : mention.users.length - 1)) % mention.users.length;
+        drawSuggest(target, mention.users, "");
+        return;
+      }
+      if ((event.key === "Enter" && !event.ctrlKey && !event.metaKey && !event.shiftKey) || event.key === "Tab") { event.preventDefault(); pickMention(mention.users[mention.active]); return; }
+      if (event.key === "Escape") { closeSuggest(); return; }
+    }
     if (event.key === "Escape") {
       if (ui.float) { closeFloat(true); }
       else if (ui.modal) { closeModal(); }
@@ -2489,7 +2761,7 @@
   document.addEventListener("pointerdown", function (event) { ui.active = Date.now(); ink(event); }, { passive: true });
   if (FORUM) { window.addEventListener("hashchange", moved); }      // on the site's other pages the address is theirs
   document.addEventListener("visibilitychange", function () {
-    if (document.hidden) { saveRead(true); return; }           // leaving the tab: how far he got is kept
+    if (document.hidden) { saveRead(true); flushDrafts(); return; }           // leaving the tab: how far he got is kept, and what he was writing
     var typing = document.activeElement && /^(TEXTAREA|INPUT|SELECT)$/.test(document.activeElement.tagName);
     // back after a while: bring what is new - but not over a page of forms, where something may be half typed
     if (!typing && !ui.editing && !ui.modal && !ui.float && ui.view !== "account" && Date.now() - ui.loaded > MIN) { again(); }
@@ -2498,7 +2770,7 @@
   /** Once a minute, while the page is in front and in use: is there something new? The bell, and the place that is open. */
   function pulse() {
     if (document.hidden || !state.config || ui.modal || Date.now() - ui.active > 30 * MIN) { return; }
-    if (["list", "topic", "search", "saved", "user", "account", "admin", "home"].indexOf(ui.view) === -1) { return; }
+    if (["list", "topic", "search", "saved", "drafts", "user", "account", "admin", "home"].indexOf(ui.view) === -1) { return; }
     if (ui.view === "home" && !state.me) { return; }          // another page of the site: only the bell, which a visitor has not
     var path = "/pulse";
     if (ui.view === "topic" && state.current) {

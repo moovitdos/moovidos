@@ -16,23 +16,35 @@
   // a character that belongs to a word (Latin, Greek, Cyrillic, Hebrew, Arabic, digits): what an "@name" may not touch
   var WORD = /[0-9A-Za-zÀ-ɏͰ-ϿЀ-ӿ֐-׿؀-ۿ]/;
 
-  function link(url, words) {
+  /** An address as it was meant. A scheme that stands twice - "https://https://…", an address pasted after the
+   *  "https://" the link tool leaves ready, or "https://https//…", what a browser's address bar makes of that -
+   *  is one scheme: as written, such a link leads to a site called "https". */
+  function address(url) {
+    return url.replace(/^(?:https?:\/\/)+(?=https?:\/\/)/i, "").replace(/^https?:\/\/(https?)\/\/(?=[^\/])/i, "$1://");
+  }
+  /** A link. One into the forum itself (`home`: the address of the page that shows the message, without its "#")
+   *  stays in the page - the place after the "#" is opened there; any other opens apart and is never trusted. */
+  function link(url, words, home) {
+    url = address(url);
     var shown = words != null ? words : url.length > 64 ? url.slice(0, 48) + "…" : url;
+    var cut = url.indexOf("#");
+    if (home && cut !== -1 && url.slice(0, cut) === home) { return '<a class="inlink" href="' + esc(url.slice(cut)) + '">' + esc(shown) + "</a>"; }
     return '<a class="ext" href="' + esc(url) + '" target="_blank" rel="nofollow noopener noreferrer ugc">' + esc(shown) + "</a>";
   }
 
-  /** The words of one line as markup. mentions: [{ id, name }] - the users the board confirmed the message mentions. */
-  function inline(text, mentions) {
+  /** The words of one line as markup. mentions: [{ id, name }] - the users the board confirmed the message mentions.
+   *  home: the forum's own address (see link). */
+  function inline(text, mentions, home) {
     var kept = [];                                  // markup that is ready: set aside, so that no later rule looks inside it
     function keep(html) { kept.push(html); return "\u0000" + (kept.length - 1) + "\u0000"; }
     var out = String(text);
     out = out.replace(/`([^`\n]+)`/g, function (all, code) { return keep("<code>" + esc(code) + "</code>"); });
     // (a link never reaches into markup that is already set aside: \u0000 ends its words and its address)
-    out = out.replace(/\[([^\]\n\u0000]{1,200})\]\((https?:\/\/[^\s()<>"'\u0000]{1,600})\)/g, function (all, words, url) { return keep(link(url, words)); });
+    out = out.replace(/\[([^\]\n\u0000]{1,200})\]\((https?:\/\/[^\s()<>"'\u0000]{1,600})\)/g, function (all, words, url) { return keep(link(url, words, home)); });
     out = out.replace(/(^|[^0-9A-Za-z@\/.])((?:https?:\/\/|www\.)[^\s<>"'\u0000]{2,600})/g, function (all, before, url) {
       var tail = "";                                // the full stop or bracket after an address is not part of it
       while (/[.,;:!?)\]״׳]$/.test(url) && !(url.slice(-1) === ")" && url.indexOf("(") !== -1)) { tail = url.slice(-1) + tail; url = url.slice(0, -1); }
-      return before + keep(link(/^www\./.test(url) ? "https://" + url : url, /^www\./.test(url) ? url : null)) + tail;
+      return before + keep(link(/^www\./.test(url) ? "https://" + url : url, /^www\./.test(url) ? url : null, home)) + tail;
     });
     (mentions || []).slice().sort(function (a, b) { return b.name.length - a.name.length; }).forEach(function (person) {
       var needle = ("@" + person.name).toLowerCase(), result = "", last = 0, at = out.indexOf("@");
@@ -56,9 +68,10 @@
 
   var BULLET = /^\s{0,3}[-*•]\s+(?=\S)/, NUMBER = /^\s{0,3}(\d{1,3})[.)]\s+(?=\S)/, QUOTED = /^\s{0,3}>\s?/, FENCE = /^\s{0,3}```/;
 
-  /** A whole message as markup. options.mentions: [{ id, name }]. */
+  /** A whole message as markup. options.mentions: [{ id, name }]; options.home: the forum's own address, without
+   *  its "#" - a link there stays in the page. */
   function render(text, options) {
-    var mentions = options && options.mentions;
+    var mentions = options && options.mentions, home = options && options.home;
     var lines = String(text == null ? "" : text).replace(/\u0000/g, "").replace(/\r\n?/g, "\n").split("\n");
     var html = [], i = 0;
     function kind(line) { return FENCE.test(line) ? "fence" : BULLET.test(line) ? "bullet" : NUMBER.test(line) ? "number" : QUOTED.test(line) ? "quote" : line.trim() ? "text" : ""; }
@@ -74,15 +87,15 @@
       }
       while (i < lines.length && kind(lines[i]) === what) { group.push(lines[i++]); }
       if (what === "bullet") {
-        html.push("<ul>" + group.map(function (line) { return "<li>" + inline(line.replace(BULLET, ""), mentions) + "</li>"; }).join("") + "</ul>");
+        html.push("<ul>" + group.map(function (line) { return "<li>" + inline(line.replace(BULLET, ""), mentions, home) + "</li>"; }).join("") + "</ul>");
       } else if (what === "number") {               // each item keeps the number its writer gave it
         html.push("<ol>" + group.map(function (line) {
-          return '<li value="' + Number(NUMBER.exec(line)[1]) + '">' + inline(line.replace(NUMBER, ""), mentions) + "</li>";
+          return '<li value="' + Number(NUMBER.exec(line)[1]) + '">' + inline(line.replace(NUMBER, ""), mentions, home) + "</li>";
         }).join("") + "</ol>");
       } else if (what === "quote") {
-        html.push("<blockquote>" + group.map(function (line) { return inline(line.replace(QUOTED, ""), mentions); }).join("<br>") + "</blockquote>");
+        html.push("<blockquote>" + group.map(function (line) { return inline(line.replace(QUOTED, ""), mentions, home); }).join("<br>") + "</blockquote>");
       } else {
-        html.push("<p>" + group.map(function (line) { return inline(line, mentions); }).join("<br>") + "</p>");
+        html.push("<p>" + group.map(function (line) { return inline(line, mentions, home); }).join("<br>") + "</p>");
       }
     }
     return html.join("");
