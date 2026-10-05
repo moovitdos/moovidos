@@ -1433,10 +1433,12 @@
         (account.notify ? kindRows("mail-kind", MAIL_KINDS, account.off) : "") +
         switchRow("pref-digest", account.digest, "סיכום שבועי", "פעם בשבוע: הנושאים החדשים בפורום.");
     } else {
+      // through the address a forgotten password is reset, so a password account names a new one only with its password
       mail = '<li class="item srow srow--stack"><div class="srow__text"><b>' + (account.mail ? "כתובת מייל חדשה" : account.password ? "כתובת מייל" : "כתובת מייל (לא חובה)") +
-        "</b><span>" + (account.mail ? "הכתובת תוחלף אחרי שתקלידו את הקוד שיישלח לכתובת החדשה." :
+        "</b><span>" + (account.mail ? "הכתובת תוחלף אחרי שתקלידו את הקוד שיישלח לכתובת החדשה. גם לכתובת הקודמת יישלח מייל שאומר שהיא הוחלפה." :
           "לאיפוס סיסמה שנשכחה, ולקבלת מייל כשעונים לכם. הכתובת לא מוצגת לאיש, ונשמרת רק אחרי שתקלידו את הקוד שיישלח אליה.") + "</span></div>" +
         '<form class="row" data-form="mail" novalidate><div class="grow" style="min-width:200px">' + field("mail-address", "כתובת מייל", 'type="email" dir="ltr" autocomplete="email" maxlength="254"') + "</div>" +
+        (account.password ? '<div class="grow" style="min-width:160px">' + field("mail-pass", "הסיסמה שלכם", 'type="password" autocomplete="current-password"') + "</div>" : "") +
         '<button class="mb mb--filled">שליחת קוד אימות</button>' + (account.mail ? '<button type="button" class="mb mb--text" data-act="mail-keep">ביטול</button>' : "") +
         '<p class="form-error" role="alert" style="flex-basis:100%"></p></form>' +
         (account.google && state.config.google ? '<div><button type="button" class="mb mb--text mb--small" data-act="google-mail">שימוש בכתובת של חשבון ה-Google שלי</button></div>' : "") + "</li>";
@@ -1527,7 +1529,7 @@
           (ui.mailTest ? "<span>" + esc(ui.mailTest) + "</span>" : "") + "</div>" +
           (q.mailOn ? '<button type="button" class="mb mb--tonal mb--small" data-act="mail-test">מייל ניסיון</button>' : "") + "</li>" +
           (q.mailLog.length ? '<li class="item"><div class="maillog">' + q.mailLog.map(function (row) {
-            return "<span>" + (kinds[row.kind] || esc(row.kind)) + (row.name ? ": " + name(row.name) : "") + "</span><span>" + (row.subject ? name(row.subject) : "קוד אימות") +
+            return "<span>" + (kinds[row.kind] || esc(row.kind)) + (row.name ? ": " + name(row.name) : "") + "</span><span>" + (row.subject ? name(row.subject) : "קוד, או הודעה על החלפת כתובת") +
               '</span><span class="muted">' + (states[row.state] || "בשליחה") + " · " + ago(row.created) + "</span>";
           }).join("") + "</div></li>" : "") +
           '<li class="item srow"><div class="srow__text"><b>התראות דפדפן</b><span>' + (q.pushOn ? "פעילות. " + count(s.browsers, "דפדפן אחד נרשם", "דפדפנים נרשמו", "עוד לא נרשם דפדפן") + "." : "לא הוגדרו (חסר מפתח VAPID).") + "</span></div></li></ul>" +
@@ -1860,8 +1862,12 @@
       });
     },
     mail: function (form) {
+      var pass = value("mail-pass"), needed = state.account.password;
+      if (needed && !pass) { formError(form, "מקלידים גם את הסיסמה: רק מי שיודע אותה קובע לאן יישלח קוד לאיפוס שלה."); return; }
       busy(form, function () {
-        return api("POST", "/me/mail", { address: value("mail-address") }).then(function (out) {
+        return (needed ? currentKey(pass) : Promise.resolve()).then(function (key) {
+          return api("POST", "/me/mail", { address: value("mail-address"), key: key });
+        }).then(function (out) {
           ui.mailChange = false;
           state.account.pending = out.pending;
           render();
@@ -2233,7 +2239,11 @@
       ui.mailTest = "שולח מייל ניסיון…";
       render();
       api("POST", "/admin/mail-test", {}).then(function (out) {
-        ui.mailTest = out.ok ? "מייל הניסיון נשלח. הוא אמור להגיע לתיבה בתוך דקה." : "השליחה נכשלה: " + (out.error || "");
+        // `clear`: how the erasing of the board's own copies from the mailbox went, tried on a copy made for the test
+        var clear = out.clear, cleared = !clear ? "" : clear.error ? " המחיקה של העותקים מהדואר היוצא נכשלה: " + clear.error
+          : clear.erased ? " גם המחיקה של העותקים מהדואר היוצא פועלת: עותק הבדיקה נמחק."
+            : " עותק הבדיקה עוד לא נמצא בדואר היוצא; הוא יימחק בסבב הבא.";
+        ui.mailTest = out.ok ? "מייל הניסיון נשלח. הוא אמור להגיע לתיבה בתוך דקה." + cleared : "השליחה נכשלה: " + (out.error || "");
       }, function (error) { ui.mailTest = explain(error); }).then(function () { if (ui.view === "admin") { render(); } });
     },
     "avatar-remove": function () {
