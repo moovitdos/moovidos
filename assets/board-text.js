@@ -1,4 +1,5 @@
-/* The text of a message as markup: paragraphs, lists, quoted lines, code, bold and italic, links and mentions.
+/* The text of a message as markup: paragraphs, lists, quoted lines, code, bold and italic, links and mentions,
+   and spoilers - words covered until a press (||words||), or a block that opens (a line of || above and below).
    A message is kept on the board as the plain text its writer typed; this is the only place where it becomes
    HTML, and every character of it passes through esc() exactly once. The only tags that come out are the ones
    written here; the only addresses that become links begin with http:// or https://.
@@ -40,8 +41,9 @@
     var out = String(text);
     out = out.replace(/`([^`\n]+)`/g, function (all, code) { return keep("<code>" + esc(code) + "</code>"); });
     // (a link never reaches into markup that is already set aside: \u0000 ends its words and its address)
-    out = out.replace(/\[([^\]\n\u0000]{1,200})\]\((https?:\/\/[^\s()<>"'\u0000]{1,600})\)/g, function (all, words, url) { return keep(link(url, words, home)); });
-    out = out.replace(/(^|[^0-9A-Za-z@\/.])((?:https?:\/\/|www\.)[^\s<>"'\u0000]{2,600})/g, function (all, before, url) {
+    // (a "|" ends an address too: it is no part of one as typed - it is written %7C - and "||" closes a spoiler)
+    out = out.replace(/\[([^\]\n\u0000]{1,200})\]\((https?:\/\/[^\s()<>"'|\u0000]{1,600})\)/g, function (all, words, url) { return keep(link(url, words, home)); });
+    out = out.replace(/(^|[^0-9A-Za-z@\/.])((?:https?:\/\/|www\.)[^\s<>"'|\u0000]{2,600})/g, function (all, before, url) {
       var tail = "";                                // the full stop or bracket after an address is not part of it
       while (/[.,;:!?)\]״׳]$/.test(url) && !(url.slice(-1) === ")" && url.indexOf("(") !== -1)) { tail = url.slice(-1) + tail; url = url.slice(0, -1); }
       return before + keep(link(/^www\./.test(url) ? "https://" + url : url, /^www\./.test(url) ? url : null, home)) + tail;
@@ -63,10 +65,16 @@
     out = esc(out);                                 // whatever is still plain text
     out = out.replace(/\*\*([^*\n]+?)\*\*/g, "<strong>$1</strong>");
     out = out.replace(/(^|[\s(>])\*([^*\s](?:[^*\n]*[^*\s])?)\*(?=$|[\s.,;:!?)<])/g, "$1<em>$2</em>");
+    // a spoiler inside a line: a button that says "ספוילר" until a press shows the words (board.js opens it; the
+    // page's own script, so no script here - the button's look, its eye and its word are board.css)
+    out = out.replace(SPOILER_INLINE, '<span class="spoiler" role="button" tabindex="0" aria-expanded="false" aria-label="ספוילר, לחיצה מציגה" data-act="spoiler"><span class="spoiler__text">$1</span></span>');
     return out.replace(/\u0000(\d+)\u0000/g, function (all, index) { return kept[Number(index)] || ""; });
   }
 
   var BULLET = /^\s{0,3}[-*•]\s+(?=\S)/, NUMBER = /^\s{0,3}(\d{1,3})[.)]\s+(?=\S)/, QUOTED = /^\s{0,3}>\s?/, FENCE = /^\s{0,3}```/;
+  // a spoiler block: a line of "||" - alone, or with a title after it - opens it, the next line of "||" alone closes it
+  var SPOILER_OPEN = /^\s{0,3}\|\|(?:\s+([^|]*\S))?\s*$/, SPOILER_CLOSE = /^\s{0,3}\|\|\s*$/, SPOILER_INLINE = /\|\|([^|\n]+?)\|\|/g;
+  var VEIL = "[ספוילר]";                           // what stands for a spoiler where the message is read from outside
 
   /** A whole message as markup. options.mentions: [{ id, name }]; options.home: the forum's own address, without
    *  its "#" - a link there stays in the page. */
@@ -74,7 +82,9 @@
     var mentions = options && options.mentions, home = options && options.home;
     var lines = String(text == null ? "" : text).replace(/\u0000/g, "").replace(/\r\n?/g, "\n").split("\n");
     var html = [], i = 0;
-    function kind(line) { return FENCE.test(line) ? "fence" : BULLET.test(line) ? "bullet" : NUMBER.test(line) ? "number" : QUOTED.test(line) ? "quote" : line.trim() ? "text" : ""; }
+    function kind(line) {
+      return FENCE.test(line) ? "fence" : SPOILER_OPEN.test(line) ? "spoiler" : BULLET.test(line) ? "bullet" : NUMBER.test(line) ? "number" : QUOTED.test(line) ? "quote" : line.trim() ? "text" : "";
+    }
     while (i < lines.length) {
       var what = kind(lines[i]), group = [];
       if (!what) { i++; continue; }
@@ -83,6 +93,14 @@
         while (i < lines.length && !FENCE.test(lines[i])) { group.push(lines[i++]); }
         i++;                                        // the closing fence, or the end of the message
         html.push('<pre class="code" dir="ltr"><code>' + esc(group.join("\n")) + "</code></pre>");
+        continue;
+      }
+      if (what === "spoiler") {                     // a block that opens on a press: whatever is inside, as a message of its own
+        var title = SPOILER_OPEN.exec(lines[i])[1] || "";
+        i++;
+        while (i < lines.length && !SPOILER_CLOSE.test(lines[i])) { group.push(lines[i++]); }
+        i++;
+        html.push('<details class="spoiler"><summary>' + (title ? esc(title) : "ספוילר") + '</summary><div class="spoiler__body">' + render(group.join("\n"), options) + "</div></details>");
         continue;
       }
       while (i < lines.length && kind(lines[i]) === what) { group.push(lines[i++]); }
@@ -102,11 +120,23 @@
   }
 
   /** A message as plain words: the signs of its formatting go, the words stay. What a quote, a snippet and a mail
-   *  carry - and what a reader marks on the screen, where the signs are not shown either. */
-  function plain(text) {
-    return String(text == null ? "" : text).replace(/\r\n?/g, "\n")
+   *  carry - and what a reader marks on the screen, where the signs are not shown either.
+   *  veiled: a spoiler stays covered - "[ספוילר]" stands for it - for what is read outside the message (the
+   *  list, a search, a look at a topic, a mail); otherwise its words stay, as a quote of them would. */
+  function plain(text, veiled) {
+    var lines = String(text == null ? "" : text).replace(/\r\n?/g, "\n").split("\n"), out = [], i = 0;
+    while (i < lines.length) {
+      if (!SPOILER_OPEN.test(lines[i])) { out.push(lines[i++]); continue; }
+      var inner = [];
+      i++;
+      while (i < lines.length && !SPOILER_CLOSE.test(lines[i])) { inner.push(lines[i++]); }
+      i++;
+      if (veiled) { out.push(VEIL); } else { out.push.apply(out, inner); }
+    }
+    return out.join("\n")
+      .replace(SPOILER_INLINE, veiled ? VEIL : "$1")
       .replace(/^[ \t]{0,3}```.*$/gm, "")
-      .replace(/\[([^\]\n]{1,200})\]\((https?:\/\/[^\s()<>"']{1,600})\)/g, "$1")
+      .replace(/\[([^\]\n]{1,200})\]\((https?:\/\/[^\s()<>"'|]{1,600})\)/g, "$1")
       .replace(/\*\*([^*\n]+?)\*\*/g, "$1")
       .replace(/(^|[\s(])\*([^*\s](?:[^*\n]*[^*\s])?)\*(?=$|[\s.,;:!?)])/gm, "$1$2")
       .replace(/`([^`\n]+)`/g, "$1")

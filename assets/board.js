@@ -68,7 +68,7 @@
     [0, "לא במעקב", "התראה רק כשמזכירים אתכם", "notifications"],
     [-1, "מושתק", "בלי התראות, ולא מסומן אצלכם כלא נקרא", "notifications-off"]
   ];
-  var WAIT_WHY = { link: "יש בה קישור", phone: "יש בה מספר טלפון", mail: "יש בה כתובת מייל", word: "יש בה מילה חסומה" };
+  var WAIT_WHY = { link: "יש בה קישור", phone: "יש בה מספר טלפון", mail: "יש בה כתובת מייל", word: "יש בה מילה חסומה", file: "מצורף אליה קובץ" };
   var EMOJIS = ["🙂", "😀", "😉", "😂", "😅", "🤔", "😢", "🙏", "👍", "👎", "👏", "💪", "❤️", "🎉", "🔥", "⭐", "✅", "❌", "⚠️", "❓", "💡", "🚌", "📱", "🕐"];
   var ERRORS = {
     network: "אין חיבור לפורום. ייתכן שהסינון חוסם את הכתובת שלו.",
@@ -102,6 +102,10 @@
     long: "הטקסט ארוך מדי.",
     bad_image: "הקובץ אינו תמונה מתאימה (JPG, PNG או WebP).",
     big_image: "התמונה גדולה מדי.",
+    bad_file: "אפשר לצרף קובץ PDF, ZIP (בלי תוכנות בתוכו), טקסט, CSV או GPX.",
+    big_file: "הקובץ גדול מדי: עד 1MB.",
+    too_many_files: "אפשר לצרף עד 3 קבצים להודעה.",
+    storage_full: "אין כרגע מקום לקבצים נוספים בפורום.",
     bad_quote: "אי אפשר לצטט את ההודעה הזו.",
     not_found: "מה שחיפשתם לא נמצא. ייתכן שהוסר.",
     too_late: "אפשר לערוך הודעה רק ביממה הראשונה.",
@@ -126,6 +130,8 @@
     quote: null,                          // what the reply being written quotes: { topic, post, name, text, marked }
     shots: { reply: null, compose: null, edit: undefined },      // the picture attached to what is being written
                                           //   (reply: with its topic; edit: undefined = as it is, null = remove it)
+    files: { reply: [], compose: [], edit: undefined },          // the files attached to it: [{ key, name, bytes, mime, topic }], already
+                                          //   sent to the board (uploadFile); a pending one has no key yet. edit: the message's own list, as it will be
     picked: {},                           // users chosen from the "@" suggestions: lower-case name -> { id, name }
     shown: {},                            // messages of ignored users that were unfolded
     zoom: "",                             // the picture shown large
@@ -210,7 +216,7 @@
     clearTimeout(draftTimer);
     if (!state.me) { return; }
     var kept = readDrafts(), before = JSON.stringify(kept);
-    if (what === "compose") { kept.compose = null; ui.draft = blankDraft(); ui.shots.compose = null; }
+    if (what === "compose") { kept.compose = null; ui.draft = blankDraft(); ui.shots.compose = null; ui.files.compose = []; }
     else {
       delete kept.replies[what];
       if (ui.reply && ui.reply.id === Number(what)) { ui.reply = null; ui.quote = null; }
@@ -295,11 +301,13 @@
 
   function failure(code) { var error = new Error(code); error.code = code; return error; }
   /** `lasting`: the request is sent although the page is being left. */
-  function api(method, path, body, lasting) {
+  /** A call to the board. body: sent as JSON; upload: { file, name } - a file sent as it is, its name in a header. */
+  function api(method, path, body, lasting, upload) {
     var token = store.get(TOKEN);
     var options = { method: method, headers: {}, keepalive: !!lasting };
     if (token) { options.headers.Authorization = "Bearer " + token; }
     if (body !== undefined) { options.headers["Content-Type"] = "application/json"; options.body = JSON.stringify(body); }
+    if (upload) { options.headers["Content-Type"] = "application/octet-stream"; options.headers["X-Name"] = encodeURIComponent(upload.name); options.body = upload.file; }
     return fetch(API + path, options).then(function (response) {
       return response.json().catch(function () { return {}; }).then(function (data) {
         if (response.ok) { return data; }
@@ -384,7 +392,8 @@
     var preview = shot ? "data:image/jpeg;base64," + shot.data : kept ? API + "/image/" + kept.key : "";
     return '<div class="attach" data-attach="' + where + '">' +
       (preview ? '<span class="attach__thumb"><img src="' + esc(preview) + '" alt="התמונה שמצורפת">' +
-        '<button type="button" class="ib" data-act="detach" data-where="' + where + '" aria-label="הסרת התמונה" title="הסרת התמונה">' + icon("close") + "</button></span>" : "") + "</div>";
+        '<button type="button" class="ib" data-act="detach" data-where="' + where + '" aria-label="הסרת התמונה" title="הסרת התמונה">' + icon("close") + "</button></span>" : "") +
+      (ui.files[where] || []).map(function (file) { return fileChip(file, where); }).join("") + "</div>";
   }
   function redrawAttach(where) {
     var box = document.querySelector('[data-attach="' + where + '"]');
@@ -398,12 +407,58 @@
       dockReady();
     }, say);
   }
-  /** Adds the picture attached at `where` to what is sent; for an edit also "the picture is removed". */
+  /** Adds the picture and the files attached at `where` to what is sent; for an edit also "the picture is removed"
+   *  and the files as they are to be (the ones kept and the new ones - the board removes the rest). */
   function withShot(body, where) {
-    var shot = ui.shots[where];
+    var shot = ui.shots[where], files = ui.files[where];
     if (shot) { body.image = { data: shot.data, w: shot.w, h: shot.h }; }
     else if (where === "edit" && shot === null) { body.image = null; }
+    if (files && (where === "edit" || files.length)) { body.files = files.filter(function (file) { return file.key; }).map(function (file) { return file.key; }); }
     return body;
+  }
+  /** A file is still on its way to the board: what is being written waits for it. */
+  function uploading(where) {
+    if (!(ui.files[where] || []).some(function (file) { return file.pending; })) { return false; }
+    toast("רגע, קובץ עדיין עולה.");
+    return true;
+  }
+  var FILE_ICON = { "application/pdf": "picture-as-pdf", "application/zip": "folder-zip", "application/gpx+xml": "map" };
+  function fileIcon(file) { return FILE_ICON[file.mime] || "description"; }
+  /** A file attached to what is being written: its name and size, and a way to remove it. */
+  function fileChip(file, where) {
+    return '<span class="file file--draft' + (file.pending ? " file--pending" : "") + '">' + icon(fileIcon(file)) + '<span class="file__name">' + esc(file.name) + "</span>" +
+      (file.pending ? '<span class="file__size">מעלה…</span>' : '<span class="file__size">' + megabytes(file.bytes) + "</span>" +
+        '<button type="button" class="ib ib--small" data-act="detach-file" data-where="' + where + '" data-key="' + esc(file.key) + '" aria-label="הסרת הקובץ" title="הסרת הקובץ">' + icon("close") + "</button>") + "</span>";
+  }
+  /** The files of a message: a row of chips, each a download. */
+  function attachments(files) {
+    if (!files || !files.length) { return ""; }
+    return '<ul class="files">' + files.map(function (file) {
+      return '<li><a class="file" href="' + esc(API + "/file/" + file.key) + '" download="' + esc(file.name) + '" title="הורדה">' + icon(fileIcon(file)) +
+        '<span class="file__name">' + esc(file.name) + '</span><span class="file__size">' + megabytes(file.bytes) + "</span>" + icon("download", "file__dl") + "</a></li>";
+    }).join("") + "</ul>";
+  }
+  /** A file for a message goes to the board at once (POST /files) and is named by its key in the message that
+   *  follows; until then it shows as "uploading". The board decides what it is by its bytes; the page only spares
+   *  it what it can tell by the name and the size. */
+  function uploadFile(where, file) {
+    var limits = state.config.limits, list = ui.files[where] || (ui.files[where] = []);
+    if (list.length >= limits.filesPerPost) { toast(ERRORS.too_many_files); return; }
+    if (file.size > limits.fileBytes) { toast(ERRORS.big_file); return; }
+    if (!/\.(pdf|zip|txt|log|md|csv|json|gpx)$/i.test(file.name)) { toast(ERRORS.bad_file); return; }
+    var entry = { pending: true, name: file.name, topic: state.current ? state.current.topic.id : 0 };
+    list.push(entry);
+    redrawAttach(where);
+    api("POST", "/files", undefined, false, { file: file, name: file.name }).then(function (made) {
+      entry.pending = false; entry.key = made.key; entry.name = made.name; entry.bytes = made.bytes; entry.mime = made.mime;
+      redrawAttach(where);
+      dockReady();
+    }, function (error) {
+      var at = list.indexOf(entry);
+      if (at !== -1) { list.splice(at, 1); }
+      redrawAttach(where);
+      say(error);
+    });
   }
 
   /* ---------- how far the reader got in a topic ---------- */
@@ -604,6 +659,7 @@
     ui.ownAvatar = null;
     ui.draft = blankDraft(); ui.reply = null; ui.quote = null; ui.picked = {}; ui.shown = {};      // what he was writing does not stay for the next one at this computer
     ui.shots = { reply: null, compose: null, edit: undefined };
+    ui.files = { reply: [], compose: [], edit: undefined };
   }
   /** What the visitor was on the way to when the board asked him to sign in. */
   function follow() {
@@ -805,11 +861,17 @@
   }
   function textTools(id) {
     return writeTool(id, "bold", "format-bold", "מודגש") + writeTool(id, "italic", "format-italic", "נטוי") + writeTool(id, "list", "format-list-bulleted", "רשימה", "mi--flip") +
-      writeTool(id, "code", "code", "קוד") + writeTool(id, "link", "add-link", "קישור") + writeTool(id, "mention", "alternate-email", "אזכור משתמש");
+      writeTool(id, "code", "code", "קוד") + writeTool(id, "link", "add-link", "קישור") + writeTool(id, "spoiler", "visibility-off", "ספוילר: טקסט שמוצג רק בלחיצה") +
+      writeTool(id, "mention", "alternate-email", "אזכור משתמש");
   }
   function fileButton(where, look) {
     return '<label class="ib ' + (look || "ib--small") + ' filebtn" title="צירוף תמונה">' + icon("image") + '<span class="sr-only">צירוף תמונה</span>' +
       '<input type="file" class="sr-only" accept="image/*" data-change="attach" data-where="' + where + '"></label>';
+  }
+  var FILE_KINDS = ".pdf,.zip,.txt,.log,.md,.csv,.json,.gpx";       // what the board takes (src/files.js decides by the bytes)
+  function attachFileButton(where, look) {
+    return '<label class="ib ' + (look || "ib--small") + ' filebtn" title="צירוף קובץ (PDF, ZIP, טקסט, GPX; עד 1MB)">' + icon("attach-file") + '<span class="sr-only">צירוף קובץ</span>' +
+      '<input type="file" class="sr-only" accept="' + FILE_KINDS + '" multiple data-change="attach-file" data-where="' + where + '"></label>';
   }
   function previewButton(id) {
     return '<button type="button" class="mb mb--text mb--small" data-act="preview" data-for="' + id + '">' + icon("visibility") + "תצוגה מקדימה</button>";
@@ -821,7 +883,7 @@
         (hint ? '<small class="tf__hint" id="' + id + '-hint">' + hint + "</small>" : "") + "</div>" +
       '<div class="preview rt" id="' + id + '-preview" hidden></div>' +
       '<div class="suggest" id="' + id + '-suggest"></div>' +
-      '<div class="toolbar">' + textTools(id) + writeTool(id, "emoji", "mood", "סמיילי") + fileButton(where) + '<span class="grow"></span>' + previewButton(id) + "</div>" +
+      '<div class="toolbar">' + textTools(id) + writeTool(id, "emoji", "mood", "סמיילי") + fileButton(where) + attachFileButton(where) + '<span class="grow"></span>' + previewButton(id) + "</div>" +
       attachBox(where) + "</div>";
   }
   function tagsBox() {
@@ -1105,7 +1167,7 @@
     var last = topic.last;
     if (!last || last.text == null) { return ""; }
     var words = state.ignores[last.user.id] ? "הודעה של משתמש שבחרתם להתעלם ממנו."       // his words are folded in the topic, and not shown here either
-      : last.text ? esc(last.text) : icon("image") + "תמונה";
+      : last.text ? esc(last.text) : last.file ? icon("attach-file") + "קובץ מצורף" : icon("image") + "תמונה";
     if (!topic.replies) { return '<div class="tease tease--first"><span class="tease__text">' + words + "</span></div>"; }
     // the name at the beginning of the first line and the time at its end, as in a list of chats; under them, the words
     return '<div class="tease"><span class="tease__by"><span class="sr-only">תגובה אחרונה מאת </span>' + face(last.user, "xs") + name(last.user.name) +
@@ -1270,7 +1332,7 @@
       body = editForm(post);
     } else {
       body = cite(post.quote) + (post.body ? '<div class="rt">' + window.BoardText.render(post.body, { mentions: post.mentions, home: HOME }) + "</div>" : "") + picture(post.image) +
-        (post.first && data.poll ? pollView(data.poll) : "") + (post.sig ? '<p class="post__sig">' + name(post.sig) + "</p>" : "");
+        attachments(post.files) + (post.first && data.poll ? pollView(data.poll) : "") + (post.sig ? '<p class="post__sig">' + name(post.sig) + "</p>" : "");
     }
     // the signs a message got, each with its count - the like among them; and the small tools of a message
     var reactions = post.reactions || {}, mine = post.mine || [], liked = mine.indexOf(like) !== -1, acts = "";
@@ -1371,7 +1433,7 @@
       '<div id="quote-slot">' + quoteSlot() + "</div>" +
       '<div class="toolbar dock__tools" id="reply-tools" hidden>' + textTools(id) + '<span class="grow"></span>' + previewButton(id) + "</div>" +
       '<div class="suggest" id="' + id + '-suggest"></div>' +
-      '<div class="dock__row">' + fileButton("reply", "dock__add") +
+      '<div class="dock__row">' + fileButton("reply", "dock__add") + attachFileButton("reply", "dock__add dock__add--file") +
         '<div class="dock__pill"><div class="preview rt" id="' + id + '-preview" hidden></div>' +
           '<div class="writer__field"><textarea id="' + id + '" rows="1" placeholder="כתיבת תגובה…" aria-label="תגובה" maxlength="' + state.config.limits.body + '" data-mentions>' + esc(typed) + "</textarea></div>" +
           '<button type="button" class="ib ib--small" data-act="format" aria-pressed="false" aria-controls="reply-tools" title="עיצוב הטקסט" aria-label="עיצוב הטקסט">' + icon("text-format") + "</button>" +
@@ -1382,7 +1444,7 @@
   /** The send button of the reply bar wakes up when there is something to send. */
   function dockReady() {
     var input = document.getElementById("reply-text");
-    if (input && input.form) { input.form.classList.toggle("is-ready", !!input.value.trim() || !!ui.shots.reply); }
+    if (input && input.form) { input.form.classList.toggle("is-ready", !!input.value.trim() || !!ui.shots.reply || ui.files.reply.length > 0); }
   }
   function watchLevel() { return state.current ? state.current.watch || 0 : 0; }
   function watchMenu() {
@@ -1396,6 +1458,7 @@
     var data = state.current, topic = data.topic, me = state.me, mod = isMod();
     if (ui.quote && ui.quote.topic !== topic.id) { ui.quote = null; }                    // what was being written belongs to another topic
     if (ui.shots.reply && ui.shots.reply.topic !== topic.id) { ui.shots.reply = null; }
+    ui.files.reply = ui.files.reply.filter(function (file) { return file.topic === topic.id; });      // what was attached to a reply in another topic stays there
     var votable = topic.kind !== "question" && topic.state === "ok";
     function voteButton(block) {
       return !votable ? "" : '<button type="button" class="mb ' + (data.voted ? "mb--tonal" : "mb--filled") + (block ? " mb--block mb--large" : "") + '" data-act="vote" data-id="' + topic.id +
@@ -1680,7 +1743,10 @@
           }).join("") + "</div></li>" : "") +
           '<li class="item srow"><div class="srow__text"><b>התראות דפדפן</b><span>' + (q.pushOn ? "פעילות. " + count(s.browsers, "דפדפן אחד נרשם", "דפדפנים נרשמו", "עוד לא נרשם דפדפן") + "." : "לא הוגדרו (חסר מפתח VAPID).") + "</span></div></li></ul>" +
         (q.storage && q.storage.bytes ? '<h2 class="group__title">אחסון</h2><ul class="group"><li class="item srow"><div class="srow__text"><b>המסד תופס ' + megabytes(q.storage.bytes) + " מתוך 500MB</b><span>" +
-          count(q.storage.images, "תמונה אחת צורפה", "תמונות צורפו", "לא צורפו תמונות") + " להודעות.</span></div></li></ul>" : "");
+          count(q.storage.images, "תמונה אחת צורפה", "תמונות צורפו", "לא צורפו תמונות") + " להודעות." +
+          (q.storage.apart ? "" : " " + count(q.storage.files, "קובץ אחד צורף", "קבצים צורפו", "לא צורפו קבצים") + ".") + "</span></div></li>" +
+          (q.storage.apart ? '<li class="item srow"><div class="srow__text"><b>מסד הקבצים תופס ' + megabytes(q.storage.fileBytes) + " מתוך 500MB</b><span>" +
+            count(q.storage.files, "קובץ אחד צורף", "קבצים צורפו", "לא צורפו קבצים") + " להודעות.</span></div></li>" : "") + "</ul>" : "");
     }
     return '<div class="narrow">' + pageHead("ניהול") +
       group("הודעות שממתינות לאישור", held, "אין הודעות שממתינות.") +
@@ -1765,6 +1831,11 @@
       var from = input.selectionStart, to = input.selectionEnd, chosen = input.value.slice(from, to) || "מילים";
       var text = "[" + chosen + "](https://)";
       typedInto(input, text, from, to, from + text.length - 1, from + text.length - 1);      // the cursor waits after "https://"
+    },
+    spoiler: function (input) {          // one line: covered words; several lines: a block that opens on a press
+      var from = input.selectionStart, to = input.selectionEnd, chosen = input.value.slice(from, to);
+      if (chosen.indexOf("\n") === -1) { wrapSelection(input, "||", "||", "ספוילר"); return; }
+      typedInto(input, "||\n" + chosen + "\n||", from, to, from + 3, from + 3 + chosen.length);
     },
     list: function (input) {             // every marked line becomes an item
       var text = input.value, from = text.lastIndexOf("\n", input.selectionStart - 1) + 1, to = input.selectionEnd;
@@ -1883,11 +1954,12 @@
     peek.id = id;
     peek.timer = setTimeout(function () {
       peekOf(id).then(function (data) {
-        if (peek.id !== id || peek.el || !document.body.contains(words) || (!data.text && !data.image)) { return; }
+        if (peek.id !== id || peek.el || !document.body.contains(words) || (!data.text && !data.image && !data.files)) { return; }
         var el = document.createElement("div");
         el.className = "peek";
         el.setAttribute("role", "tooltip");
-        el.innerHTML = (data.text ? "<p>" + esc(data.text) + "</p>" : "") + (data.image ? '<span class="peek__more">' + icon("image") + "מצורפת תמונה</span>" : "");
+        el.innerHTML = (data.text ? "<p>" + esc(data.text) + "</p>" : "") + (data.image ? '<span class="peek__more">' + icon("image") + "מצורפת תמונה</span>" : "") +
+          (data.files ? '<span class="peek__more">' + icon("attach-file") + (data.files === 1 ? "מצורף קובץ" : "מצורפים " + data.files + " קבצים") + "</span>" : "");
         document.getElementById("board").appendChild(el);
         // under the title, its right edge with the title's; above it when there is no room below
         var rect = words.getBoundingClientRect(), left = rect.right - el.offsetWidth, top = rect.bottom + 8;
@@ -2028,6 +2100,7 @@
     },
     topic: function (form) {
       keepDraft();
+      if (uploading("compose")) { return; }
       var draft = ui.draft, typedTag = value("tag-input").trim();
       // support: whoever proposes an idea or reports a bug is its first supporter (he can take it back in the topic)
       var body = withShot({ kind: draft.kind, title: draft.title, body: draft.body, tags: draft.tags.concat(typedTag ? [typedTag] : []), mentions: mentionIds(draft.body),
@@ -2037,6 +2110,7 @@
         return api("POST", "/topics", body).then(function (made) {
           ui.draft = blankDraft();
           ui.shots.compose = null;
+          ui.files.compose = [];
           ui.modal = "";
           renderModal();
           flushDrafts();                           // what was sent is no draft any more
@@ -2049,6 +2123,7 @@
     },
     reply: function (form) {
       if (!needLogin("כדי להגיב נרשמים או נכנסים.")) { return; }
+      if (uploading("reply")) { return; }
       var text = value("reply-text");
       var body = withShot({ body: text, mentions: mentionIds(text) }, "reply");
       if (ui.quote) { body.quote = { post: ui.quote.post, text: ui.quote.marked }; }
@@ -2058,6 +2133,7 @@
           ui.reply = null;
           ui.quote = null;
           ui.shots.reply = null;
+          ui.files.reply = [];
           ui.typedAt = 0;                          // no longer writing
           ui.liveUntil = Date.now() + 2 * MIN;
           toast(made.state === "held" ? "ההודעה נשלחה וממתינה לאישור." : "ההודעה פורסמה.");
@@ -2067,6 +2143,7 @@
       });
     },
     edit: function (form) {
+      if (uploading("edit")) { return; }
       var text = value("edit-text");
       var body = withShot({ body: text, mentions: mentionIds(text) }, "edit");
       if (document.getElementById("edit-title")) { body.title = value("edit-title"); body.tags = splitTags(value("edit-tags")); }
@@ -2074,6 +2151,7 @@
         return api("PUT", "/posts/" + idOf(form), body).then(function (out) {
           ui.editing = 0;
           ui.shots.edit = undefined;
+          ui.files.edit = undefined;
           if (out.state === "held") { toast("ההודעה נשמרה וממתינה לאישור."); }
           return again();
         });
@@ -2290,11 +2368,24 @@
       closeFloat();
       ui.editing = idOf(el);
       ui.shots.edit = undefined;
+      ui.files.edit = ((postOf(ui.editing) || {}).files || []).slice();      // the message's own files, as they are to be
       render();
       var input = document.getElementById("edit-text");
       if (input) { input.focus(); input.scrollIntoView({ block: "center" }); }
     },
-    "edit-cancel": function () { ui.editing = 0; ui.shots.edit = undefined; render(); },
+    "edit-cancel": function () { ui.editing = 0; ui.shots.edit = undefined; ui.files.edit = undefined; render(); },
+    /** A spoiler inside a line: a press shows it, another covers it again; open, a link inside it works as a link. */
+    spoiler: function (el, event) {
+      if (el.classList.contains("is-open")) {
+        if (event && event.target.closest && event.target.closest("a")) { return; }
+        el.classList.remove("is-open");
+        el.setAttribute("aria-expanded", "false");
+      } else {
+        if (event && event.preventDefault) { event.preventDefault(); }
+        el.classList.add("is-open");
+        el.setAttribute("aria-expanded", "true");
+      }
+    },
     quote: function (el) {
       if (!needLogin("כדי להגיב נרשמים או נכנסים.")) { return; }
       var id = idOf(el), post = postOf(id);
@@ -2324,6 +2415,12 @@
     },
     zoom: function (el) { ui.zoom = el.getAttribute("data-key"); ui.modal = "zoom"; renderModal(); },
     detach: function (el) { var where = el.getAttribute("data-where"); ui.shots[where] = null; redrawAttach(where); dockReady(); },
+    "detach-file": function (el) {
+      var where = el.getAttribute("data-where"), key = el.getAttribute("data-key");
+      ui.files[where] = (ui.files[where] || []).filter(function (file) { return file.key !== key; });
+      redrawAttach(where);
+      dockReady();
+    },
     "copy-link": function (el) {
       var id = idOf(el), link = location.href.split("#")[0] + "#t=" + state.current.topic.id + (id ? "&p=" + id : "");
       closeFloat();
@@ -2601,6 +2698,12 @@
       if (file) { attach(el.getAttribute("data-where"), file); }
       el.value = "";
     },
+    "attach-file": function (el) {
+      var where = el.getAttribute("data-where"), files = Array.prototype.slice.call(el.files || []);
+      el.value = "";
+      if (!files.length || !needLogin("כדי לצרף קובץ נרשמים או נכנסים.")) { return; }
+      files.forEach(function (file) { uploadFile(where, file); });
+    },
     avatar: function (el) {
       var file = el.files && el.files[0];
       if (!file) { return; }
@@ -2712,6 +2815,7 @@
       else if (ui.modal) { closeModal(); }
       return;
     }
+    if (target.classList && target.classList.contains("spoiler") && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); acts.spoiler(target); return; }
     if (target.id === "reply-text" && event.key === "Enter" && (event.ctrlKey || event.metaKey)) { event.preventDefault(); forms.reply(target.form); return; }
     if (target.id === "tag-input") {
       if (event.key === "Enter") { event.preventDefault(); if (target.value.trim()) { addTag(target.value); } return; }      // a tag, not the whole form
@@ -2736,7 +2840,7 @@
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   });
   /** The ink of a press (Material's ripple): a circle that grows from where a control was touched, and fades when it is let go. */
-  var INK = ".mb, .ib, .fab, .chip:not(.chip--plain), .navitem, .menu__item, .item--link, .seg__b, .tab, .poll__opt, .watchrow, .replybar, .dock__send, .react, .trow";
+  var INK = ".mb, .ib, .fab, .chip:not(.chip--plain), .navitem, .menu__item, .item--link, .seg__b, .tab, .poll__opt, .watchrow, .replybar, .dock__send, .react, .trow, a.file";
   var STILL = !!window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function ink(event) {
     var host = event.target.closest ? event.target.closest(INK) : null;
