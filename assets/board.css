@@ -12,7 +12,7 @@
 
 /* the typeface of the forum: what is in it, and its menus, dialogs and messages, wherever they open (forum.html and
    site.js load it). The top bar and the footer stay the site's (Rubik). */
-.board, #float, #modal, #toast, .pill {
+.board, #float, #modal, #navlayer, #toast, .pill {
   --display: "Google Sans", "Rubik", "Segoe UI", Arial, sans-serif;
   --body: "Google Sans", "Rubik", "Segoe UI", Arial, sans-serif;
   font-family: var(--body);
@@ -182,6 +182,7 @@
 }
 .fab:hover { box-shadow: var(--md-shadow-3); }
 .fab--float { display: none; position: fixed; z-index: 15; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 16px; box-shadow: var(--md-shadow-3); }
+.fab--always { display: inline-flex; }                       /* the pages without a drawer beside them (board.js: newTopicFab) */
 
 /* ---------- chips, labels, badges ---------- */
 .chip {
@@ -401,6 +402,29 @@ a.who:hover { text-decoration: underline; }
 .drawer { position: sticky; top: 84px; display: grid; gap: 16px; max-height: calc(100vh - 100px); overflow-y: auto; scrollbar-width: thin; padding-bottom: 4px; }
 .drawer__title { padding-inline: 16px; font-size: 22px; line-height: 28px; }
 .drawer .fab { justify-self: start; }
+/* the menu button beside the search bar; the drawer folded into a strip of icons (board.js: ui.rail) */
+.searchrow { display: flex; align-items: center; gap: 8px; }
+.searchrow .search { flex: 1 1 0; min-width: 0; }
+.navbtn--narrow { display: none; }                 /* beside the search only when the drawer is not beside the list */
+.drawer > .drawer__head { margin-bottom: -4px; }
+.shell--rail .drawer__head { justify-content: center; padding: 0; }
+.shell--rail { grid-template-columns: 80px minmax(0, 1fr); }
+.shell--rail .drawer { justify-items: center; gap: 12px; }
+.shell--rail .drawer .fab { justify-self: center; width: 56px; padding: 0; justify-content: center; }
+.shell--rail .fab__label, .shell--rail .navitem > span:not(.counter), .shell--rail .drawer .navlabel, .shell--rail .drawer .chips, .shell--rail .drawer .wanted,
+.shell--rail .drawer > .hr { display: none; }
+.shell--rail .navlist { justify-items: center; gap: 4px; }
+.shell--rail .navitem { position: relative; display: flex; justify-content: center; width: 56px; height: 36px; padding: 0; border-radius: 18px; }
+.shell--rail .navitem .counter { position: absolute; top: -2px; inset-inline-end: 4px; }
+.shell--rail .navlist .hr { width: 40px; margin-block: 6px; }
+/* the drawer over the page: a narrow window, or a page without the drawer beside it (board.js: openNav) */
+.navscrim { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 50; background: var(--md-scrim); }
+#navlayer .drawer {
+  display: grid; position: fixed; z-index: 51; top: 0; bottom: 0; right: 0; width: min(320px, calc(100vw - 56px)); max-height: none;
+  align-content: start; padding: 12px 12px 16px; border-radius: 16px 0 0 16px; background: var(--md-card); box-shadow: var(--md-shadow-3); overscroll-behavior: contain;
+}
+.drawer__head { display: flex; align-items: center; gap: 8px; padding-inline-start: 4px; }
+body.nav-open { overflow: hidden; }
 .navlist { display: grid; gap: 2px; }
 .navitem {
   display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 12px; height: 52px; padding-inline: 16px 20px; border-radius: 26px;
@@ -897,6 +921,9 @@ a.file:hover { background: var(--md-fill-high); }
   .dialog { animation: veil-in .18s var(--ease); }
   .dialog__box { animation: rise-in .25s var(--ease); }
   .float { animation: pop-in .15s var(--ease); }
+  .navscrim { animation: veil-in .2s var(--ease); }
+  #navlayer .drawer { animation: drawer-in .25s var(--arrive); }
+  @keyframes drawer-in { from { transform: translateX(100%); } }
   @keyframes veil-in { from { opacity: 0; } }
   @keyframes rise-in { from { opacity: 0; transform: translateY(12px) scale(.98); } }
   @keyframes pop-in { from { opacity: 0; transform: scale(.96); } }
@@ -908,6 +935,7 @@ a.file:hover { background: var(--md-fill-high); }
   .drawer { display: none; }
   .kindchips { display: flex; }
   .fab--float { display: inline-flex; }
+  .navbtn--narrow { display: inline-flex; }
   .board[data-view="topic"] ~ .fab--float { display: none; }
   .tv { grid-template-columns: minmax(0, 1fr); }
   .side { display: none; }

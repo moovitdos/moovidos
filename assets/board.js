@@ -39,7 +39,8 @@
   var OWNER = /[?&]owner=1/.test(location.search);        // the owner's own sign-up: shows the owner-code field
   var TOKEN = "mv-board-token", MEMORY = "mv-board-memory";
   var KNOWN = "mv-board-known";       // this browser had a signed-in member once: "כניסה / הרשמה" opens on "כניסה" (kept after signing out)
-  var DRAFTS = "mv-board-drafts";     // what the member began to write and did not send (see "drafts" below)
+  var DRAFTS = "mv-board-drafts";
+  var RAIL = "mv-board-rail";         // the drawer of a wide window folded into a strip of icons ("1"), as the reader left it     // what the member began to write and did not send (see "drafts" below)
   var HOME = location.origin + location.pathname;      // this page's own address: a link to it in a message stays in the page
   var TITLE = document.title;
   var MIN = 60000, HOUR = 60 * MIN, DAY = 24 * HOUR;
@@ -122,6 +123,7 @@
   var ui = {
     route: { view: "list", kind: "", filter: "", tag: "" }, view: "loading", sort: "active", listHash: "", listScroll: 0,
     float: null,                          // the open menu: { key, anchor }
+    nav: null,                            // the drawer opened over the page (a narrow window, or a page without the drawer): what opened it
     modal: "", ask: null,                 // the open dialog; `ask` = the question a small dialog puts
     authTab: "login", authNote: "", authName: "", authMail: "", after: "",
     authNotify: true,                     // the sign-up form's "mail me about replies": on unless he turns it off
@@ -150,6 +152,7 @@
     get: function (key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
     set: function (key, value) { try { if (value == null) { localStorage.removeItem(key); } else { localStorage.setItem(key, value); } } catch (e) { /* private window */ } }
   };
+  ui.rail = store.get(RAIL) === "1";
   var memory = (function () {
     var saved = null;
     try { saved = JSON.parse(store.get(MEMORY) || "null"); } catch (e) { saved = null; }
@@ -1206,18 +1209,22 @@
     var found = (route.filter ? MINE : NAV).filter(function (item) { return item[0] === (route.filter || route.kind); })[0];
     return found ? found[1] : NAV[0][1];
   }
-  function drawer() {
-    var route = ui.route, list = state.list, counts = list.counts || {};
+  /** The drawer: "נושא חדש" at its top, the places of the forum, the tags and the wanted ideas. Beside the list in a
+   *  wide window (folded into a strip of icons when the reader asks, ui.rail); over the page when `modal` - a narrow
+   *  window, or a page that has no drawer of its own (openNav). */
+  function drawer(modal) {
+    var route = ui.route, list = state.list || {}, counts = list.counts || {}, listed = ui.view === "list";
     var nav = NAV.map(function (item) {
-      var on = !route.filter && !route.tag && route.kind === item[0];
-      return '<a class="navitem" href="' + (item[0] ? "#k=" + item[0] : "#") + '"' + (on ? ' aria-current="true"' : "") + ">" + icon(item[2]) + "<span>" + item[1] +
-        '</span><span class="navitem__n">' + (counts[item[3]] || 0) + "</span></a>";
+      var on = listed && !route.filter && !route.tag && route.kind === item[0];
+      return '<a class="navitem" href="' + (item[0] ? "#k=" + item[0] : "#") + '" title="' + item[1] + '"' + (on ? ' aria-current="true"' : "") + ">" + icon(item[2]) + "<span>" + item[1] +
+        '</span><span class="navitem__n">' + (list.counts ? counts[item[3]] || 0 : "") + "</span></a>";
     }).join("");
     var mine = !state.me ? "" : '<hr class="hr">' + MINE.map(function (item) {
-      return '<a class="navitem" href="#f=' + item[0] + '"' + (route.filter === item[0] ? ' aria-current="true"' : "") + ">" + icon(item[2]) + "<span>" + item[1] + "</span>" +
+      return '<a class="navitem" href="#f=' + item[0] + '" title="' + item[1] + '"' + (listed && route.filter === item[0] ? ' aria-current="true"' : "") + ">" + icon(item[2]) + "<span>" + item[1] + "</span>" +
         (item[0] === "unread" && list.waiting ? '<span class="counter">' + list.waiting + "</span>" : "<span></span>") + "</a>";
-    }).join("") + '<a class="navitem" href="#saved">' + icon("bookmarks") + "<span>הודעות ששמרתי</span><span></span></a>" +
-      '<a class="navitem" href="#drafts">' + icon("edit") + "<span>טיוטות</span>" + (draftCount() ? '<span class="counter">' + draftCount() + "</span>" : "<span></span>") + "</a>";
+    }).join("") + '<a class="navitem" href="#saved" title="הודעות ששמרתי"' + (ui.view === "saved" ? ' aria-current="true"' : "") + ">" + icon("bookmarks") + "<span>הודעות ששמרתי</span><span></span></a>" +
+      '<a class="navitem" href="#drafts" title="טיוטות"' + (ui.view === "drafts" ? ' aria-current="true"' : "") + ">" + icon("edit") + "<span>טיוטות</span>" +
+        (draftCount() ? '<span class="counter">' + draftCount() + "</span>" : "<span></span>") + "</a>";
     var tags = (list.tags || []).length ? '<hr class="hr"><p class="navlabel">תגיות</p><div class="chips">' + list.tags.map(function (item) {
       return '<a class="chip' + (route.tag && sameTag(route.tag, item.tag) ? " chip--on" : "") + '" href="#tag=' + encodeURIComponent(item.tag) + '">' + name(item.tag) +
         '<span class="chip__n">' + item.n + "</span></a>";
@@ -1225,9 +1232,22 @@
     var wanted = (list.wanted || []).length ? '<hr class="hr"><p class="navlabel">הרעיונות עם הכי הרבה תומכים</p><ol class="wanted">' + list.wanted.map(function (topic) {
       return '<li><a href="#t=' + Number(topic.id) + '"><span class="lbl lbl--idea" title="תומכים">' + Number(topic.votes) + "</span><span>" + name(topic.title) + "</span></a></li>";
     }).join("") + "</ol>" : "";
-    return '<aside class="drawer">' +
-      '<button type="button" class="fab" data-act="new">' + icon("add") + "נושא חדש</button>" +
+    // the button that opens and closes the drawer sits at its top, where the drawer starts (Material's rail and drawer)
+    var head = modal ? '<div class="drawer__head"><button type="button" class="ib" data-act="drawer-close" aria-label="סגירת התפריט" title="סגירת התפריט">' + icon("menu") + "</button>" +
+        '<p class="drawer__title">פורום</p></div>'
+      : '<div class="drawer__head">' + menuButton(ui.rail ? "פתיחת התפריט" : "כיווץ התפריט") + "</div>";
+    return '<aside class="drawer' + (modal ? " drawer--modal" : "") + '"' + (modal ? ' role="dialog" aria-modal="true" aria-label="תפריט הפורום"' : "") + ">" + head +
+      '<button type="button" class="fab" data-act="new" title="נושא חדש">' + icon("add") + '<span class="fab__label">נושא חדש</span></button>' +
       '<nav class="navlist" aria-label="סינון הנושאים">' + nav + mine + "</nav>" + tags + wanted + "</aside>";
+  }
+  /** The menu button: folds the drawer beside the list of a wide window, opens it over the page anywhere else. */
+  function menuButton(label) {
+    return '<button type="button" class="ib navbtn" data-act="drawer" aria-label="' + (label || "תפריט") + '" title="' + (label || "תפריט") + '"' + (label ? "" : ' aria-haspopup="true"') + ">" +
+      icon("menu") + "</button>";
+  }
+  /** "נושא חדש" floating at the corner, for the pages that have no drawer beside them. */
+  function newTopicFab() {
+    return '<button type="button" class="fab fab--float fab--always" data-act="new">' + icon("add") + "נושא חדש</button>";
   }
   function listView() {
     var route = ui.route, list = state.list, topics = list.topics, counts = list.counts || {};
@@ -1263,7 +1283,7 @@
           : route.filter === "mine" ? "עוד לא פתחתם נושא." : route.tag ? "אין נושאים עם התגית הזו." : "עוד לא נפתחו נושאים מהסוג הזה.") + "</p>" +
         (own ? '<div class="row"><button type="button" class="mb mb--tonal" data-act="new" data-kind="' + own[0] + '">' + icon("add") + own[1] + "</button></div>" : "") + "</div>";
     }
-    return welcome() + '<div class="shell">' + drawer() + '<div class="main">' + searchForm("") +
+    return welcome() + '<div class="shell' + (ui.rail ? " shell--rail" : "") + '">' + drawer() + '<div class="main"><div class="searchrow">' + '<span class="navbtn--narrow">' + menuButton() + "</span>" + searchForm("") + "</div>" +
       '<nav class="kindchips" aria-label="סינון הנושאים">' + chips + "</nav>" +
       '<div class="listbar"><h2 class="listbar__sum">' + listTitle(route) + "</h2>" + sorts + "</div>" + body + "</div></div>" +
       '<button type="button" class="fab fab--float" data-act="new">' + icon("add") + "נושא חדש</button>";
@@ -1500,7 +1520,7 @@
         '<a class="ib" href="' + (ui.listHash || "#") + '" aria-label="חזרה לרשימת הנושאים" title="חזרה לרשימה">' + icon("arrow-forward") + "</a>" +
         '<span class="lbl lbl--' + esc(topic.kind) + '">' + icon(KIND_ICON[topic.kind] || "forum") + (KINDS[topic.kind] || "") + "</span>" + stateLabels(topic) +
         (topic.pinned ? '<span class="lbl">' + icon("push-pin-fill") + "נעוץ</span>" : "") + (topic.locked ? '<span class="lbl">' + icon("lock") + "נעול</span>" : "") +
-        '<span class="grow"></span>' +
+        '<span class="grow"></span>' + menuButton() +
         '<button type="button" class="ib" data-act="topic-menu" aria-haspopup="true" aria-expanded="false" aria-label="פעולות על הנושא" title="עוד">' + icon("more-vert") + "</button></div>" +
       '<h1 class="tv__title">' + name(topic.title) + "</h1>" +
       '<div class="tv__meta">' + byline(topic.author, true) + DOT + "<span>" + ago(topic.created) + "</span>" + DOT + "<span>" + repliesCount(topic.replies) + "</span>" +
@@ -1519,7 +1539,8 @@
       (post.text ? '<span class="hit__text">' + window.BoardText.mark(post.text, words) + "</span>" : "") + "</a></li>";
   }
   function pageHead(title, back) {
-    return '<div class="pagehead"><a class="ib" href="' + (back || ui.listHash || "#") + '" aria-label="חזרה" title="חזרה" style="margin-inline-start:-8px">' + icon("arrow-forward") + "</a><h1>" + title + "</h1></div>";
+    return '<div class="pagehead"><a class="ib" href="' + (back || ui.listHash || "#") + '" aria-label="חזרה" title="חזרה" style="margin-inline-start:-8px">' + icon("arrow-forward") + "</a><h1>" + title + "</h1>" +
+      '<span class="grow"></span>' + menuButton() + "</div>";
   }
   function searchView() {
     var found = state.found, q = ui.route.q;
@@ -1528,13 +1549,13 @@
       (none ? '<div class="empty" style="margin-top:16px"><span class="empty__icon">' + icon("search") + "</span><h2>" + (found.words.length ? "לא נמצא כלום" : "מה לחפש?") + "</h2><p>" +
           (found.words.length ? "אין נושא או הודעה עם כל המילים האלה. אפשר לנסות מילה אחת, או חלק ממילה." : "כותבים מילה של שתי אותיות לפחות.") + "</p></div>" : "") +
       (found.topics.length ? '<h2 class="group__title" style="margin-top:20px">נושאים</h2><ul class="group">' + found.topics.map(function (topic) { return topicRow(topic, true); }).join("") + "</ul>" : "") +
-      (found.posts.length ? '<h2 class="group__title">הודעות</h2><ul class="group">' + found.posts.map(function (post) { return hitRow(post, found.words); }).join("") + "</ul>" : "") + "</div>";
+      (found.posts.length ? '<h2 class="group__title">הודעות</h2><ul class="group">' + found.posts.map(function (post) { return hitRow(post, found.words); }).join("") + "</ul>" : "") + "</div>" + newTopicFab();
   }
   function savedView() {
     var posts = state.saved || [];
     return '<div class="narrow">' + pageHead("הודעות ששמרתי") +
       (posts.length ? '<ul class="group">' + posts.map(function (post) { return hitRow(post, []); }).join("") + "</ul>"
-        : '<div class="empty"><span class="empty__icon">' + icon("bookmarks") + "</span><h2>עוד לא שמרתם הודעות</h2><p>בכל הודעה יש סימנייה. הודעה שסימנתם נשמרת כאן, ורק אתם רואים אותה.</p></div>") + "</div>";
+        : '<div class="empty"><span class="empty__icon">' + icon("bookmarks") + "</span><h2>עוד לא שמרתם הודעות</h2><p>בכל הודעה יש סימנייה. הודעה שסימנתם נשמרת כאן, ורק אתם רואים אותה.</p></div>") + "</div>" + newTopicFab();
   }
 
   /** What was begun and not sent: the new topic, and the replies - each leads back to where it is written. */
@@ -1559,7 +1580,7 @@
     return '<div class="narrow">' + pageHead("טיוטות") +
       (rows.length ? '<ul class="group">' + rows.join("") + "</ul>"
         : '<div class="empty"><span class="empty__icon">' + icon("edit") + "</span><h2>אין טיוטות</h2><p>נושא חדש או תגובה שהתחלתם לכתוב ולא שלחתם נשמרים כאן מעצמם, וממשיכים אותם מתי שרוצים.</p></div>") +
-      '<p class="muted small" style="margin-top:16px;padding-inline:16px">טיוטות נשמרות בדפדפן הזה בלבד: הן לא נשלחות לפורום, לא מופיעות במכשיר אחר, ונמחקות כשיוצאים מהחשבון. תמונה שצורפה לא נשמרת בטיוטה.</p></div>';
+      '<p class="muted small" style="margin-top:16px;padding-inline:16px">טיוטות נשמרות בדפדפן הזה בלבד: הן לא נשלחות לפורום, לא מופיעות במכשיר אחר, ונמחקות כשיוצאים מהחשבון. תמונה שצורפה לא נשמרת בטיוטה.</p></div>' + newTopicFab();
   }
 
   /* ---------- a user as others see him ---------- */
@@ -1589,7 +1610,7 @@
         '<div class="stat"><b>' + data.stats.likes + '</b><span>לייקים</span></div><div class="stat"><b>' + data.stats.followers + '</b><span>עוקבים</span></div><div class="stat"><b>' + data.stats.following + "</b><span>עוקב אחרי</span></div>" +
         '<div class="stat"><b>' + data.stats.views + "</b><span>צפיות בדף</span></div></div>" +
       (data.posts.length ? '<h2 class="group__title">הודעות אחרונות</h2><ul class="group">' + data.posts.map(function (post) { return hitRow(post, []); }).join("") + "</ul>"
-        : '<p class="muted" style="padding-inline:16px">עוד לא כתב הודעות.</p>') + "</div>";
+        : '<p class="muted" style="padding-inline:16px">עוד לא כתב הודעות.</p>') + "</div>" + newTopicFab();
   }
 
   /* ---------- the account's own settings ---------- */
@@ -2269,7 +2290,19 @@
         return show();
       });
     },
+    drawer: function (el) {
+      if (!drawerBeside()) { openNav(el); return; }
+      ui.rail = !ui.rail;                                     // a wide window: the drawer folds into a strip of icons, and back
+      store.set(RAIL, ui.rail ? "1" : null);
+      var shell = document.querySelector(".shell");
+      if (shell) { shell.classList.toggle("shell--rail", ui.rail); }
+      var label = ui.rail ? "פתיחת התפריט" : "כיווץ התפריט";
+      el.setAttribute("aria-label", label);
+      el.setAttribute("title", label);
+    },
+    "drawer-close": function () { closeNav(true); },
     "new": function (el) {
+      closeNav();
       if (!state.config) { return; }
       var kind = el.getAttribute("data-kind"), untouched = !ui.draft.title && !ui.draft.body;
       if (kind) { ui.draft.kind = kind; }
@@ -2732,6 +2765,30 @@
     }
   };
 
+  /* ---------- the drawer over the page ---------- */
+  /** Is the drawer beside the list (a wide window)? Below it, the drawer comes over the page (board.css: max-width 1000px). */
+  function drawerBeside() { return ui.view === "list" && !(window.matchMedia && window.matchMedia("(max-width: 1000px)").matches); }
+  /** Material's modal navigation drawer: over a scrim; closed by the scrim, by Escape, by its close button, by going anywhere. */
+  function openNav(opener) {
+    var layer = document.getElementById("navlayer");
+    if (!layer) { layer = document.createElement("div"); layer.id = "navlayer"; document.body.appendChild(layer); }
+    layer.innerHTML = '<div class="navscrim" data-act="drawer-close"></div>' + drawer(true);
+    ui.nav = opener || null;
+    if (opener) { opener.setAttribute("aria-expanded", "true"); }
+    document.body.classList.add("nav-open");
+    var first = layer.querySelector(".drawer .fab");
+    if (first) { first.focus(); }
+  }
+  function closeNav(back) {
+    var layer = document.getElementById("navlayer");
+    if (!layer || !layer.innerHTML) { return; }
+    layer.innerHTML = "";
+    document.body.classList.remove("nav-open");
+    var opener = ui.nav;
+    ui.nav = null;
+    if (opener) { opener.setAttribute("aria-expanded", "false"); if (back && document.contains(opener)) { opener.focus(); } }
+  }
+
   /* ---------- what the page listens to ---------- */
   /** The address changed (or was pressed again): what was read is kept, the new place is loaded, and the page stands where it should. */
   function moved() {
@@ -2740,6 +2797,7 @@
     ui.editing = 0;
     ui.fresh = "";
     closeFloat();
+    closeNav();
     closeSuggest();
     flushDrafts();                                            // what was being written waits as a draft
     closeModal();                                             // the recovery code stays until it is acknowledged
@@ -2802,7 +2860,7 @@
     clearTimeout(scrolling);
     scrolling = setTimeout(reached, 150);
   }, { passive: true });
-  window.addEventListener("resize", function () { closeFloat(); });
+  window.addEventListener("resize", function () { closeFloat(); if (ui.nav && drawerBeside()) { closeNav(); } });
   document.addEventListener("submit", function (event) {
     var kind = event.target.getAttribute("data-form");
     if (!kind || !forms[kind]) { return; }
@@ -2825,6 +2883,7 @@
     }
     if (event.key === "Escape") {
       if (ui.float) { closeFloat(true); }
+      else if (ui.nav && !ui.modal) { closeNav(true); }
       else if (ui.modal) { closeModal(); }
       return;
     }
@@ -2840,8 +2899,8 @@
       if (next) { event.preventDefault(); next.focus(); }
       return;
     }
-    if (event.key !== "Tab" || !ui.modal) { return; }
-    var box = document.querySelector(".dialog__box");      // Tab stays inside the open dialog
+    if (event.key !== "Tab" || (!ui.modal && !ui.nav)) { return; }
+    var box = document.querySelector(ui.modal ? ".dialog__box" : ".drawer--modal");      // Tab stays inside the open dialog, or the drawer over the page
     if (!box) { return; }
     var stops = Array.prototype.filter.call(box.querySelectorAll("a[href], button, input, textarea, select, iframe"), function (node) {
       return !node.disabled && node.tabIndex !== -1 && node.offsetParent !== null;
