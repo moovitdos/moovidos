@@ -1713,6 +1713,17 @@
         '<button type="button" class="mb mb--text mb--small" data-act="report-done" data-id="' + Number(item.id) + '">סגירת הדיווח</button>' +
         '<a class="mb mb--text mb--small" href="#t=' + Number(item.topic) + "&p=" + Number(item.post) + '">לנושא</a></div></li>';
     });
+    // members whose writing crossed a line that was a quota until 6.10.2026 - told here, not stopped
+    var ALERT = {
+      burst: ["כתב", "הודעות ב-5 דקות"], day: ["כתב", "הודעות ביממה"], firstDay: ["כתב", "הודעות ביום הראשון של החשבון"],
+      topics: ["פתח", "נושאים בשעה"], images: ["צירף", "תמונות ביממה"], files: ["צירף", "קבצים ביממה"]
+    };
+    var alerts = (q.alerts || []).map(function (item) {
+      var words = ALERT[item.kind] || ["", item.kind];
+      return '<li class="item srow">' + face(item.user, "s") + '<div class="srow__text"><b>' + who(item.user) + "</b><span>" + words[0] + " " + Number(item.count) + " " + words[1] + " · " + ago(item.created) + "</span></div>" +
+        '<a class="mb mb--text mb--small" href="#u=' + Number(item.user.id) + '">הדף שלו</a>' +
+        '<button type="button" class="mb mb--tonal mb--small" data-act="alert-done" data-id="' + Number(item.id) + '">ראיתי</button></li>';
+    });
     var people = (q.people || []).map(function (user) {
       return '<li><a class="item item--link srow" href="#u=' + Number(user.id) + '">' + face(user, "s") + '<div class="srow__text"><b>' + name(user.name) + "</b><span>הצטרף " + ago(user.created) + " · " +
         count(user.posts, "הודעה אחת", "הודעות", "בלי הודעות") + "</span></div>" + marks(user) + (user.banned ? '<span class="lbl lbl--wait">חסום</span>' : "") + "</a></li>";
@@ -1751,7 +1762,8 @@
     return '<div class="narrow">' + pageHead("ניהול") +
       group("הודעות שממתינות לאישור", held, "אין הודעות שממתינות.") +
       (avatars.length || state.config.avatarReview ? group("תמונות פרופיל שממתינות לאישור", avatars, "אין תמונות שממתינות.") : "") +      // pictures wait only when AVATAR_REVIEW is on
-      group("דיווחים פתוחים", reports, "אין דיווחים פתוחים.") + ownerPart +
+      group("דיווחים פתוחים", reports, "אין דיווחים פתוחים.") +
+      group("פעילות חריגה", alerts, "אין. חבר שכותב הרבה במיוחד - 8 הודעות ב-5 דקות, 60 ביממה (15 ביום הראשון של החשבון), 4 נושאים בשעה, 30 תמונות או 20 קבצים ביממה - מופיע כאן. איש לא נחסם.") + ownerPart +
       '<h2 class="group__title">הנרשמים האחרונים</h2><ul class="group">' + people.join("") + "</ul></div>";
   }
 
@@ -2572,6 +2584,7 @@
       api("DELETE", "/admin/avatars/" + idOf(el)).then(function () { toast("תמונת הפרופיל הוסרה."); return again(); }, say);
     },
     "report-done": function (el) { api("POST", "/admin/reports/" + idOf(el), {}).then(again, say); },
+    "alert-done": function (el) { api("POST", "/admin/alerts/" + idOf(el), {}).then(again, say); },
     "avatar-review": function (el) { api("POST", "/admin/avatars/" + idOf(el), { ok: !!el.getAttribute("data-ok") }).then(again, say); },
     "mail-test": function (el) {
       el.disabled = true;
