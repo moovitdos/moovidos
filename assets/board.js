@@ -2091,17 +2091,16 @@
   }
   /** After the reader's own vote or sign: what was kept of that topic ("t:ID") or of that message's signs ("p:ID") is asked again. */
   function forgetLikers(of) { Object.keys(likers).forEach(function (key) { if (key === of || key.indexOf(of + ":") === 0) { delete likers[key]; } }); }
-  /** "אתם, דנה ויוסי", "דנה, יוסי ועוד 3": the reader first when he is among them. A deleted account is not named - it is counted. */
-  function likersLine(data, mine) {
-    var me = state.me ? state.me.id : 0;
-    var names = data.users.filter(function (user) { return user.id !== me; }).map(function (user) { return name(user.name); });
-    if (mine) { names.unshift("אתם"); }
-    var rest = Math.max(0, data.n - names.length);
-    if (!names.length) { return rest === 1 ? "משתמש אחד" : rest + " משתמשים"; }
-    if (rest) { return names.join(", ") + " ועוד " + (rest === 1 ? "אחד" : rest); }
-    if (names.length === 1) { return names[0]; }
-    var last = names.pop(), word = last.replace(/<[^>]*>/g, "");
-    return names.join(", ") + (/^[\u0590-\u05ff]/.test(word) ? " ו" : " ו-") + last;
+  /** The people behind a count, one to a line with their picture: the reader first ("אתם") when he is among them,
+   *  and "ועוד N" past the names. A deleted account is not named - it is counted. */
+  function likersList(data, mine) {
+    var me = state.me, rows = data.users.filter(function (user) { return !me || user.id !== me.id; }).map(function (user) {
+      return "<li>" + face(user, "xs") + name(user.name) + "</li>";
+    });
+    if (mine && me) { rows.unshift("<li>" + face(me, "xs") + "<span>אתם</span></li>"); }
+    var rest = Math.max(0, data.n - rows.length);
+    if (!rows.length) { return "<p>" + (rest === 1 ? "משתמש אחד" : rest + " משתמשים") + "</p>"; }
+    return '<ul class="peek__who">' + rows.join("") + "</ul>" + (rest ? '<p class="peek__rest">ועוד ' + (rest === 1 ? "אחד" : rest) + "</p>" : "");
   }
   function openLikers(count) {
     var key = count.getAttribute("data-likers"), n = Number(count.getAttribute("data-n")), mine = count.hasAttribute("data-mine"), id = "likers:" + key;
@@ -2110,12 +2109,12 @@
     if (!head) { return; }
     peek.id = id;
     peek.timer = setTimeout(function () {
-      (n ? likersOf(key).then(function (data) { return likersLine(data, mine); }, function () { return ""; }) : Promise.resolve("")).then(function (line) {
+      (n ? likersOf(key).then(function (data) { return likersList(data, mine); }, function () { return ""; }) : Promise.resolve("")).then(function (list) {
         if (peek.id !== id || peek.el || !document.body.contains(count)) { return; }
         var el = document.createElement("div");
         el.className = "peek peek--who";
         el.setAttribute("role", "tooltip");
-        el.innerHTML = line ? '<b class="peek__head">' + esc(head) + "</b><p>" + line + "</p>" : "<p>" + esc(head) + "</p>";
+        el.innerHTML = list ? '<b class="peek__head">' + esc(head) + "</b>" + list : "<p>" + esc(head) + "</p>";
         showPeek(count, el, true);
       });
     }, 300);
