@@ -43,18 +43,23 @@
 
   /**
    * full / lite APKs and the data files, one name per data generation (every app version downloads by name):
-   *   pack2 = moovidos_pack2_*.zip — version 2 and up (the data with the map and the walk graph);
+   *   pack3 = moovidos_pack3_*.zip — data generation v10 (transport_v10.db: the lean layout, places with phone
+   *           and opening hours; with the map and the walk graph), from the first release that ships it and up
+   *           (the version prefix stayed 2.0 — the row names that release: generationSince);
+   *   pack2 = moovidos_pack2_*.zip — the 2.0.x releases before v10 only (transport_v9.db; v10 apps refuse it, no
+   *           longer published — the row names them: generationRange);
    *   pack  = moovidos_pack_*.zip  — release 1.0.192 only, read by app version 1.0.192 alone;
    *   zip   = any other .zip (moovidos_data_*.zip, the legacy generation, versions before 1.0.192).
    * Single-APK releases: first .apk = full.
    */
   function findAssets(assets) {
-    var res = { full: null, lite: null, zip: null, pack: null, pack2: null };
+    var res = { full: null, lite: null, zip: null, pack: null, pack2: null, pack3: null };
     var list = Array.isArray(assets) ? assets : [];
     list.forEach(function (a) {
       var name = (a.name || '').toLowerCase();
       if (name.indexOf('full') >= 0 && endsWith(name, '.apk')) res.full = a;
       else if (name.indexOf('lite') >= 0 && endsWith(name, '.apk')) res.lite = a;
+      else if (name.indexOf('moovidos_pack3_') === 0 && endsWith(name, '.zip')) res.pack3 = a;
       else if (name.indexOf('moovidos_pack2_') === 0 && endsWith(name, '.zip')) res.pack2 = a;
       else if (name.indexOf('moovidos_pack_') === 0 && endsWith(name, '.zip')) res.pack = a;
       else if (endsWith(name, '.zip')) res.zip = a;
@@ -72,7 +77,8 @@
 
   /**
    * The oldest release that ships a moovidos_pack_*.zip = the cutover away from the legacy data, as "1.0.192":
-   * the legacy file is for the versions before it. (moovidos_pack2_ does not match — the "2" is not a "_".)
+   * the legacy file is for the versions before it. (moovidos_pack2_ / moovidos_pack3_ do not match — the digit is
+   * not a "_"; they are later generations with their own names.)
    */
   function packSince(releases) {
     var valid = (Array.isArray(releases) ? releases : []).filter(function (r) { return r && !r.draft; });
@@ -84,6 +90,45 @@
     var oldest = withPack.reduce(function (acc, r) { return stamp(r) < stamp(acc) ? r : acc; });
     var raw = cleanTitle(oldest.tag_name || oldest.name || '');
     return raw ? String(raw).replace(/^v/i, '') : null;
+  }
+
+  var PACK3_RE = /^moovidos_pack3_.*\.zip$/i;
+  var PACK2_RE = /^moovidos_pack2_.*\.zip$/i;
+
+  /** The published releases whose assets include a file matching `re`, oldest first (by publish date). */
+  function releasesWith(releases, re) {
+    var valid = (Array.isArray(releases) ? releases : []).filter(function (r) { return r && !r.draft; });
+    var stamp = function (r) { return new Date(r.published_at || r.created_at).getTime() || 0; };
+    return valid.filter(function (r) {
+      return (r.assets || []).some(function (a) { return re.test(a.name || ''); });
+    }).sort(function (a, b) { return stamp(a) - stamp(b); });
+  }
+
+  /**
+   * The first release that shipped a data file matching `re` (the cutover to that generation), as "2.0.221" —
+   * only when the switch is inside the list (an older release *without* such a file is there too), so a truncated
+   * list never names a wrong version; otherwise null and the row stays vague.
+   */
+  function generationSince(releases, re) {
+    var withPack = releasesWith(releases, re);
+    var all = (Array.isArray(releases) ? releases : []).filter(function (r) { return r && !r.draft; });
+    if (!withPack.length || withPack.length === all.length) return null;
+    return versionOf(withPack[0]) || null;
+  }
+
+  /** The versions of the first and the last release that shipped a file matching `re`, or null. */
+  function generationRange(releases, re) {
+    var withPack = releasesWith(releases, re);
+    if (!withPack.length) return null;
+    var first = versionOf(withPack[0]), last = versionOf(withPack[withPack.length - 1]);
+    return first && last ? { first: first, last: last } : null;
+  }
+
+  /** "לגרסה X ומעלה" for the current data pack, "לגרסה X" / "לגרסאות X–Y" for a retired one. */
+  function packNoteSince(since) { return since ? 'לגרסה ' + ltr(since) + ' ומעלה' : 'לגרסה הנוכחית'; }
+  function packNoteRange(range, fallback) {
+    if (!range) return fallback;
+    return range.first === range.last ? 'לגרסה ' + ltr(range.first) : 'לגרסאות ' + ltr(range.first + '–' + range.last);
   }
 
   function endsWith(s, suffix) {
@@ -207,7 +252,13 @@
     }
   }
 
-  /** All releases from the API, following pagination; null when page 1 could not be read. */
+  /** A release the site shows: published and not a beta (a beta = a GitHub pre-release, tag v2.0.N.beta — 8.10.2026,
+   *  built from a commit marked [beta]: not offered in the app, not on the site, no mail). */
+  function isPublicRelease(r) {
+    return !!r && !r.draft && !r.prerelease;
+  }
+
+  /** All public releases from the API, following pagination; null when page 1 could not be read. */
   async function fetchReleasesFromApi() {
     var all = [];
     for (var page = 1; page <= 50; page++) {
@@ -222,8 +273,9 @@
       Array.prototype.push.apply(all, data);
       if (data.length < 100) break;
     }
+    all = all.filter(isPublicRelease);
     // The list endpoint can lag behind a just-published release and return it with assets: [].
-    var latest = all.filter(function (r) { return r && !r.draft; })[0];
+    var latest = all[0];
     if (latest && latest.id && !(Array.isArray(latest.assets) && latest.assets.length)) {
       var full = await fetchJson(CFG.releasesApi + '/' + latest.id);
       if (full && Array.isArray(full.assets) && full.assets.length) latest.assets = full.assets;
@@ -236,6 +288,7 @@
       var fromApi = await fetchReleasesFromApi();
       if (fromApi && fromApi.length) return fromApi;
       var fromFile = await fetchJson(CFG.releasesStatic);
+      if (Array.isArray(fromFile)) fromFile = fromFile.filter(isPublicRelease);
       if (Array.isArray(fromFile) && fromFile.length) return fromFile;
       if (fromApi) return fromApi; // the API answered: there are genuinely no releases
       throw new Error('GitHub releases unavailable (API and releases.json)');
@@ -252,15 +305,22 @@
    * Downloads
    * ------------------------------------------------------------------ */
 
-  /** The asset list of one release as a card: the full APK as the main button, the rest as rows. */
-  function downloadCard(res, since) {
+  /**
+   * The asset list of one release as a card: the full APK as the main button, the rest as rows.
+   * `cut` = the generation cutovers computed from the whole release list: `pack` (packSince — "1.0.192"),
+   * `pack3` (generationSince — the first v10 release) and `pack2` (generationRange — the retired v9 releases).
+   */
+  function downloadCard(res, cut) {
+    cut = cut || {};
+    var since = cut.pack || null;
     var sinceHtml = since ? ltr(since) : '';
     var rows = [];
     if (res.lite) rows.push(dlRow(res.lite, 'lite', 'גרסה קלה', 'אפליקציה בלבד', 'i-android'));
-    if (res.pack2) rows.push(dlRow(res.pack2, 'pack', 'נתונים בלבד', 'לגרסה 2 ומעלה', 'i-archive'));
+    if (res.pack3) rows.push(dlRow(res.pack3, 'pack', 'נתונים בלבד', packNoteSince(cut.pack3), 'i-archive'));
+    if (res.pack2) rows.push(dlRow(res.pack2, 'pack', 'נתונים בלבד', packNoteRange(cut.pack2, 'לגרסאות 2.0 שלפני הדור הנוכחי'), 'i-archive'));
     if (res.pack) rows.push(dlRow(res.pack, 'pack', 'נתונים בלבד', since ? 'לגרסה ' + sinceHtml : 'לגרסה הנוכחית', 'i-archive'));
     if (res.zip) {
-      rows.push(res.pack2 || res.pack
+      rows.push(res.pack3 || res.pack2 || res.pack
         ? dlRow(res.zip, 'zip', 'נתונים לגרסאות ישנות', since ? 'לגרסאות שלפני ' + sinceHtml : 'לגרסאות קודמות', 'i-archive')
         : dlRow(res.zip, 'zip', 'נתונים בלבד', 'לייבוא ידני', 'i-archive'));
     }
@@ -312,7 +372,7 @@
       });
     }
 
-    var since = packSince(valid);
+    var cut = { pack: packSince(valid), pack3: generationSince(valid, PACK3_RE), pack2: generationRange(valid, PACK2_RE) };
     var latest = valid[0];
     var assets = findAssets(latest.assets);
     var notes = parseNotes(latest.body);
@@ -341,7 +401,7 @@
           explain.map(function (d) { return '<dt>' + rich(d.title) + '</dt><dd>' + rich(d.text) + '</dd>'; }).join('') +
           '</dl></details>' : '') +
       '</div>' +
-      downloadCard(assets, since) +
+      downloadCard(assets, cut) +
     '</div>';
 
     var older = valid.slice(1, 1 + CFG.olderCount);

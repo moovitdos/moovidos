@@ -1147,6 +1147,13 @@
   }
   function voteLabel(topic) { return topic.kind === "bug" ? "קורה גם אצלי" : "תמיכה ברעיון"; }
   function votedLabel(topic) { return topic.kind === "bug" ? "סימנתם שקורה גם אצלכם" : "תמכתם ברעיון"; }
+  function supportersHead(topic) { return topic.kind === "bug" ? "סימנו שזה קורה גם אצלם" : "תומכים ברעיון"; }
+  /** What lets the pointer resting on a count show who is behind it (openLikers): the key the board is asked by
+   *  (t:ID - who supports a topic; p:ID:EMOJI - who put a sign on a message), the count, the words above the names,
+   *  whether the reader is among them, and - for a count of none - what pressing it does. */
+  function likersAttrs(key, n, head, mine, hint) {
+    return ' data-likers="' + key + '" data-n="' + Number(n) + '" data-who="' + esc(head) + '"' + (mine ? ' data-mine="1"' : "") + (hint ? ' data-hint="' + esc(hint) + '"' : "");
+  }
   /** The words under the number of votes (the number itself stands above them, large). */
   function votersLine(topic) {
     var n = topic.votes;
@@ -1188,8 +1195,8 @@
     var voted = !!(state.list && state.list.voted[topic.id]);
     var tease = plain ? "" : teaser(topic);
     var vote = plain || topic.kind === "question" || topic.state !== "ok" ? "" :
-      '<button type="button" class="chip" data-act="vote" data-id="' + topic.id + '" aria-pressed="' + voted + '" title="' + voteLabel(topic) +
-        '" aria-label="' + voteLabel(topic) + ": " + topic.votes + '">' + icon("arrow-upward") + '<span class="chip__n">' + topic.votes + "</span></button>";
+      '<button type="button" class="chip" data-act="vote" data-id="' + topic.id + '" aria-pressed="' + voted + '"' + likersAttrs("t:" + topic.id, topic.votes, supportersHead(topic), voted, voteLabel(topic)) +
+        ' aria-label="' + voteLabel(topic) + ": " + topic.votes + '">' + icon(voted ? "thumb-up-fill" : "thumb-up") + '<span class="chip__n">' + topic.votes + "</span></button>";
     return '<li class="item trow' + (fresh ? " trow--unread" : "") + (topic.watch === -1 ? " trow--muted" : "") + (tease ? " trow--tease" : "") + '">' + kindCircle(topic.kind) + "<div>" +
       '<a class="trow__title" href="#t=' + topic.id + '">' +
         (topic.pinned ? icon("push-pin-fill") + '<span class="sr-only">נעוץ: </span>' : "") + (topic.locked ? icon("lock") + '<span class="sr-only">נעול: </span>' : "") +
@@ -1372,9 +1379,13 @@
     }
     // the signs a message got, each with its count - the like among them; and the small tools of a message
     var reactions = post.reactions || {}, mine = post.mine || [], liked = mine.indexOf(like) !== -1, acts = "";
+    // a sign on one's own message is not pressed (aria-disabled, without its act) - but not disabled either: a
+    // disabled button gets no pointer in some browsers, and the writer is the one who wants to see who gave it
     function sign(emoji, drawn, title) {
-      return '<button type="button" class="react" data-act="react" data-id="' + post.id + '" data-emoji="' + emoji + '" aria-pressed="' + (mine.indexOf(emoji) !== -1) + '"' + (own ? " disabled" : "") +
-        (title ? ' title="' + title + '" aria-label="' + title + ": " + reactions[emoji] + '"' : "") + ">" + drawn + reactions[emoji] + "</button>";
+      var pressed = mine.indexOf(emoji) !== -1;
+      return '<button type="button" class="react"' + (own ? ' aria-disabled="true" tabindex="-1"' : ' data-act="react"') + ' data-id="' + post.id + '" data-emoji="' + emoji + '" aria-pressed="' + pressed + '"' +
+        likersAttrs("p:" + post.id + ":" + emoji, reactions[emoji], title ? "אהבו את ההודעה" : emoji, pressed) +
+        ' aria-label="' + (title || emoji) + ": " + reactions[emoji] + '">' + drawn + reactions[emoji] + "</button>";
     }
     function tool(act, iconId, title, more) {
       return '<button type="button" class="ib ib--small" data-act="' + act + '" data-id="' + post.id + '" title="' + title + '" aria-label="' + title + '"' + (more || "") + ">" + icon(iconId) + "</button>";
@@ -1532,7 +1543,7 @@
     var votable = topic.kind !== "question" && topic.state === "ok";
     function voteButton(block) {
       return !votable ? "" : '<button type="button" class="mb ' + (data.voted ? "mb--tonal" : "mb--filled") + (block ? " mb--block mb--large" : "") + '" data-act="vote" data-id="' + topic.id +
-        '" aria-pressed="' + !!data.voted + '">' + icon(data.voted ? "check" : "arrow-upward") + (data.voted ? votedLabel(topic) : voteLabel(topic)) + "</button>";
+        '" aria-pressed="' + !!data.voted + '">' + icon(data.voted ? "thumb-up-fill" : "thumb-up") + (data.voted ? votedLabel(topic) : voteLabel(topic)) + "</button>";
     }
     var level = WATCH.filter(function (item) { return item[0] === watchLevel(); })[0];
     function watchButton(block) {
@@ -1558,8 +1569,10 @@
     // the pane beside the topic, one group: the votes (large, with their button), the route of its status, the level
     // of following, two figures, who reads it now, who takes part
     var side = '<aside class="side" aria-label="על הנושא">' +
-      (votable ? '<div class="votecard' + (topic.kind === "bug" ? " votecard--bug" : "") + '">' + (topic.votes ? '<b class="votecard__n">' + topic.votes + "</b>" : "") +
-        '<p class="votecard__line">' + votersLine(topic) + "</p>" + voteButton(true) + "</div>" : "") + routeView(topic) +
+      (votable ? '<div class="votecard' + (topic.kind === "bug" ? " votecard--bug" : "") + '">' +
+        // the number and its words: the pointer resting on them shows who they are (openLikers)
+        '<div class="votecard__who"' + (topic.votes ? likersAttrs("t:" + topic.id, topic.votes, supportersHead(topic), !!data.voted) : "") + ">" + (topic.votes ? '<b class="votecard__n">' + topic.votes + "</b>" : "") +
+        '<p class="votecard__line">' + votersLine(topic) + "</p></div>" + voteButton(true) + "</div>" : "") + routeView(topic) +
       (me ? '<button type="button" class="watchrow' + (level[0] === 1 ? " watchrow--on" : "") + '" data-act="watch-menu" aria-haspopup="true" aria-expanded="false">' + icon(level[3]) +
         "<span><b>" + level[1] + "</b><span>" + level[2] + "</span></span>" + icon("expand-more") + "</button>" : "") +
       '<p class="factline"><span>' + repliesCount(topic.replies) + "</span>" + DOT + "<span>" + count(topic.views, "צפייה אחת", "צפיות", "בלי צפיות") + "</span></p>" +
@@ -2020,8 +2033,9 @@
   /* ---------- a look at a topic's first message, while the pointer rests on its title ---------- */
   // Only where there is a pointer to rest (a mouse). The board is asked once per topic, without the session - what
   // it answers is what everybody may read - and only after the pointer stayed a moment.
+  // The same small card says who is behind a count (openLikers): one card at a time, whichever it is.
   var HOVERS = !!window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-  var peeks = {}, peek = { id: 0, timer: 0, el: null };
+  var peeks = {}, peek = { id: "", timer: 0, el: null };
   function peekOf(id) {
     var kept = peeks[id];
     if (kept && Date.now() - kept.at < 5 * MIN) { return Promise.resolve(kept); }
@@ -2032,40 +2046,90 @@
   }
   function closePeek() {
     clearTimeout(peek.timer);
-    peek.id = 0;
+    peek.id = "";
     if (peek.el && peek.el.parentNode) { peek.el.parentNode.removeChild(peek.el); }
     peek.el = null;
   }
+  /** The card beside what it tells of: under it, its right edge with the anchor's (or centred on a small anchor),
+   *  above it when there is no room below. */
+  function showPeek(anchor, el, centred) {
+    document.getElementById("board").appendChild(el);
+    var rect = anchor.getBoundingClientRect(), top = rect.bottom + 8;
+    var left = centred ? (rect.left + rect.right - el.offsetWidth) / 2 : rect.right - el.offsetWidth;
+    if (top + el.offsetHeight > window.innerHeight - 8) { top = Math.max(8, rect.top - el.offsetHeight - 8); }
+    el.style.left = Math.max(8, Math.min(left, window.innerWidth - el.offsetWidth - 8)) + "px";
+    el.style.top = top + "px";
+    peek.el = el;
+  }
   function openPeek(words) {
-    var id = Number(words.getAttribute("data-peek"));
+    var id = Number(words.getAttribute("data-peek")), key = "peek:" + id;
     closePeek();
-    peek.id = id;
+    peek.id = key;
     peek.timer = setTimeout(function () {
       peekOf(id).then(function (data) {
-        if (peek.id !== id || peek.el || !document.body.contains(words) || (!data.text && !data.image && !data.files)) { return; }
+        if (peek.id !== key || peek.el || !document.body.contains(words) || (!data.text && !data.image && !data.files)) { return; }
         var el = document.createElement("div");
         el.className = "peek";
         el.setAttribute("role", "tooltip");
         el.innerHTML = (data.text ? "<p>" + esc(data.text) + "</p>" : "") + (data.image ? '<span class="peek__more">' + icon("image") + "מצורפת תמונה</span>" : "") +
           (data.files ? '<span class="peek__more">' + icon("attach-file") + (data.files === 1 ? "מצורף קובץ" : "מצורפים " + data.files + " קבצים") + "</span>" : "");
-        document.getElementById("board").appendChild(el);
-        // under the title, its right edge with the title's; above it when there is no room below
-        var rect = words.getBoundingClientRect(), left = rect.right - el.offsetWidth, top = rect.bottom + 8;
-        if (top + el.offsetHeight > window.innerHeight - 8) { top = Math.max(8, rect.top - el.offsetHeight - 8); }
-        el.style.left = Math.max(8, Math.min(left, window.innerWidth - el.offsetWidth - 8)) + "px";
-        el.style.top = top + "px";
-        peek.el = el;
+        showPeek(words, el);
       }, function () { /* no look this time */ });
     }, 400);
   }
+
+  /* who supported a topic, or put a sign on a message: the names behind the count (likersAttrs; the board's
+     /topics/ID/likers and /posts/ID/likers?emoji=, also without the session) */
+  var likers = {};
+  function likersOf(key) {
+    var kept = likers[key], part = key.split(":");
+    if (kept && Date.now() - kept.at < 2 * MIN) { return Promise.resolve(kept); }
+    return fetch(API + (part[0] === "t" ? "/topics/" + part[1] + "/likers" : "/posts/" + part[1] + "/likers?emoji=" + encodeURIComponent(part[2]))).then(function (response) {
+      if (!response.ok) { throw failure("server"); }
+      return response.json();
+    }).then(function (data) { data.at = Date.now(); likers[key] = data; return data; });
+  }
+  /** After the reader's own vote or sign: what was kept of that topic ("t:ID") or of that message's signs ("p:ID") is asked again. */
+  function forgetLikers(of) { Object.keys(likers).forEach(function (key) { if (key === of || key.indexOf(of + ":") === 0) { delete likers[key]; } }); }
+  /** "אתם, דנה ויוסי", "דנה, יוסי ועוד 3": the reader first when he is among them. A deleted account is not named - it is counted. */
+  function likersLine(data, mine) {
+    var me = state.me ? state.me.id : 0;
+    var names = data.users.filter(function (user) { return user.id !== me; }).map(function (user) { return name(user.name); });
+    if (mine) { names.unshift("אתם"); }
+    var rest = Math.max(0, data.n - names.length);
+    if (!names.length) { return rest === 1 ? "משתמש אחד" : rest + " משתמשים"; }
+    if (rest) { return names.join(", ") + " ועוד " + (rest === 1 ? "אחד" : rest); }
+    if (names.length === 1) { return names[0]; }
+    var last = names.pop(), word = last.replace(/<[^>]*>/g, "");
+    return names.join(", ") + (/^[\u0590-\u05ff]/.test(word) ? " ו" : " ו-") + last;
+  }
+  function openLikers(count) {
+    var key = count.getAttribute("data-likers"), n = Number(count.getAttribute("data-n")), mine = count.hasAttribute("data-mine"), id = "likers:" + key;
+    var head = n ? count.getAttribute("data-who") : count.getAttribute("data-hint");
+    closePeek();
+    if (!head) { return; }
+    peek.id = id;
+    peek.timer = setTimeout(function () {
+      (n ? likersOf(key).then(function (data) { return likersLine(data, mine); }, function () { return ""; }) : Promise.resolve("")).then(function (line) {
+        if (peek.id !== id || peek.el || !document.body.contains(count)) { return; }
+        var el = document.createElement("div");
+        el.className = "peek peek--who";
+        el.setAttribute("role", "tooltip");
+        el.innerHTML = line ? '<b class="peek__head">' + esc(head) + "</b><p>" + line + "</p>" : "<p>" + esc(head) + "</p>";
+        showPeek(count, el, true);
+      });
+    }, 300);
+  }
   if (FORUM && HOVERS) {
     document.addEventListener("mouseover", function (event) {
-      var words = event.target.closest ? event.target.closest("[data-peek]") : null;
-      if (words && peek.id !== Number(words.getAttribute("data-peek"))) { openPeek(words); }
+      var target = event.target.closest ? event.target : null;
+      var words = target && target.closest("[data-peek]"), count = target && target.closest("[data-likers]");
+      if (words && peek.id !== "peek:" + words.getAttribute("data-peek")) { openPeek(words); }
+      else if (count && peek.id !== "likers:" + count.getAttribute("data-likers")) { openLikers(count); }
     });
     document.addEventListener("mouseout", function (event) {
-      var words = event.target.closest ? event.target.closest("[data-peek]") : null;
-      if (words && !(event.relatedTarget && words.contains(event.relatedTarget))) { closePeek(); }
+      var target = event.target.closest ? event.target : null, over = target && (target.closest("[data-peek]") || target.closest("[data-likers]"));
+      if (over && !(event.relatedTarget && over.contains(event.relatedTarget))) { closePeek(); }
     });
   }
 
@@ -2417,6 +2481,7 @@
       if (!needLogin("כדי לתמוך נרשמים או נכנסים.")) { return; }
       var id = idOf(el), wanted = el.getAttribute("aria-pressed") !== "true";
       api("POST", "/topics/" + id + "/vote", { on: wanted }).then(function (out) {
+        forgetLikers("t:" + id);
         if (state.list) {
           state.list.voted[id] = out.voted;
           state.list.topics.forEach(function (topic) { if (topic.id === id) { topic.votes = out.votes; } });
@@ -2451,6 +2516,7 @@
       var wanted = (post.mine || []).indexOf(emoji) === -1;
       if (wanted && (post.mine || []).length >= state.config.limits.reactions) { closeFloat(); toast("אפשר לשים עד " + state.config.limits.reactions + " סימנים על הודעה."); return; }
       api("POST", "/posts/" + id + "/react", { emoji: emoji, on: wanted }).then(function (out) {
+        forgetLikers("p:" + id);
         post.reactions = out.reactions;
         post.mine = out.mine;
         closeFloat();
