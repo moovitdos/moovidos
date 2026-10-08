@@ -644,7 +644,7 @@ mark { padding: 0 2px; border-radius: 4px; background: var(--md-tertiary-contain
 .post--reply .post__name { font-size: 14px; color: hsl(var(--h, 212), var(--av-is), var(--av-il)); }
 .post--reply .rt { margin-top: 0; font-size: 15.5px; line-height: 1.55; }
 .post--reply .post__reacts { margin-top: 6px; }
-.post--reply .pic img { max-height: 320px; }
+.post--reply .pic img { width: calc(min(var(--w), 320 * var(--w) / var(--h)) * 1px); max-height: 320px; }
 .post--reply.post--dev .post__main { background: var(--md-tertiary-surface); }
 .post--mine { grid-template-columns: minmax(0, 1fr); padding: 0 84px 0 0; }
 .post--mine .post__lead, .post--mine .post__name, .post--mine .post__head .facelink { display: none; }
@@ -753,7 +753,11 @@ button.cite__who:hover { text-decoration: underline; }
 .cite--draft { position: relative; margin: 0 0 12px; padding-inline-end: 44px; }
 .cite--draft .ib { position: absolute; top: 4px; left: 4px; }
 .pic { display: block; max-width: 100%; margin-top: 12px; padding: 0; border: 0; background: none; cursor: zoom-in; }
-.pic img { display: block; width: auto; max-width: 100%; height: auto; max-height: 440px; border-radius: 16px; background: var(--md-fill); }
+/* the box of a picture is known before it arrives (--w / --h from board.js picture()): its width fits the height cap,
+   the ratio gives the height. With "width: auto" a lazy picture stood 0 x 0 until it loaded, and the thread grew under
+   a scroll that was on its way to the end (8.10.2026). Without the numbers (or the support) it is "auto", as before. */
+.pic img { display: block; width: calc(min(var(--w), 440 * var(--w) / var(--h)) * 1px); max-width: 100%; height: auto; max-height: 440px;
+  aspect-ratio: var(--w) / var(--h); border-radius: 16px; background: var(--md-fill); }
 
 /* the files of a message: a row of chips, each a download (and, while a message is written, each with a way to remove it) */
 .files { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }

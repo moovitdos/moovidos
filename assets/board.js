@@ -1319,7 +1319,9 @@
   }
   function picture(image) {
     return !image ? "" : '<button type="button" class="pic" data-act="zoom" data-key="' + esc(image.key) + '" aria-label="הגדלת התמונה">' +
-      '<img src="' + esc(API + "/image/" + image.key) + '" width="' + Number(image.w) + '" height="' + Number(image.h) + '" alt="תמונה שצורפה להודעה" loading="lazy"></button>';
+      '<img src="' + esc(API + "/image/" + image.key) + '" width="' + Number(image.w) + '" height="' + Number(image.h) + '"' +
+        // its box is kept before it arrives (board.css .pic img): a lazy picture of no height grew the thread under a scroll
+        (image.w > 0 && image.h > 0 ? ' style="--w:' + Number(image.w) + ";--h:" + Number(image.h) + '"' : "") + ' alt="תמונה שצורפה להודעה" loading="lazy"></button>';
   }
   function pollView(poll) {
     var total = poll.options.reduce(function (sum, option) { return sum + option.votes; }, 0);
@@ -1484,6 +1486,15 @@
   function threadEnd() {
     var thread = document.querySelector(".thread");
     return thread ? thread.getBoundingClientRect().bottom + window.pageYOffset - window.innerHeight + 12 : 0;
+  }
+  /** "לסוף השרשור" travels with the site's smooth scrolling, and what grows on the way (a picture that arrives, the
+   *  line of who is writing) moves the end: when the scroll comes to rest short of it, it goes on - for four seconds,
+   *  and not once the reader takes the page into his own hands (the scroll handler and the listeners below). */
+  var endChase = { until: 0, timer: 0 };
+  function chaseEnd() {
+    if (Date.now() > endChase.until) { endChase.until = 0; return; }
+    var y = window.pageYOffset, end = threadEnd(), room = document.documentElement.scrollHeight - window.innerHeight - y;
+    if (end - y > 2 && room > 2) { window.scrollTo(0, end); } else { endChase.until = 0; }
   }
   /** The pill shows once the end of the conversation (where the reply bar rests, not the foot of the page) is more
    *  than 56 px away - Jetchat's threshold. */
@@ -2500,7 +2511,8 @@
     },
     unquote: function () { ui.quote = null; document.getElementById("quote-slot").innerHTML = ""; },
     "thread-end": function (el, event) {
-      window.scrollTo(0, threadEnd());                         // the site's smooth scrolling travels there
+      endChase.until = Date.now() + 4000;
+      chaseEnd();                                              // the site's smooth scrolling travels there
       var field = document.getElementById("reply-text") || document.querySelector("#composer .replybar");      // from the keyboard: on to the reply
       if (field && event.detail === 0) { field.focus({ preventScroll: true }); }
     },
@@ -2915,7 +2927,13 @@
     clearTimeout(scrolling);
     scrolling = setTimeout(reached, 150);
     if (!jumping) { jumping = requestAnimationFrame(function () { jumping = 0; threadState(); }); }
+    if (endChase.until) { clearTimeout(endChase.timer); endChase.timer = setTimeout(chaseEnd, 150); }      // at rest: at the end yet?
   }, { passive: true });
+  // a picture that arrives moves the end of the thread without a scroll: the pill and the bar measure again
+  document.addEventListener("load", function (event) { if (event.target.tagName === "IMG" && ui.view === "topic") { threadState(); } }, true);
+  ["wheel", "touchstart", "mousedown"].forEach(function (type) {          // the reader scrolls himself: the way to the end stops
+    window.addEventListener(type, function () { endChase.until = 0; }, { passive: true });
+  });
   window.addEventListener("resize", function () { closeFloat(); threadState(); if (ui.nav && drawerBeside()) { closeNav(); } });
   document.addEventListener("submit", function (event) {
     var kind = event.target.getAttribute("data-form");
