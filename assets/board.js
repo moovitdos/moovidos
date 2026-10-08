@@ -1225,11 +1225,14 @@
       return '<a class="navitem" href="' + (item[0] ? "#k=" + item[0] : "#") + '" title="' + item[1] + '"' + (on ? ' aria-current="true"' : "") + ">" + icon(item[2]) + "<span>" + item[1] +
         '</span><span class="navitem__n">' + (list.counts ? counts[item[3]] || 0 : "") + "</span></a>";
     }).join("");
+    // the folded rail holds at most seven destinations and never scrolls (Material's rail): the kinds and "לא נקראו";
+    // the rest of a member's places only in the open drawer (navitem--more), but the one he is on stays in sight
     var mine = !state.me ? "" : '<hr class="hr">' + MINE.map(function (item) {
-      return '<a class="navitem" href="#f=' + item[0] + '" title="' + item[1] + '"' + (listed && route.filter === item[0] ? ' aria-current="true"' : "") + ">" + icon(item[2]) + "<span>" + item[1] + "</span>" +
+      var current = listed && route.filter === item[0];
+      return '<a class="navitem' + (item[0] === "unread" || current ? "" : " navitem--more") + '" href="#f=' + item[0] + '" title="' + item[1] + '"' + (current ? ' aria-current="true"' : "") + ">" + icon(item[2]) + "<span>" + item[1] + "</span>" +
         (item[0] === "unread" && list.waiting ? '<span class="counter">' + list.waiting + "</span>" : "<span></span>") + "</a>";
-    }).join("") + '<a class="navitem" href="#saved" title="הודעות ששמרתי"' + (ui.view === "saved" ? ' aria-current="true"' : "") + ">" + icon("bookmarks") + "<span>הודעות ששמרתי</span><span></span></a>" +
-      '<a class="navitem" href="#drafts" title="טיוטות"' + (ui.view === "drafts" ? ' aria-current="true"' : "") + ">" + icon("edit") + "<span>טיוטות</span>" +
+    }).join("") + '<a class="navitem' + (ui.view === "saved" ? "" : " navitem--more") + '" href="#saved" title="הודעות ששמרתי"' + (ui.view === "saved" ? ' aria-current="true"' : "") + ">" + icon("bookmarks") + "<span>הודעות ששמרתי</span><span></span></a>" +
+      '<a class="navitem' + (ui.view === "drafts" ? "" : " navitem--more") + '" href="#drafts" title="טיוטות"' + (ui.view === "drafts" ? ' aria-current="true"' : "") + ">" + icon("edit") + "<span>טיוטות</span>" +
         (draftCount() ? '<span class="counter">' + draftCount() + "</span>" : "<span></span>") + "</a>";
     var tags = (list.tags || []).length ? '<hr class="hr"><p class="navlabel">תגיות</p><div class="chips">' + list.tags.map(function (item) {
       return '<a class="chip' + (route.tag && sameTag(route.tag, item.tag) ? " chip--on" : "") + '" href="#tag=' + encodeURIComponent(item.tag) + '">' + name(item.tag) +

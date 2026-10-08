@@ -408,10 +408,10 @@ a.who:hover { text-decoration: underline; }
 .drawer > .drawer__head { margin-bottom: -4px; }
 .shell--rail .drawer__head { justify-content: center; padding: 0; }
 .shell--rail { grid-template-columns: 80px minmax(0, 1fr); }
-.shell--rail .drawer { justify-items: center; gap: 12px; }
+.shell--rail .drawer { justify-items: center; gap: 12px; max-height: none; overflow: visible; }      /* a rail does not scroll (Material): it holds few enough destinations */
 .shell--rail .drawer .fab { justify-self: center; width: 56px; padding: 0; justify-content: center; }
 .shell--rail .fab__label, .shell--rail .navitem > span:not(.counter), .shell--rail .drawer .navlabel, .shell--rail .drawer .chips, .shell--rail .drawer .wanted,
-.shell--rail .drawer > .hr { display: none; }
+.shell--rail .drawer > .hr, .shell--rail .navitem.navitem--more { display: none; }
 .shell--rail .navlist { justify-items: center; gap: 4px; }
 .shell--rail .navitem { position: relative; display: flex; justify-content: center; width: 56px; height: 36px; padding: 0; border-radius: 18px; }
 .shell--rail .navitem .counter { position: absolute; top: -2px; inset-inline-end: 4px; }
