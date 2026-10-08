@@ -489,9 +489,14 @@
   /** A topic opens where its reader stopped: at the message the address names, or at the first one that is new for him. */
   function land() {
     var wanted = ui.route.post ? document.getElementById("p" + ui.route.post) : null;
-    if (wanted) { jump(wanted.getBoundingClientRect().top + window.pageYOffset - 84); flash(wanted); return; }
+    if (wanted) { jump(wanted.getBoundingClientRect().top + window.pageYOffset - headroom()); flash(wanted); return; }
     var fresh = document.querySelector(".thread .newline");
-    jump(!fresh ? 0 : fresh.getBoundingClientRect().top + window.pageYOffset - 84);
+    jump(!fresh ? 0 : fresh.getBoundingClientRect().top + window.pageYOffset - headroom());
+  }
+  /** What covers the top of a topic once it is scrolled: the site's bar, the topic's own pinned under it, and 12 px of air. */
+  function headroom() {
+    var site = document.querySelector(".top"), bar = document.querySelector(".tv__top");
+    return (site ? site.offsetHeight : 64) + (bar ? bar.offsetHeight : 0) + 12;
   }
   function flash(el) {
     el.classList.add("post--flash");
@@ -724,7 +729,7 @@
     document.getElementById("float").innerHTML = "";
     if (anchor && document.body.contains(anchor)) {
       anchor.setAttribute("aria-expanded", "false");
-      if (refocus) { anchor.focus(); }
+      if (refocus) { anchor.focus({ preventScroll: true }); }      // it is in sight (a scroll closes the float), and a focus that scrolls jumped the page from a sticky bar
     }
   }
   function menuItem(act, iconId, label, attrs, more, danger) {
@@ -1209,10 +1214,11 @@
     var found = (route.filter ? MINE : NAV).filter(function (item) { return item[0] === (route.filter || route.kind); })[0];
     return found ? found[1] : NAV[0][1];
   }
-  /** The drawer: "נושא חדש" at its top, the places of the forum, the tags and the wanted ideas. Beside the list in a
-   *  wide window (folded into a strip of icons when the reader asks, ui.rail); over the page when `modal` - a narrow
-   *  window, or a page that has no drawer of its own (openNav). */
-  function drawer(modal) {
+  /** The drawer: "נושא חדש" at its top, the places of the forum, the tags and the wanted ideas. Beside every page of
+   *  the forum in a wide window (shell): folded into a strip of icons when the reader asks (ui.rail), and beside a
+   *  topic always folded (`rail`: its button opens the whole drawer over the page, so that the conversation keeps its
+   *  width); over the page when `modal` - a narrow window (openNav). */
+  function drawer(modal, rail) {
     var route = ui.route, list = state.list || {}, counts = list.counts || {}, listed = ui.view === "list";
     var nav = NAV.map(function (item) {
       var on = listed && !route.filter && !route.tag && route.kind === item[0];
@@ -1235,19 +1241,25 @@
     // the button that opens and closes the drawer sits at its top, where the drawer starts (Material's rail and drawer)
     var head = modal ? '<div class="drawer__head"><button type="button" class="ib" data-act="drawer-close" aria-label="סגירת התפריט" title="סגירת התפריט">' + icon("menu") + "</button>" +
         '<p class="drawer__title">פורום</p></div>'
-      : '<div class="drawer__head">' + menuButton(ui.rail ? "פתיחת התפריט" : "כיווץ התפריט") + "</div>";
+      : '<div class="drawer__head">' + (rail ? menuButton("פתיחת התפריט", true) : menuButton(ui.rail ? "פתיחת התפריט" : "כיווץ התפריט")) + "</div>";
     return '<aside class="drawer' + (modal ? " drawer--modal" : "") + '"' + (modal ? ' role="dialog" aria-modal="true" aria-label="תפריט הפורום"' : "") + ">" + head +
       '<button type="button" class="fab" data-act="new" title="נושא חדש">' + icon("add") + '<span class="fab__label">נושא חדש</span></button>' +
       '<nav class="navlist" aria-label="סינון הנושאים">' + nav + mine + "</nav>" + tags + wanted + "</aside>";
   }
-  /** The menu button: folds the drawer beside the list of a wide window, opens it over the page anywhere else. */
-  function menuButton(label) {
-    return '<button type="button" class="ib navbtn" data-act="drawer" aria-label="' + (label || "תפריט") + '" title="' + (label || "תפריט") + '"' + (label ? "" : ' aria-haspopup="true"') + ">" +
+  /** The menu button: folds the drawer beside the list of a wide window, opens it over the page anywhere else
+   *  (`popup`: a labelled one that opens it over the page - the top of the strip beside a topic). */
+  function menuButton(label, popup) {
+    return '<button type="button" class="ib navbtn" data-act="drawer" aria-label="' + (label || "תפריט") + '" title="' + (label || "תפריט") + '"' + (label && !popup ? "" : ' aria-haspopup="true"') + ">" +
       icon("menu") + "</button>";
   }
-  /** "נושא חדש" floating at the corner, for the pages that have no drawer beside them. */
+  /** "נושא חדש" floating at the corner of a narrow window, where the drawer is not beside the page. */
   function newTopicFab() {
-    return '<button type="button" class="fab fab--float fab--always" data-act="new">' + icon("add") + "נושא חדש</button>";
+    return '<button type="button" class="fab fab--float" data-act="new">' + icon("add") + "נושא חדש</button>";
+  }
+  /** A page of the forum with the drawer beside it (a wide window; below it board.css hides the drawer and the
+   *  page's own menu button opens it over the page): folded as the reader left it, and always beside a topic. */
+  function shell(inner, topic) {
+    return '<div class="shell' + (topic || ui.rail ? " shell--rail" : "") + '">' + drawer(false, topic) + '<div class="main">' + inner + "</div></div>";
   }
   function listView() {
     var route = ui.route, list = state.list, topics = list.topics, counts = list.counts || {};
@@ -1283,10 +1295,9 @@
           : route.filter === "mine" ? "עוד לא פתחתם נושא." : route.tag ? "אין נושאים עם התגית הזו." : "עוד לא נפתחו נושאים מהסוג הזה.") + "</p>" +
         (own ? '<div class="row"><button type="button" class="mb mb--tonal" data-act="new" data-kind="' + own[0] + '">' + icon("add") + own[1] + "</button></div>" : "") + "</div>";
     }
-    return welcome() + '<div class="shell' + (ui.rail ? " shell--rail" : "") + '">' + drawer() + '<div class="main"><div class="searchrow">' + '<span class="navbtn--narrow">' + menuButton() + "</span>" + searchForm("") + "</div>" +
+    return welcome() + shell('<div class="searchrow">' + '<span class="navbtn--narrow">' + menuButton() + "</span>" + searchForm("") + "</div>" +
       '<nav class="kindchips" aria-label="סינון הנושאים">' + chips + "</nav>" +
-      '<div class="listbar"><h2 class="listbar__sum">' + listTitle(route) + "</h2>" + sorts + "</div>" + body + "</div></div>" +
-      '<button type="button" class="fab fab--float" data-act="new">' + icon("add") + "נושא חדש</button>";
+      '<div class="listbar"><h2 class="listbar__sum">' + listTitle(route) + "</h2>" + sorts + "</div>" + body) + newTopicFab();
   }
 
   /* ---------- one topic ---------- */
@@ -1442,13 +1453,13 @@
    *  the smileys inside it, the send button after it. What is typed is kept in ui.reply. */
   function composerView() {
     var topic = state.current.topic, me = state.me, id = "reply-text";
-    if (me && topic.locked && !isMod()) { return '<li id="composer"><p class="banner">' + icon("lock") + "<span>הנושא נעול: אי אפשר להוסיף בו תגובות.</span></p></li>"; }
+    if (me && topic.locked && !isMod()) { return '<li id="composer" class="dock">' + endView() + '<p class="banner">' + icon("lock") + "<span>הנושא נעול: אי אפשר להוסיף בו תגובות.</span></p></li>"; }
     if (!me) {
-      return '<li id="composer" class="dock"><div class="dock__typing" id="typing-slot" role="status">' + typingView() + '</div><button type="button" class="replybar" data-act="reply-open">' +
+      return '<li id="composer" class="dock">' + endView() + '<div class="dock__typing" id="typing-slot" role="status">' + typingView() + '</div><button type="button" class="replybar" data-act="reply-open">' +
         "<span>כתיבת תגובה…</span>" + icon("send", "mi--flip") + "</button></li>";
     }
     var typed = ui.reply && ui.reply.id === topic.id ? ui.reply.text : "";
-    return '<li id="composer" class="dock"><form class="dock__form' + (typed.trim() || ui.shots.reply ? " is-ready" : "") + '" data-form="reply" data-id="' + topic.id + '" novalidate>' +
+    return '<li id="composer" class="dock">' + endView() + '<form class="dock__form' + (typed.trim() || ui.shots.reply ? " is-ready" : "") + '" data-form="reply" data-id="' + topic.id + '" novalidate>' +
       '<div class="dock__typing" id="typing-slot" role="status">' + typingView() + "</div>" +
       '<div id="quote-slot">' + quoteSlot() + "</div>" +
       '<div class="toolbar dock__tools" id="reply-tools" hidden>' + textTools(id) + '<span class="grow"></span>' + previewButton(id) + "</div>" +
@@ -1461,6 +1472,31 @@
         '<button class="dock__send" title="שליחה (Ctrl+Enter)" aria-label="שליחה">' + icon("send", "mi--flip") + "</button></div>" +
       attachBox("reply") + '<p class="form-error" role="alert"></p></form></li>';
   }
+  /** "לסוף השרשור": one pill above the reply bar, in its middle, while the end of the conversation is out of sight -
+   *  Material 3's extended FAB as Google's own chat sample has it (Jetchat's JumpToBottom), shown by endState. */
+  function endView() {
+    return '<button type="button" class="mb tvend" data-act="thread-end">' + icon("arrow-downward") + "לסוף השרשור</button>";
+  }
+  /** Where the conversation ends: its last message just above the reply bar, the foot of the page below. */
+  function threadEnd() {
+    var thread = document.querySelector(".thread");
+    return thread ? thread.getBoundingClientRect().bottom + window.pageYOffset - window.innerHeight + 12 : 0;
+  }
+  /** The pill shows once the end of the conversation (where the reply bar rests, not the foot of the page) is more
+   *  than 56 px away - Jetchat's threshold. */
+  function endState() {
+    var pill = document.querySelector(".tvend");
+    if (ui.view !== "topic" || !pill) { return; }
+    pill.classList.toggle("tvend--on", threadEnd() - window.pageYOffset > 56);
+  }
+  /** The topic's bar, pinned under the site's, takes the title in one line once the large title has gone up under it -
+   *  Material 3's large top app bar collapsing into the small one; the way back stays at hand all along the thread. */
+  function barState() {
+    var bar = document.querySelector(".tv__top"), title = document.querySelector(".tv__title");
+    if (ui.view !== "topic" || !bar || !title) { return; }
+    bar.classList.toggle("tv__top--stuck", title.getBoundingClientRect().bottom <= bar.getBoundingClientRect().bottom);
+  }
+  function threadState() { endState(); barState(); }
   /** The send button of the reply bar wakes up when there is something to send. */
   function dockReady() {
     var input = document.getElementById("reply-text");
@@ -1516,18 +1552,22 @@
       '<div id="here-slot">' + hereView() + "</div>" +
       (people.length > 1 ? '<div class="panel"><p class="panel__title">משתתפים</p><div class="people">' + people.map(personLink).join("") + "</div></div>" : "") + "</aside>";
     var answerLink = topic.answer ? '<button type="button" class="chip" data-act="goto" data-id="' + topic.answer + '">' + icon("check-circle") + "אל התשובה</button>" : "";
-    return '<div class="tv"><div class="tv__main"><header class="tv__head"><div class="tv__top">' +
+    // the drawer beside the topic too, folded into its strip: the way out of a long conversation stays at hand
+    // the bar with the way back sits outside the header: a sticky box stays pinned only within its parent, and this one
+    // must stay all along the thread (barState)
+    return shell('<div class="tv"><div class="tv__main"><div class="tv__top">' +
         '<a class="ib" href="' + (ui.listHash || "#") + '" aria-label="חזרה לרשימת הנושאים" title="חזרה לרשימה">' + icon("arrow-forward") + "</a>" +
+        '<span class="tv__bartitle" aria-hidden="true">' + name(topic.title) + "</span>" +
         '<span class="lbl lbl--' + esc(topic.kind) + '">' + icon(KIND_ICON[topic.kind] || "forum") + (KINDS[topic.kind] || "") + "</span>" + stateLabels(topic) +
         (topic.pinned ? '<span class="lbl">' + icon("push-pin-fill") + "נעוץ</span>" : "") + (topic.locked ? '<span class="lbl">' + icon("lock") + "נעול</span>" : "") +
-        '<span class="grow"></span>' + menuButton() +
+        '<span class="grow"></span><span class="navbtn--narrow">' + menuButton() + "</span>" +
         '<button type="button" class="ib" data-act="topic-menu" aria-haspopup="true" aria-expanded="false" aria-label="פעולות על הנושא" title="עוד">' + icon("more-vert") + "</button></div>" +
-      '<h1 class="tv__title">' + name(topic.title) + "</h1>" +
+      '<header class="tv__head"><h1 class="tv__title">' + name(topic.title) + "</h1>" +
       '<div class="tv__meta">' + byline(topic.author, true) + DOT + "<span>" + ago(topic.created) + "</span>" + DOT + "<span>" + repliesCount(topic.replies) + "</span>" +
         topic.tags.map(function (tag) { return '<a class="tagchip" href="#tag=' + encodeURIComponent(tag) + '">#' + name(tag) + "</a>"; }).join("") + "</div>" +
       '<div class="tv__acts">' + voteButton(false) + (me ? watchButton(false) : "") + "</div>" +
       (answerLink ? '<div class="row" style="margin-top:12px">' + answerLink + "</div>" : "") + "</header>" +
-      '<ol class="thread">' + posts + composer + "</ol></div>" + side + "</div>";
+      '<ol class="thread">' + posts + composer + "</ol></div>" + side + "</div>", true);
   }
 
   /* ---------- a search, the kept messages ---------- */
@@ -1540,7 +1580,7 @@
   }
   function pageHead(title, back) {
     return '<div class="pagehead"><a class="ib" href="' + (back || ui.listHash || "#") + '" aria-label="חזרה" title="חזרה" style="margin-inline-start:-8px">' + icon("arrow-forward") + "</a><h1>" + title + "</h1>" +
-      '<span class="grow"></span>' + menuButton() + "</div>";
+      '<span class="grow"></span><span class="navbtn--narrow">' + menuButton() + "</span></div>";
   }
   function searchView() {
     var found = state.found, q = ui.route.q;
@@ -1802,23 +1842,24 @@
     document.title = ui.view === "topic" ? state.current.topic.title + " - מובידוס" : ui.view === "privacy" ? "פרטיות - מובידוס" : TITLE;
     if (ui.view === "list") { view.innerHTML = listView(); }
     else if (ui.view === "topic") { view.innerHTML = topicView(); setTimeout(reached, 300); }
-    else if (ui.view === "search") { view.innerHTML = searchView(); }
-    else if (ui.view === "saved") { view.innerHTML = savedView(); }
-    else if (ui.view === "drafts") { view.innerHTML = draftsView(); }
-    else if (ui.view === "user") { view.innerHTML = userView(); }
-    else if (ui.view === "account") { view.innerHTML = accountView(); }
-    else if (ui.view === "admin") { view.innerHTML = adminView(); }
+    else if (ui.view === "search") { view.innerHTML = shell(searchView()); }
+    else if (ui.view === "saved") { view.innerHTML = shell(savedView()); }
+    else if (ui.view === "drafts") { view.innerHTML = shell(draftsView()); }
+    else if (ui.view === "user") { view.innerHTML = shell(userView()); }
+    else if (ui.view === "account") { view.innerHTML = shell(accountView()); }
+    else if (ui.view === "admin") { view.innerHTML = shell(adminView()); }
     else if (ui.view === "privacy") {        // what the forum keeps and why: the text of forum.html's #privacy-text
-      view.innerHTML = '<div class="narrow">' + pageHead("פרטיות") + '<div class="prose">' + document.getElementById("privacy-text").innerHTML + "</div></div>";
+      view.innerHTML = shell('<div class="narrow">' + pageHead("פרטיות") + '<div class="prose">' + document.getElementById("privacy-text").innerHTML + "</div></div>");
     }
     else if (ui.view === "missing") {
-      view.innerHTML = '<div class="narrow">' + pageHead("לא נמצא") + '<div class="empty"><span class="empty__icon">' + icon("search") + "</span><h2>לא נמצא</h2><p>" + ERRORS.not_found + "</p></div></div>";
+      view.innerHTML = shell('<div class="narrow">' + pageHead("לא נמצא") + '<div class="empty"><span class="empty__icon">' + icon("search") + "</span><h2>לא נמצא</h2><p>" + ERRORS.not_found + "</p></div></div>");
     } else if (ui.view === "failed") {
       view.innerHTML = '<div class="narrow"><div class="empty"><span class="empty__icon">' + icon("error") + "</span><h2>הפורום לא נטען</h2><p>" + explain(ui.failure) + "</p>" +
         (ui.failure.code === "network" ? '<p>כתובת הפורום: <span class="ltr">' + esc(API || location.origin) + "</span></p>" : "") +
         (ui.failure.code === "not_configured" ? "" : '<div class="row"><button type="button" class="mb mb--tonal" data-act="retry">' + icon("refresh") + "ניסיון נוסף</button></div>") + "</div></div>";
     } else { view.innerHTML = '<p class="bstate">טוען…</p>'; }
     fitAll();
+    threadState();
     renderUser();
     renderPill();
   }
@@ -2169,9 +2210,12 @@
           ui.files.reply = [];
           ui.typedAt = 0;                          // no longer writing
           ui.liveUntil = Date.now() + 2 * MIN;
-          toast(made.state === "held" ? "ההודעה נשלחה וממתינה לאישור." : "ההודעה פורסמה.");
-          ui.route.post = made.id;                 // the page lands on what was just written
-          return again().then(land);
+          if (made.state === "held") { toast("ההודעה נשלחה וממתינה לאישור."); }      // a published one is seen at the end, where a snackbar would cover it
+          return again().then(function () {        // the page stays at the end, on what was just written
+            jump(threadEnd());                     // (not land(): again() reads the route from the address, which names no message)
+            var mine = document.getElementById("p" + made.id);
+            if (mine) { flash(mine); }
+          });
         });
       });
     },
@@ -2452,6 +2496,11 @@
       el.setAttribute("aria-pressed", on);
     },
     unquote: function () { ui.quote = null; document.getElementById("quote-slot").innerHTML = ""; },
+    "thread-end": function (el, event) {
+      window.scrollTo(0, threadEnd());                         // the site's smooth scrolling travels there
+      var field = document.getElementById("reply-text") || document.querySelector("#composer .replybar");      // from the keyboard: on to the reply
+      if (field && event.detail === 0) { field.focus({ preventScroll: true }); }
+    },
     "goto": function (el) {
       var target = document.getElementById("p" + idOf(el));
       if (!target) { return; }
@@ -2766,8 +2815,11 @@
   };
 
   /* ---------- the drawer over the page ---------- */
-  /** Is the drawer beside the list (a wide window)? Below it, the drawer comes over the page (board.css: max-width 1000px). */
-  function drawerBeside() { return ui.view === "list" && !(window.matchMedia && window.matchMedia("(max-width: 1000px)").matches); }
+  /** Does the menu button fold the drawer beside the page (a wide window, any page of the forum but a topic, whose strip
+   *  opens it over the page)? Below 1000 px the drawer comes over the page (board.css). */
+  function drawerBeside() {
+    return ui.view !== "topic" && !!document.querySelector("#view .shell") && !(window.matchMedia && window.matchMedia("(max-width: 1000px)").matches);
+  }
   /** Material's modal navigation drawer: over a scrim; closed by the scrim, by Escape, by its close button, by going anywhere. */
   function openNav(opener) {
     var layer = document.getElementById("navlayer");
@@ -2852,15 +2904,16 @@
       typedInto(field, pasted, from, field.selectionEnd, from + pasted.length, from + pasted.length);
     }
   });
-  var scrolling = 0;
+  var scrolling = 0, jumping = 0;
   window.addEventListener("scroll", function () {            // reading on: the point reached moves with the screen
     ui.active = Date.now();
     closeFloat();
     closePeek();
     clearTimeout(scrolling);
     scrolling = setTimeout(reached, 150);
+    if (!jumping) { jumping = requestAnimationFrame(function () { jumping = 0; threadState(); }); }
   }, { passive: true });
-  window.addEventListener("resize", function () { closeFloat(); if (ui.nav && drawerBeside()) { closeNav(); } });
+  window.addEventListener("resize", function () { closeFloat(); threadState(); if (ui.nav && drawerBeside()) { closeNav(); } });
   document.addEventListener("submit", function (event) {
     var kind = event.target.getAttribute("data-form");
     if (!kind || !forms[kind]) { return; }

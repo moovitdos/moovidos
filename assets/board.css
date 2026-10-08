@@ -182,7 +182,6 @@
 }
 .fab:hover { box-shadow: var(--md-shadow-3); }
 .fab--float { display: none; position: fixed; z-index: 15; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 16px; box-shadow: var(--md-shadow-3); }
-.fab--always { display: inline-flex; }                       /* the pages without a drawer beside them (board.js: newTopicFab) */
 
 /* ---------- chips, labels, badges ---------- */
 .chip {
@@ -397,7 +396,7 @@ a.who:hover { text-decoration: underline; }
 .art-thin { stroke: var(--md-card); stroke-width: 8; opacity: .7; }
 .art-stop { fill: var(--md-card); stroke: var(--md-on-primary-container); stroke-width: 4; }
 
-/* ---------- the list: the drawer on the side, the topics as one grouped list ---------- */
+/* ---------- the drawer beside every page of the forum (beside a topic folded into its strip); the list: the topics as one grouped list ---------- */
 .shell { display: grid; grid-template-columns: 264px minmax(0, 1fr); gap: 24px; align-items: start; }
 .drawer { position: sticky; top: 84px; display: grid; gap: 16px; max-height: calc(100vh - 100px); overflow-y: auto; scrollbar-width: thin; padding-bottom: 4px; }
 .drawer__title { padding-inline: 16px; font-size: 22px; line-height: 28px; }
@@ -528,8 +527,30 @@ mark { padding: 0 2px; border-radius: 4px; background: var(--md-tertiary-contain
 
 /* ---------- one topic ---------- */
 .tv { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
-.tv__top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; min-height: 40px; }
+/* the topic's top bar: pinned under the site's bar (64 px and its line) all along the thread, so that the way back and
+   the topic's menu are never a scroll away. Once the large title has gone up under it the bar takes the title in one
+   line, as Material 3's large top app bar collapses into the small one (board.js: barState). Its height never changes
+   on the way: the labels give their place to the title (visibility, not display), or the thread would jump under the
+   finger. The bottom 8 px of air replace the margin the row had. */
+.tv__top { position: sticky; top: calc(65px + env(safe-area-inset-top, 0px)); z-index: 6; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  min-height: 56px; margin-top: -8px; padding-block: 8px; background: var(--md-surface); }
 .tv__top .ib { margin-inline-start: -8px; }
+.tv__top--stuck { box-shadow: 0 1px 0 var(--md-outline-variant); }
+/* the page keeps the site's scroll padding (80 px, site.css). Focus scrolls whatever it lands on below it - a sticky
+   button too, so the bar's buttons, whose top is 8 px inside it, take that back (or each focus nudges the thread and a
+   menu opened from the bar closes); and what the keyboard reaches inside the thread stops below the topic's bar too.
+   A bigger scroll padding on the page was tried: a menu opened from the bar focused its first item under it and the
+   page jumped up 270 px. */
+.tv__top .ib { scroll-margin-top: -16px; }
+.thread :is(a, button, textarea, input, select, [tabindex]) { scroll-margin-top: 56px; }
+.tv__top--stuck .lbl { visibility: hidden; }
+.tv__bartitle { position: absolute; top: 8px; inset-inline: 40px 48px; height: 40px; line-height: 40px; font-size: 18px; font-weight: 500; color: var(--md-on-surface);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; visibility: hidden; opacity: 0; transform: translateY(8px); }
+.tv__top--stuck .tv__bartitle { visibility: visible; opacity: 1; transform: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .tv__bartitle { transition: opacity .15s linear, transform .2s var(--spring), visibility 0s .2s; }
+  .tv__top--stuck .tv__bartitle { transition: opacity .15s linear, transform .25s var(--spring), visibility 0s; }
+}
 .tv__title { font-size: clamp(24px, 2.8vw, 32px); line-height: 1.25; overflow-wrap: anywhere; }
 .tv__meta { margin-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 14px; color: var(--md-on-surface-variant); }
 .tv__acts { display: none; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
@@ -580,7 +601,7 @@ mark { padding: 0 2px; border-radius: 4px; background: var(--md-tertiary-contain
 .people { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .thread { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.post { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 16px; align-items: start; padding: 16px 20px; border-radius: 20px; background: var(--md-card); scroll-margin-top: 84px; }
+.post { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 16px; align-items: start; padding: 16px 20px; border-radius: 20px; background: var(--md-card); scroll-margin-top: 56px; }
 .post--dev { background: var(--md-tertiary-surface); }
 .post--answer { background: var(--md-green-surface); }
 .post--off { background: none; box-shadow: inset 0 0 0 1px var(--md-outline-variant); }
@@ -651,7 +672,7 @@ mark { padding: 0 2px; border-radius: 4px; background: var(--md-tertiary-contain
 /* Where a reply is written: a bar that stays at the bottom of the window, like the one of a chat. The picture
    button before the field, the "A" and the smileys inside it, the send button after it. The strip behind the bar
    has the page's own colour, so the messages pass under it. */
-.dock { position: sticky; bottom: 0; z-index: 5; margin-top: 2px; padding: 8px 0 12px; background: var(--md-surface); scroll-margin-top: 84px; }
+.dock { position: sticky; bottom: 0; z-index: 5; margin-top: 2px; padding: 8px 0 12px; background: var(--md-surface); scroll-margin-top: 56px; }
 .dock__form { display: grid; gap: 6px; }
 .dock__row { display: flex; align-items: flex-end; gap: 8px; }
 .dock__add, .dock__send {
@@ -692,6 +713,20 @@ mark { padding: 0 2px; border-radius: 4px; background: var(--md-tertiary-contain
 }
 .replybar > span { flex: 1 1 0; min-width: 0; }
 .has-dock .snack { bottom: 88px; }
+/* "לסוף השרשור": Material 3's extended FAB as Google's chat sample has it (Jetchat's JumpToBottom) - a 36 px pill in the
+   surface colour with the primary text, level 3, in the middle above the reply bar; it rises 16 px as it comes
+   (board.js: endView, endState) */
+.tvend {
+  position: absolute; bottom: 100%; left: 50%; margin-bottom: 12px; height: 36px; padding: 0 16px; gap: 8px; border-radius: 18px;
+  background: var(--md-card); box-shadow: var(--md-shadow-3);
+  visibility: hidden; opacity: 0; transform: translate(-50%, 16px);
+}
+.tvend .mi { margin-inline-start: -4px; }
+.tvend--on { visibility: visible; opacity: 1; transform: translate(-50%, 0); }
+@media (prefers-reduced-motion: no-preference) {
+  .tvend { transition: opacity .15s var(--ease), transform .2s var(--ease), visibility 0s .2s, border-radius .35s var(--spring); }
+  .tvend--on { transition: opacity .2s var(--ease), transform .3s var(--arrive), visibility 0s, border-radius .35s var(--spring); }
+}
 
 /* the text of a message */
 .rt { margin-top: 4px; font-size: 16px; line-height: 1.65; overflow-wrap: anywhere; }
@@ -936,6 +971,7 @@ a.file:hover { background: var(--md-fill-high); }
   .kindchips { display: flex; }
   .fab--float { display: inline-flex; }
   .navbtn--narrow { display: inline-flex; }
+  .tv__bartitle { inset-inline-end: 88px; }        /* the ☰ beside the menu */
   .board[data-view="topic"] ~ .fab--float { display: none; }
   .tv { grid-template-columns: minmax(0, 1fr); }
   .side { display: none; }
